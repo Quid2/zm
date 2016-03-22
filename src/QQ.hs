@@ -2,7 +2,6 @@
 module QQ(Char,List,Word7,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64) where
 import Prelude(Eq,Ord,Show)
 import Data.Model
---import GHC.Generics
 import Data.Typed.Types
 
 import QQ.Word7
