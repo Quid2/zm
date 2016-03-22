@@ -3,6 +3,8 @@
 import Control.Applicative
 import Test.Data
 import Test.Data.Flat
+import Test.Data.Model
+import qualified Test.Data2            as Data2
 import Data.Typed
 import Data.Model
 import qualified Data.Map as M
@@ -10,16 +12,24 @@ import Data.Maybe
 import Data.List
 import Data.Foldable
 import Data.Bifunctor
+import Data.Word
+import Data.Int
 
 x = tst (Proxy :: Proxy (List Bool))
 
-tst = absTypeEnv
+tst = absoluteType
 
-t =  mapM (prt . prtInstance) [
-  tst (Proxy :: Proxy Q.Word7)
-  ,tst (Proxy :: Proxy Q.String)
-  ,tst (Proxy :: Proxy Q.Char)
-  ,tst (Proxy :: Proxy Q.Natural)
+t = main
+
+main =  mapM prt [
+  --tst (Proxy :: Proxy Q.Word7)
+   tst (Proxy :: Proxy Char)
+  ,tst (Proxy :: Proxy String)
+  ,tst (Proxy :: Proxy Word8)
+  ,tst (Proxy :: Proxy Word16)
+  ,tst (Proxy :: Proxy Int8)
+  ,tst (Proxy :: Proxy Int16)
+   --,tst (Proxy :: Proxy Q.Natural)
   ,tst (Proxy :: Proxy Unit)
   ,tst (Proxy :: Proxy Bool)
   ,tst (Proxy :: Proxy N)

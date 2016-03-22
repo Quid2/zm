@@ -7,12 +7,20 @@ import Data.Model
 import Data.Typed.Types
 import qualified QQ
 import Data.Word
+import Data.Int
 import Data.Flat
 
 instance Model Char where envType _ = envType (Proxy::Proxy QQ.Char)
+
 instance Model Word8 where envType _ = envType (Proxy::Proxy QQ.Word8)
 instance Model Word16 where envType _ = envType (Proxy::Proxy QQ.Word16)
 instance Model Word32 where envType _ = envType (Proxy::Proxy QQ.Word32)
+instance Model Word64 where envType _ = envType (Proxy::Proxy QQ.Word64)
+
+instance Model Int8 where envType _ = envType (Proxy::Proxy QQ.Int8)
+instance Model Int16 where envType _ = envType (Proxy::Proxy QQ.Int16)
+instance Model Int32 where envType _ = envType (Proxy::Proxy QQ.Int32)
+instance Model Int64 where envType _ = envType (Proxy::Proxy QQ.Int64)
 
  -- instance {-# OVERLAPPABLE #-} HasModel a => HasModel [a] where envType _ = envType (Proxy::Proxy (Q.List a))
 
@@ -33,10 +41,18 @@ instance Model ADTRef
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
 
-data Tuple2 a b = Tuple a b deriving (Eq, Ord, Show, Generic)
+data Tuple2 a b = Tuple2 a b deriving (Eq, Ord, Show, Generic)
 instance (Model a,Model b) => Model (Tuple2 a b)
 
+data Tuple3 a b c = Tuple3 a b c deriving (Eq, Ord, Show, Generic)
+instance (Model a,Model b,Model c) => Model (Tuple3 a b c)
+
+data Tuple4 a b c d = Tuple4 a b c d deriving (Eq, Ord, Show, Generic)
+instance (Model a,Model b,Model c,Model d) => Model (Tuple4 a b c d)
+
 instance {-# OVERLAPPABLE #-} (Model a,Model b) => Model (a,b) where envType _ = envType (Proxy::Proxy (Tuple2 a b))
+instance {-# OVERLAPPABLE #-} (Model a,Model b,Model c) => Model (a,b,c) where envType _ = envType (Proxy::Proxy (Tuple3 a b c))
+instance {-# OVERLAPPABLE #-} (Model a,Model b,Model c,Model d) => Model (a,b,c,d) where envType _ = envType (Proxy::Proxy (Tuple4 a b c d))
 
 instance {-# OVERLAPPABLE #-} Model a => Model [a] where envType _ = envType (Proxy::Proxy (QQ.List a))
 
