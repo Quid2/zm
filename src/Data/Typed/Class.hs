@@ -7,7 +7,7 @@
 {-# LANGUAGE TupleSections,UndecidableInstances       #-}
 module Data.Typed.Class(
   Typed(..)--,absoluteType
-  ,absType,absTypeEnv
+  ,absType,absTypeEnv,absADTs,absRef
   ,AbsEnv,AbsType
 
   ) where
@@ -25,22 +25,14 @@ import qualified Data.Map                    as M
 import           Data.Model
 import           Data.Ord
 
---instance Typed Char where
---  absTypeEnv = undefined
+absADTs :: Typed a => Proxy a -> [AbsADT]
+absADTs = map snd . M.elems . snd . absoluteType
 
---absoluteType = fst . absoluteTypeEnv
- --absType :: Model a => Proxy a -> AbsType
--- absType = fst . absTypeEnv
 absType :: Typed a => Proxy a -> AbsType
 absType = fst . absoluteType
 
 class Typed a where
-  -- absoluteTypeEnv :: Proxy a -> (AbsType, AbsEnv)
-
-  -- default absoluteTypeEnv :: HasModel a => Proxy a -> (AbsType, AbsEnv)
-  -- absoluteTypeEnv = absTypeEnv
-
-  absoluteType :: Proxy a -> (AbsType,AbsEnv)
+  absoluteType :: Proxy a -> AbsoluteType
 
   -- default absoluteType :: Model a => Proxy a -> AbsType
   -- absoluteType = absType

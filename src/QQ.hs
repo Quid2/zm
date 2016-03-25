@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
-module QQ(Char,List,Word7,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64) where
+module QQ(Char,List,Word7,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64,Integer) where
 import Prelude(Eq,Ord,Show)
 import Data.Model
 import Data.Typed.Types
@@ -32,6 +32,9 @@ instance Model Int32
 
 data Int64 = Int64 (ZigZag Word64) deriving (Eq, Ord, Show, Generic)
 instance Model Int64
+
+data Integer = Integer (ZigZag (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic)
+instance Model Integer
 
 data Char = Chat Word32 deriving (Eq, Ord, Show, Generic)
 instance Model Char

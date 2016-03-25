@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.Typed.Types(module Data.Model.Types
-                       ,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
+                       ,AbsoluteType,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
                        ,NonEmptyList(..),nonEmptyList
                        ,TypedValue(..),TypedBytes(..)
                        ,proxyOf

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric, ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric, ScopedTypeVariables ,CPP #-}
 module Data.Typed.Instances where
 
 -- import Data.Typed.Class
@@ -9,6 +9,8 @@ import qualified QQ
 import Data.Word
 import Data.Int
 import Data.Flat
+
+#include "MachDeps.h"
 
 instance Model Char where envType _ = envType (Proxy::Proxy QQ.Char)
 
@@ -21,18 +23,17 @@ instance Model Int8 where envType _ = envType (Proxy::Proxy QQ.Int8)
 instance Model Int16 where envType _ = envType (Proxy::Proxy QQ.Int16)
 instance Model Int32 where envType _ = envType (Proxy::Proxy QQ.Int32)
 instance Model Int64 where envType _ = envType (Proxy::Proxy QQ.Int64)
+instance Model Integer where envType _ = envType (Proxy::Proxy QQ.Integer)
 
- -- instance {-# OVERLAPPABLE #-} HasModel a => HasModel [a] where envType _ = envType (Proxy::Proxy (Q.List a))
-
--- instance Typed Bool where absoluteType _ = TypeCon ( Shake128 (NECons 145 (NECons 172 (NECons 19 (Elem 92)))) )
-
--- instance Typed String where absoluteType _ = TypeCon ( Shake128 (NECons 19 (NECons 16 (NECons 120 (Elem 36)))) )
-
--- instance Typed Char where absoluteType _ = TypeCon ( Shake128 (NECons 191 (NECons 40 (NECons 14 (Elem 169)))) )
-
--- instance Typed Q.Natural where absoluteType _ = TypeCon ( Shake128 (NECons 144 (NECons 147 (NECons 234 (Elem 17)))) )"
-
--- instance Typed Q.Word7 where absoluteType _ = TypeCon ( Shake128 (NECons 19 (NECons 182 (NECons 22 (Elem 112)))) )
+#if WORD_SIZE_IN_BITS == 64
+instance Model Word where envType _ = envType (Proxy::Proxy QQ.Word64)
+instance Model Int where envType _ = envType (Proxy::Proxy QQ.Int64)
+#elif WORD_SIZE_IN_BITS == 32
+instance Model Word where envType _ = envType (Proxy::Proxy QQ.Word32)
+instance Model Int where envType _ = envType (Proxy::Proxy QQ.Int32)
+#else
+#error expected WORD_SIZE_IN_BITS to be 32 or 64
+#endif
 
 instance (Model a,Model b) => Model (ADT a b)
 instance Model a => Model (ConTree a)
