@@ -9,7 +9,6 @@ module Data.Typed.Class(
   Typed(..)--,absoluteType
   ,absType,absTypeEnv,absADTs,absRef
   ,AbsEnv,AbsType
-
   ) where
 
 import           Control.Monad.Reader
