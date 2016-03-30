@@ -3,19 +3,21 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Data.Typed.Types(module Data.Model.Types
-                       ,AbsoluteType,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
-                       ,NonEmptyList(..),nonEmptyList
-                       ,TypedValue(..),TypedBytes(..)
-                       ,proxyOf
-                       ) where
+module Data.Typed.Types(
+  module Data.Model.Types
+  ,LocalName(..),AbsoluteType,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
+  ,NonEmptyList(..),nonEmptyList
+  ,TypedValue(..),TypedBytes(..)
+  ,proxyOf
+  ) where
 
 import qualified Data.Map         as M
 import           Data.Model.Types
 import           Data.Word
-import           GHC.Generics
 
-data TypedBytes = TypedBytes AbsType (NonEmptyList Word8) deriving (Eq, Ord, Show, Generic)
+newtype LocalName = LocalName String deriving (Eq, Ord, Show, Generic)
+
+data TypedBytes = TypedBytes AbsType [Word8] deriving (Eq, Ord, Show, Generic)
 
 data TypedValue a = TypedValue AbsType a deriving (Eq, Ord, Show, Functor, Generic)
 

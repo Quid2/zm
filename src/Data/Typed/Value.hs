@@ -11,7 +11,7 @@ instance Flat TypedBytes
 instance Flat a => Flat (TypedValue a)
 
 typedBytes :: forall a . (Model a,Flat a) => a -> TypedBytes
-typedBytes a = TypedBytes (absType (Proxy :: Proxy a)) (nonEmptyList . L.unpack . flat $ a)
+typedBytes a = TypedBytes (absType (Proxy :: Proxy a)) (L.unpack . flat $ a)
 
 typedValue :: forall a . Model a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))

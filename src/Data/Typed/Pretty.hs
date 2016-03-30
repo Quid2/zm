@@ -1,9 +1,16 @@
-module Data.Typed.Pretty where
+module Data.Typed.Pretty(
+  Pretty(..)
+  ,module Text.PrettyPrint.HughesPJClass
+  ,hex
+  ) where
+
+import           Data.Foldable                  (toList)
+import           Data.Typed.Types
+import           Data.Word
 import           Text.PrettyPrint.HughesPJClass
-import Data.Word
-import Data.Typed.Types
-import Data.Foldable (toList)
-import Text.Printf
+import           Text.Printf
+
+instance Pretty LocalName where pPrint (LocalName n) = text n
 
 instance Pretty (Ref a) where
   pPrint (Verbatim bl) = char 'V' <> prettyNE bl -- pPrint bl

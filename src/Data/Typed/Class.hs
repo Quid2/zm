@@ -13,7 +13,7 @@ module Data.Typed.Class(
 
 import           Control.Monad.Reader
 import           Data.Typed.Instances
-import           Data.Typed.Transform
+import           Data.Typed.Transform hiding (relADT)
 import           Data.Typed.Types
 import qualified Data.ByteString             as B
 import qualified Data.ByteString.Lazy        as L
