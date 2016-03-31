@@ -1,1 +1,1 @@
-Language independent, reproducible, absolute types.
+Language independent, absolute types.
