@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.Typed.Types(
   module Data.Model.Types
-  ,LocalName(..),AbsoluteType,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
+  ,LocalName(..),AbsoluteType,ADTEnv,AbsEnv,AbsType,AbsRef,AbsADT,RelADT,ADTRef(..),Ref(..)
   ,NonEmptyList(..),nonEmptyList
   ,TypedValue(..),TypedBytes(..)
   ,proxyOf
@@ -25,6 +25,8 @@ type AbsoluteType = (AbsType,AbsEnv)
 
 -- BUG: Possible name clash.
 type AbsEnv = M.Map String (AbsRef,AbsADT)
+
+type ADTEnv = M.Map AbsRef AbsADT
 
 -- Absolute Type
 type AbsType = Type AbsRef

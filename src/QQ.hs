@@ -36,7 +36,7 @@ instance Model Int64
 data Integer = Integer (ZigZag (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic)
 instance Model Integer
 
-data Char = Chat Word32 deriving (Eq, Ord, Show, Generic)
+data Char = Char Word32 deriving (Eq, Ord, Show, Generic)
 instance Model Char
 
 data List a = Nil

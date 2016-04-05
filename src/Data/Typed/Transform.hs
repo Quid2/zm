@@ -1,15 +1,24 @@
-module Data.Typed.Transform where
+module Data.Typed.Transform(stringADTs,solvedADT,mutualDeps,recDeps,solve) where
+import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.State
-import           Data.Typed.Types
-import           Data.Model.Types(fieldsTypes)
+import           Data.Bifunctor
 import           Data.Foldable             (toList)
 import qualified Data.Map                  as M
 import           Data.Maybe
-import           Data.Bifunctor
-import           Control.Applicative
+import           Data.Model.Types          (fieldsTypes)
+import           Data.Typed.Types
 
--- Solve ADT by substituting variables and recursive refs
+stringADTs :: ADTEnv -> AbsADT -> [ADT LocalName (TypeRef LocalName)]
+stringADTs adtEnv = map (stringADT adtEnv) . toList
+
+stringADT :: ADTEnv -> RelADT -> ADT LocalName (TypeRef LocalName)
+stringADT adtEnv adt = ADT (LocalName . declName $ adt) (declNumParameters adt) ((solveS <$>) <$> declCons adt)
+  where solveS (Var n) = TypVar n
+        solveS (Ext k) = TypRef . LocalName . declName . relADT $ solve k adtEnv
+        solveS (Rec s) = TypRef $ LocalName s
+
+-- |Solve ADT by substituting variables and recursive refs
 solvedADT :: AbsEnv -> AbsType -> ADT String AbsRef
 solvedADT e at =
   let
@@ -17,8 +26,9 @@ solvedADT e at =
     as = map typeA ts
     e' = absEnv' e
     adt = relADT $ refToADT' t e'
-  in ADT (declName $ adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
+  in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
 
+relADT :: AbsADT -> RelADT
 relADT = head . toList
 
 saturateA :: AbsEnv' -> [Type AbsRef] -> Type ADTRef -> Type AbsRef
@@ -27,15 +37,17 @@ saturateA e vs (TypeCon (Var n)) = vs !! fromIntegral n
 saturateA e vs (TypeCon (Ext k)) = TypeCon k
 saturateA e vs (TypeCon (Rec s)) = TypeCon $ strToRef' s e
 
-data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String AbsRef,envRef2ADT::M.Map AbsRef AbsADT}
+data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String AbsRef
+                       ,envRef2ADT::ADTEnv
+                       }
 absEnv' e = AbsEnv' (M.map fst e) (M.fromList . M.elems $ e)
+
 
 strToRef' :: String -> AbsEnv' -> AbsRef
 strToRef' s (AbsEnv' sr _) = solve s sr
 
 refToADT' :: AbsRef -> AbsEnv' -> AbsADT
 refToADT' r (AbsEnv' _ ra) = solve r ra
-
 
 -- |Find the code and types corresponding to a constructor
 consIn :: String -> ADT name t -> Maybe ([Bool], [Type t])
