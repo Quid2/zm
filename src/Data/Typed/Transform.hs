@@ -11,8 +11,8 @@ import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
 import           Data.Typed.Types
 
-adts :: ADTEnv -> AbsType -> [AbsADT]
-adts adtEnv t = recDeps adtEnv $ toList t
+-- adts :: ADTEnv -> AbsType -> [AbsADT]
+-- adts adtEnv t = recDeps adtEnv $ toList t
 
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
