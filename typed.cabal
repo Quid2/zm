@@ -15,10 +15,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+  js-sources: jsbits/sha3.js
   exposed-modules:     Data.Digest.Shake128,Data.Typed,Data.Typed.Class,Data.Typed.Instances,Data.Typed.Pretty,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Value,QQ,QQ.Word7,QQ.Word8
   -- , QQ.BlockList
   other-modules:       README
-  build-depends:       base >= 4.7 && < 5,mtl,transformers,bytestring,containers,cryptohash,pretty,model,flat
+  build-depends:       base >= 4.7 && < 5,mtl,transformers,deepseq,bytestring,containers,cryptonite,memory,pretty,model,flat
+  if impl(ghcjs)
+    build-depends:     ghcjs-base        >= 0.2 && < 0.3
   default-language:    Haskell2010
 
 test-suite typed-test

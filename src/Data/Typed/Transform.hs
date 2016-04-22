@@ -1,4 +1,6 @@
-module Data.Typed.Transform(stringADTs,solvedADT,mutualDeps,recDeps,solve) where
+module Data.Typed.Transform(stringADTs,solvedADT,mutualDeps,recDeps
+                           ,runEnv,execEnv,solve
+                           ,label,absADTName,relADT,adtEnv) where
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.State
@@ -8,6 +10,11 @@ import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
 import           Data.Typed.Types
+
+adts :: ADTEnv -> AbsType -> [AbsADT]
+adts adtEnv t = recDeps adtEnv $ toList t
+
+label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
 stringADTs :: ADTEnv -> AbsADT -> [ADT LocalName (TypeRef LocalName)]
 stringADTs adtEnv = map (stringADT adtEnv) . toList
@@ -28,6 +35,9 @@ solvedADT e at =
     adt = relADT $ refToADT' t e'
   in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
 
+absADTName :: AbsADT -> String
+absADTName = declName . relADT
+
 relADT :: AbsADT -> RelADT
 relADT = head . toList
 
@@ -40,8 +50,10 @@ saturateA e vs (TypeCon (Rec s)) = TypeCon $ strToRef' s e
 data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String AbsRef
                        ,envRef2ADT::ADTEnv
                        }
-absEnv' e = AbsEnv' (M.map fst e) (M.fromList . M.elems $ e)
+absEnv' e = AbsEnv' (M.map fst e) (adtEnv $ e)
 
+adtEnv :: AbsEnv -> ADTEnv
+adtEnv = M.fromList . M.elems
 
 strToRef' :: String -> AbsEnv' -> AbsRef
 strToRef' s (AbsEnv' sr _) = solve s sr
@@ -58,6 +70,7 @@ consIn consName dt = maybe Nothing ((first reverse <$>) . loc []) (declCons dt)
     loc bs (ConTree l r) = loc (False:bs) l <|> loc (True:bs) r
 
 --- Mutual dependencies
+mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
 mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
 
 ---------- Recursive deps
@@ -81,6 +94,7 @@ recDeps hadts n = reverse $ execState (deps n) []
 
 ----------- Utils
 runEnv op = runState op M.empty
+execEnv op = execState op M.empty
 
 solve :: (Ord a1, Show a1) => a1 -> M.Map a1 a -> a
 solve k e = case M.lookup k e of

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Data.Typed.Pretty(
   Pretty(..)
   ,module Text.PrettyPrint.HughesPJClass
@@ -5,12 +6,22 @@ module Data.Typed.Pretty(
   ) where
 
 import           Data.Foldable                  (toList)
+import           Data.List
+import           Data.Model.Pretty
+import           Data.Typed.Transform
 import           Data.Typed.Types
 import           Data.Word
+import           Numeric                        (readHex)
+import           Text.ParserCombinators.ReadP   hiding (char)
 import           Text.PrettyPrint.HughesPJClass
 import           Text.Printf
-import Text.ParserCombinators.ReadP hiding (char)
-import Numeric(readHex)  
+
+instance Pretty Val where
+     pPrint = pp 0
+       where
+         pp l (Val n bs vs) = (if l>0 && not (null vs) then parens else id) (hsep $ (if null bs then empty else (text (map (\b -> if b then '1' else '0') bs) <> char ':')) <> text n : map (pp (l+1)) vs)
+
+instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where pPrint (env,adt) = vcat . intersperse (text "") . map pPrint . stringADTs env $ adt
 
 instance Pretty LocalName where pPrint (LocalName n) = text n
 
@@ -35,6 +46,10 @@ readHexCode = readCode []
 readCode bs [] = reverse bs
 readCode bs s  = let (h,t) = splitAt 2 s
                   in readCode (rdHex h : bs) t
+
+instance Pretty a => Pretty (Label a) where
+   pPrint (Label a Nothing) = pPrint a
+   pPrint (Label a (Just l)) = text l
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
 
