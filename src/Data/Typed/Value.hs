@@ -1,15 +1,15 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Data.Typed.Value(typedBytes,typedValue,decodeTypedValue,typeDecoderEnv,typeDecoder) where
+module Data.Typed.Value(typedBytes,typedValue,decodeTypedValue,TypeDecoders,typeDecoderEnv,typeDecoder) where
 
 import           Control.Monad.Trans.State
 import           Data.Binary.Bits.Get      (Get, getBool, runGet, runPartialGet)
-import qualified Data.ByteString.Lazy      as L
 import qualified Data.ByteString.Lazy      as L
 import           Data.Flat
 import           Data.Foldable
 import qualified Data.Map                  as M
 import           Data.Model
 import           Data.Typed.Class
+import           Data.Typed.Instances
 import           Data.Typed.Transform
 import           Data.Typed.Types
 import           Debug.Trace
@@ -17,17 +17,17 @@ import           Debug.Trace
 instance Flat TypedBytes
 instance Flat a => Flat (TypedValue a)
 
-typedBytes :: forall a . (Model a,Flat a) => a -> TypedBytes
+typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBytes
 typedBytes a = TypedBytes (absType (Proxy :: Proxy a)) (L.unpack . flat $ a)
 
-typedValue :: forall a . Model a => a -> TypedValue a
+typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
 
 --encodedTyped :: (HasModel a ,Binary a) => a -> Encoded
 --encodedTyped = encoded . typedValue
 
 -- |Decode making sure that the type is correct
-decodeTypedValue :: (Monad m, Model a, Flat a) => Encoded (TypedValue a) -> m (Either DeserializeFailure a)
+-- decodeTypedValue :: forall m a . (Monad m, Typed a, Flat a) => Encoded (TypedValue a) -> m (Either DeserializeFailure a)
 decodeTypedValue bs =
   case decoded bs of
     Left e -> return $ Left e
@@ -45,17 +45,17 @@ decodeTypedValue bs =
 -- Dynamic decoding
 x :: Val
 x =
-  let (absType,absEnv) = absTypeEnv (Proxy::Proxy (Bool,Bool,Bool))
-      decEnv = typeDecoderEnv (traceShowId absEnv) (traceShowId absType)
-      dec = typeDecoder decEnv absType
-      v = runGet dec (L.pack [128+32])
-  in v
+   let (absType,absEnv) = absTypeEnv (Proxy::Proxy (Bool,Bool,Bool))
+       decEnv = typeDecoderEnv (traceShowId absEnv) (traceShowId absType)
+       dec = typeDecoder decEnv absType
+       v = runGet dec (L.pack [128+32])
+   in v
 
--- TODO: use ADTEnv instead of AbsEnv
-typeDecoderEnv :: AbsEnv -> Type AbsRef -> M.Map (Type AbsRef) (ConTree AbsRef)
-typeDecoderEnv absEnv absType = execEnv (addType absEnv absType)
+type TypeDecoders = M.Map (Type AbsRef) (ConTree AbsRef)
+typeDecoderEnv :: ADTEnv -> Type AbsRef -> TypeDecoders
+typeDecoderEnv adtEnv absType = execEnv (addType adtEnv absType)
 
--- Insert in env the saturated constructor trees corresponding to the passed type
+-- Insert in the env the saturated constructor trees corresponding to the passed type
 -- and any type nested in its definition
 addType absEnv t = do
   mct <- M.lookup t <$> get
@@ -97,17 +97,5 @@ conDecoder e bs (Con cn cs) = Val cn (reverse bs) <$> mapM (typeDecoder e) (fiel
 --          Encoded bs = encoded a
 --      in runGetOrFail (decoderForType ty) bs
 
--- decoderForType ht = let (t,e) = ctEnv ht in decType e t
-
--- decType e t = decCon e (solve t e)
-
--- --decCon :: EnvCT -> ConTree (ETypeRef QualName) -> Get Val
--- decCon e = decCT e []
-
---   decCT e bs (CT l r) = do
---    tag <- getBool
---    decCT e (tag:bs) (if tag then r else l)
-
---  decCT e bs (CN cn cs) = Val cn (reverse bs) <$> mapM (decTyp e) cs
 
 

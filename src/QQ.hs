@@ -1,9 +1,8 @@
 {-# LANGUAGE DeriveGeneric #-}
-module QQ(Char,List,Word7,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64,Integer) where
+module QQ(Char,List,String,Word7,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64,Integer) where
 import Prelude(Eq,Ord,Show)
 import Data.Model
 import Data.Typed.Types
-
 import QQ.Word7
 import QQ.Word8
 
@@ -38,6 +37,9 @@ instance Model Integer
 
 data Char = Char Word32 deriving (Eq, Ord, Show, Generic)
 instance Model Char
+
+data String = String (List Char) deriving (Eq, Ord, Show, Generic)
+instance Model String
 
 data List a = Nil
              | Cons a (List a) deriving (Eq, Ord, Show, Generic)

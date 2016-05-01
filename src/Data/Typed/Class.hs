@@ -1,46 +1,90 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE DefaultSignatures   #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections,UndecidableInstances       #-}
+{-# LANGUAGE DefaultSignatures    #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TupleSections        #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Data.Typed.Class(
   Typed(..)--,absoluteType
-  ,absType,absTypeEnv,absADTs,absRef
+  --,absType
+  ,absTypeEnv,absADTs,absRef
   ,AbsEnv,AbsType
   ) where
 
 import           Control.Monad.Reader
-import           Data.Typed.Instances
-import           Data.Typed.Transform hiding (relADT)
-import           Data.Typed.Types
-import qualified Data.ByteString             as B
-import qualified Data.ByteString.Lazy        as L
+import qualified Data.ByteString      as B
+import qualified Data.ByteString.Lazy as L
 import           Data.Digest.Shake128
 import           Data.Flat
 import           Data.List
-import qualified Data.Map                    as M
+import qualified Data.Map             as M
 import           Data.Model
 import           Data.Ord
+import           Data.Typed.Instances
+import           Data.Typed.Transform hiding (relADT)
+import           Data.Typed.Types
 
 absADTs :: Typed a => Proxy a -> [AbsADT]
-absADTs = map snd . M.elems . snd . absoluteType
+absADTs = M.elems . snd . absoluteType
 
-absType :: Typed a => Proxy a -> AbsType
-absType = fst . absoluteType
+--absType :: Typed a => Proxy a -> AbsType
+ -- absType = fst . absoluteType
 
 class Typed a where
+  -- This can be overriden and set to a precalculated value
+  absType :: Proxy a -> AbsType
+  absType = fst . absoluteType
+
   absoluteType :: Proxy a -> AbsoluteType
 
-  -- default absoluteType :: Model a => Proxy a -> AbsType
-  -- absoluteType = absType
-
-instance Model a => Typed a where
+  default absoluteType :: Model a => Proxy a -> AbsoluteType
   absoluteType = absTypeEnv
 
-absTypeEnv :: Model a => Proxy a -> (AbsType, AbsEnv)
+instance {-# OVERLAPPABLE #-} Model a => Typed a where absoluteType = absTypeEnv
+
+-- TOFIX: inefficient
+-- BUG: no check for mutual recursive defs
+absTypeEnv :: Model a => Proxy a -> (AbsType, ADTEnv)
 absTypeEnv a =
+  let (t, hadts) = hTypeEnv a
+      henv = M.fromList $ map (\d -> (declName d, d)) hadts
+      mdeps = mutualDeps . M.fromList . map (\adt -> let n = declName adt in (n,recDeps henv n)) $ hadts
+      errs = filter ((>1) . length) . M.elems $ mdeps
+  in if null errs
+     then let qnEnv = M.fromList $ runReader (mapM (\hadt -> let qn = declName hadt in (qn,) <$> absADT qn) hadts) henv
+              -- absEnv = adts . fst $ E.execRWS (mapM (absADT.declName) e) (traceShowId $ AbsRead mdeps henv) (AbsState [] M.empty)
+              adtEnv = M.fromList . M.elems $ qnEnv
+            in (absType qnEnv t, adtEnv)
+       else error .
+            unlines
+            . map (\ms -> unwords ["Found mutually recursive types",unwords . map prettyShow $ ms])
+            $ errs
+  where
+    absType qnEnv t = runReader (mapM absRef t) qnEnv
+      where absRef (TypRef qn) = fst . solve qn <$> ask
+
+absADT qn = do
+     -- E.modify (\e -> e {adts = M.insert (locName qn) (r,absADT) (adts e)
+     --                   ,contexts = tail (contexts e)
+     --                   })
+     hadt <- solve qn <$> ask
+     cs' <- mapM (mapM (adtRef qn)) $ declCons hadt
+     let adt = ADT (locName qn) (declNumParameters hadt) cs'
+     return (absRef adt,adt)
+
+adtRef _ (TypVar v) = return $ Var v
+
+adtRef me (TypRef qn) =
+     if me == qn
+       then return Rec
+       else Ext . fst <$> absADT qn
+
+
+-- NOTE: does not detect name clashes with external (non-recursive) definitions
+mutualAbsTypeEnv :: Model a => Proxy a -> (MutualAbsType, AbsEnv)
+mutualAbsTypeEnv a =
   let (t, e) = hTypeEnv a
       henv = M.fromList $ map (\d -> (declName d, d)) e
       mdeps = mutualDeps . M.fromList . map (\adt -> let n = declName adt in (n,recDeps henv n)) $ e
@@ -49,7 +93,7 @@ absTypeEnv a =
       -- rdeps = M.fromList $ concatMap ((\s -> map (,s) s) . map locName) rdefs
       errs = filter (not . null . snd) . map (\g -> (g, clashes g)) $ rdefs
   in if null errs
-     then let absEnv = M.fromList $ runReader (mapM (\adt ->(absName adt,) <$> absADT (declName adt)) e) (AbsRead mdeps henv)
+     then let absEnv = M.fromList $ runReader (mapM (\adt ->(absName adt,) <$> mutualAbsADT (declName adt)) e) (AbsRead mdeps henv)
               -- absEnv = adts . fst $ E.execRWS (mapM (absADT.declName) e) (traceShowId $ AbsRead mdeps henv) (AbsState [] M.empty)
             in (absType absEnv t, absEnv)
        else error .
@@ -59,7 +103,7 @@ absTypeEnv a =
     clashes :: [QualName] -> [[QualName]]
     clashes = filter (\l -> length l > 1) . groupBy locEq . sortBy (comparing locName)
 
-    absType :: AbsEnv -> HType -> AbsType
+    -- absType :: AbsEnv -> HType -> AbsType
     absType absEnv t = runReader (mapM absRef t) absEnv
       where absRef (TypRef qn) = fst . solve (locName qn) <$> ask
 
@@ -68,37 +112,35 @@ absTypeEnv a =
 type AbsM = Reader AbsRead
 
 data AbsRead = AbsRead {
+  -- ^Mutual dependencies, map from a data type and the set of its mutual dependencies
   mdeps  :: M.Map QualName [QualName]
+  -- ^Haskell ADT definitions
   ,hadts :: M.Map QualName HADT
   } deriving Show
 
-hadtGet :: QualName -> AbsM HADT
-hadtGet qn = solve qn <$> asks hadts
+-- NOTE: inefficient, result not stored and might be recalculated multiple times in relADT
+mutualAbsADT :: QualName -> AbsM (MutualAbsRef,MutualAbsADT)
+mutualAbsADT qn = do
+    recSet <- solve qn <$> asks mdeps
+    adt <- nonEmptyList <$> mapM (relADT recSet) recSet
+    let r = absRef adt
+    -- E.modify (\e -> e {adts = M.insert (locName qn) (r,absADT) (adts e)
+    --                   ,contexts = tail (contexts e)
+    --                   })
+    return (r,adt)
 
-absADT :: QualName -> AbsM (AbsRef,AbsADT)
-absADT qn = do
-   rs <- solve qn <$> asks mdeps
-   absADT <- nonEmptyList <$> mapM (relADT rs) rs
-   let r = absRef absADT
-   -- E.modify (\e -> e {adts = M.insert (locName qn) (r,absADT) (adts e)
-   --                   ,contexts = tail (contexts e)
-   --                   })
-   return (r,absADT)
+relADT recSet qn = do
+    hadt <- solve qn <$> asks hadts
+    cs' <- mapM (mapM (mutualAdtRef recSet)) $ declCons hadt
+    return $ ADT (locName qn) (declNumParameters hadt) cs'
 
-relADT rs qn = do
-   let name = locName qn
-   hadt <- hadtGet qn
-   cs' <- mapM (mapM (adtRef rs)) $ declCons hadt
-   return $ ADT name (declNumParameters hadt) cs'
+mutualAdtRef :: [QualName] -> HTypeRef -> AbsM MutualADTRef
+mutualAdtRef _ (TypVar v) = return $ MVar v
 
--- adtRef :: HTypeRef -> AbsM ADTRef
-adtRef rs (TypVar v) = return $ Var v
-
-adtRef rs (TypRef qn) = do
-    -- r <- qn `elem` rs -- isRecDef qn
-   if qn `elem` rs
-     then return $ Rec (locName qn)
-     else Ext . fst <$> absADT qn
+mutualAdtRef recSet (TypRef qn) =
+    if qn `elem` recSet
+      then return $ MRec (locName qn)
+      else MExt . fst <$> mutualAbsADT qn
 
 absName :: ADT QualName ref -> String
 absName = locName . declName

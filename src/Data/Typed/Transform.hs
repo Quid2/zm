@@ -1,64 +1,91 @@
-module Data.Typed.Transform(stringADTs,solvedADT,mutualDeps,recDeps
+{-# LANGUAGE NoMonomorphismRestriction #-}
+module Data.Typed.Transform(typeDefinition,adtDefinition
+                           ,stringADTs,stringADT,solvedADT,mutualDeps,recDeps
                            ,runEnv,execEnv,solve
-                           ,label,absADTName,relADT,adtEnv) where
+                           ,label,mutualAbsADTName,relADT,adtEnv) where
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Foldable             (toList)
+import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
 import           Data.Typed.Types
 
--- adts :: ADTEnv -> AbsType -> [AbsADT]
--- adts adtEnv t = recDeps adtEnv $ toList t
+typeDefinition :: ADTEnv -> AbsType -> [AbsADT]
+typeDefinition adtEnv t =  map (flip solve adtEnv) . nub . concatMap (absRecDeps adtEnv) $ toList t
+
+adtDefinition :: ADTEnv -> AbsRef -> [AbsADT]
+adtDefinition adtEnv = map (flip solve adtEnv) . absRecDeps adtEnv
 
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
-stringADTs :: ADTEnv -> AbsADT -> [ADT LocalName (TypeRef LocalName)]
-stringADTs adtEnv = map (stringADT adtEnv) . toList
+stringADT :: ADTEnv -> AbsADT -> ADT LocalName (TypeRef LocalName)
+stringADT env adt =
+  let name = declName adt
+  in ADT (LocalName name) (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+   where solveS _ (Var n) = TypVar n
+         solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
+         solveS name Rec = TypRef $ LocalName name
 
-stringADT :: ADTEnv -> RelADT -> ADT LocalName (TypeRef LocalName)
-stringADT adtEnv adt = ADT (LocalName . declName $ adt) (declNumParameters adt) ((solveS <$>) <$> declCons adt)
-  where solveS (Var n) = TypVar n
-        solveS (Ext k) = TypRef . LocalName . declName . relADT $ solve k adtEnv
-        solveS (Rec s) = TypRef $ LocalName s
+-- stringADTs :: MutualADTEnv -> AbsADT -> [ADT LocalName (TypeRef LocalName)]
+stringADTs adtEnv = map (mutualStringADT adtEnv) . toList
+
+mutualStringADT :: MutualADTEnv -> RelADT -> ADT LocalName (TypeRef LocalName)
+mutualStringADT adtEnv adt = ADT (LocalName . declName $ adt) (declNumParameters adt) ((solveS <$>) <$> declCons adt)
+   where solveS (MVar n) = TypVar n
+         solveS (MExt k) = TypRef . LocalName . declName . relADT $ solve k adtEnv
+         solveS (MRec s) = TypRef $ LocalName s
 
 -- |Solve ADT by substituting variables and recursive refs
-solvedADT :: AbsEnv -> AbsType -> ADT String AbsRef
 solvedADT e at =
-  let
-    TypeN t ts = typeN at
-    as = map typeA ts
-    e' = absEnv' e
-    adt = relADT $ refToADT' t e'
-  in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
+   let
+     TypeN t ts = typeN at
+     as = map typeA ts
+     adt = solve t e
+     name = declName adt
+   in ADT name 0 (conTreeTypeMap (saturate t as) <$> declCons adt)
 
-absADTName :: AbsADT -> String
-absADTName = declName . relADT
+saturate ref vs (TypeApp a b) = TypeApp (saturate ref vs a) (saturate ref vs b)
+saturate _    vs (TypeCon (Var n)) = vs !! fromIntegral n
+saturate _    _  (TypeCon (Ext k)) = TypeCon k
+saturate ref _  (TypeCon Rec) = TypeCon ref
 
-relADT :: AbsADT -> RelADT
+mutualSolvedADT :: AbsEnv -> MutualAbsType -> ADT String MutualAbsRef
+mutualSolvedADT e at =
+   let
+     TypeN t ts = typeN at
+     as = map typeA ts
+     e' = absEnv' e
+     adt = relADT $ refToADT' t e'
+   in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
+
+mutualAbsADTName :: MutualAbsADT -> String
+mutualAbsADTName = declName . relADT
+
+relADT :: MutualAbsADT -> RelADT
 relADT = head . toList
 
-saturateA :: AbsEnv' -> [Type AbsRef] -> Type ADTRef -> Type AbsRef
+saturateA :: AbsEnv' -> [Type MutualAbsRef] -> Type MutualADTRef -> Type MutualAbsRef
 saturateA e vs (TypeApp a b) = TypeApp (saturateA e vs a) (saturateA e vs b)
-saturateA e vs (TypeCon (Var n)) = vs !! fromIntegral n
-saturateA e vs (TypeCon (Ext k)) = TypeCon k
-saturateA e vs (TypeCon (Rec s)) = TypeCon $ strToRef' s e
+saturateA e vs (TypeCon (MVar n)) = vs !! fromIntegral n
+saturateA e vs (TypeCon (MExt k)) = TypeCon k
+saturateA e vs (TypeCon (MRec s)) = TypeCon $ strToRef' s e
 
-data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String AbsRef
-                       ,envRef2ADT::ADTEnv
+data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String MutualAbsRef
+                       ,envRef2ADT::MutualADTEnv
                        }
 absEnv' e = AbsEnv' (M.map fst e) (adtEnv $ e)
 
-adtEnv :: AbsEnv -> ADTEnv
+adtEnv :: AbsEnv -> MutualADTEnv
 adtEnv = M.fromList . M.elems
 
-strToRef' :: String -> AbsEnv' -> AbsRef
+strToRef' :: String -> AbsEnv' -> MutualAbsRef
 strToRef' s (AbsEnv' sr _) = solve s sr
 
-refToADT' :: AbsRef -> AbsEnv' -> AbsADT
+refToADT' :: MutualAbsRef -> AbsEnv' -> MutualAbsADT
 refToADT' r (AbsEnv' _ ra) = solve r ra
 
 -- |Find the code and types corresponding to a constructor
@@ -74,23 +101,36 @@ mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
 mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
 
 ---------- Recursive deps
--- recDeps :: M.Map QualName HADT -> QualName -> [QualName]
-recDeps
-   :: (Ord a, Show a, Foldable t) =>
-      M.Map a (t (TypeRef a)) -> a -> [a]
-recDeps hadts n = reverse $ execState (deps n) []
-   where
-     present n = (n `elem`) <$> get
 
-     add n = modify (n:)
+-- absRecDeps :: Foldable t => M.Map AbsRef (t ADTRef) -> AbsRef -> [AbsRef]
+absRecDeps = recDeps_ ref id -- concatMap
+      where
+        ref (Ext r) = Just r
+        ref _ = Nothing
 
-     deps n = do
-       let adt = solve n hadts
-       p <- present n
-       unless p $ add n >> mapM_ deps (mapMaybe ref . toList $ adt)
+mutualAbsRecDeps = recDeps_ ref concatMap
+      where
+        ref (MExt r) = Just r
+        ref _ = Nothing
 
-     ref (TypRef r) = Just r
-     ref (TypVar _) = Nothing
+recDeps :: (Ord a, Show a, Foldable t) => M.Map a (t (TypeRef a)) -> a -> [a]
+recDeps = recDeps_ ref id
+     where
+       ref (TypRef r) = Just r
+       ref (TypVar _) = Nothing
+
+recDeps_ getRef refs env n  = reverse $ execState (deps n) []
+    where
+      deps n = do
+         p <- present n
+         unless p $ do
+           add n
+           mapM_ deps (mapMaybe getRef . refs toList $ solve n env)
+
+      present n = (n `elem`) <$> get
+
+      add n = modify (n:)
+
 
 ----------- Utils
 runEnv op = runState op M.empty
