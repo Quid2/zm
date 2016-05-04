@@ -4,6 +4,7 @@ module Data.Typed.Transform(typeDefinition,adtDefinition
                            ,runEnv,execEnv,solve
                            ,label,mutualAbsADTName,relADT,adtEnv) where
 import           Control.Applicative
+import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
@@ -14,11 +15,14 @@ import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
 import           Data.Typed.Types
 
-typeDefinition :: ADTEnv -> AbsType -> [AbsADT]
-typeDefinition adtEnv t =  map (flip solve adtEnv) . nub . concatMap (absRecDeps adtEnv) $ toList t
+typeDefinition :: ADTEnv -> AbsType -> Either String [AbsADT]
+typeDefinition env t = solveAll env . nub . concat <$> (mapM (absRecDeps env) . toList $ t)
 
-adtDefinition :: ADTEnv -> AbsRef -> [AbsADT]
-adtDefinition adtEnv = map (flip solve adtEnv) . absRecDeps adtEnv
+adtDefinition :: ADTEnv -> AbsRef -> Either String [AbsADT]
+adtDefinition env t = solveAll env <$> absRecDeps env t
+
+-- solveAll env =  mapM (\k -> M.lookup k env)
+solveAll env = map (flip solve env)
 
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
@@ -40,11 +44,11 @@ mutualStringADT adtEnv adt = ADT (LocalName . declName $ adt) (declNumParameters
          solveS (MRec s) = TypRef $ LocalName s
 
 -- |Solve ADT by substituting variables and recursive refs
-solvedADT e at =
+solvedADT env at =
    let
      TypeN t ts = typeN at
      as = map typeA ts
-     adt = solve t e
+     adt = solve t env
      name = declName adt
    in ADT name 0 (conTreeTypeMap (saturate t as) <$> declCons adt)
 
@@ -103,7 +107,8 @@ mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) 
 ---------- Recursive deps
 
 -- absRecDeps :: Foldable t => M.Map AbsRef (t ADTRef) -> AbsRef -> [AbsRef]
-absRecDeps = recDeps_ ref id -- concatMap
+absRecDeps env r = let (rs,errs) = recDeps__ ref id env r
+                   in if null errs then Right rs else Left (unlines errs)
       where
         ref (Ext r) = Just r
         ref _ = Nothing
@@ -119,18 +124,23 @@ recDeps = recDeps_ ref id
        ref (TypRef r) = Just r
        ref (TypVar _) = Nothing
 
-recDeps_ getRef refs env n  = reverse $ execState (deps n) []
+recDeps_ getRef refs env n = fst $ recDeps__ getRef refs env n
+
+recDeps__ getRef refs env n  = first reverse $ execState (deps n) ([],[])
     where
       deps n = do
          p <- present n
          unless p $ do
            add n
-           mapM_ deps (mapMaybe getRef . refs toList $ solve n env)
+           case M.lookup n env of
+             Nothing -> err $ unwords ["Unknown reference to",show n]
+             Just v -> mapM_ deps (mapMaybe getRef . refs toList $ v)
 
-      present n = (n `elem`) <$> get
+      err e = modify (second (e:))
 
-      add n = modify (n:)
+      present n = (n `elem`) <$> gets fst
 
+      add n = modify (first (n:))
 
 ----------- Utils
 runEnv op = runState op M.empty
@@ -138,8 +148,8 @@ execEnv op = execState op M.empty
 
 solve :: (Ord a1, Show a1) => a1 -> M.Map a1 a -> a
 solve k e = case M.lookup k e of
-    Nothing -> error $ unwords ["Unknown reference to",show k]
-    Just v -> v
+     Nothing -> error $ unwords ["Unknown reference to",show k]
+     Just v -> v
 
 solveF :: (Functor f, Show k, Ord k) => M.Map k b -> f k -> f b
 solveF env f = (\r -> solve r env) <$> f
