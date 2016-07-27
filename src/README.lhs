@@ -71,11 +71,15 @@ The traditional Chinese directions:
 
 Though their meaning is obviously different they share the same syntactical structure (simple enumerations of 5 values) and most binary serialisation libraries won't be able to distinguish between the two.
 
-To demonstrate this let's serialise a value using the `flat` binary serialisation library.
+To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration.
 
 > e1 = flat Center
 
-We use `flat` as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
+> e4 = flat Corniglia
+
+As you can see they have the same binary representation.
+
+We have used the `flat` binary serialisation as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
 
 Let's go full circle, using `unflat` to decode the value :
 
@@ -115,8 +119,6 @@ And this is wrong:
 
 > t7 = untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
 
-> t8 = flat . 
-
  ### Data Exchange
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the typed oriented protocol.
@@ -146,7 +148,7 @@ we can always recover the full definition of our data.
 
 PUT BACK dt = e2 >>= recoverTypeFrom theCloud
 
-What if we have no idea of what is the type 
+What if we have no idea of what is the type
 
 instance (Flat a , Flat b) => Flat (CoupleB a b)
 
@@ -166,6 +168,7 @@ Install as part of the [quid2](https://github.com/tittoassini/quid2) project.
 
  ### Known Bugs and Infelicities
 
+* The unique codes generated for the data types are not yet final and will change in the next version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
 * Messy source code
 
