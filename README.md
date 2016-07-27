@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 Haskell implementation of canonical, language independent data types.
 
