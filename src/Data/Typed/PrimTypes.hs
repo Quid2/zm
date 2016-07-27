@@ -30,6 +30,15 @@ data Word32 = Word32 (NonEmptyList Word7) deriving (Eq, Ord, Show, Generic, Mode
 
 data Word64 = Word64 (NonEmptyList Word7) deriving (Eq, Ord, Show, Generic, Model)
 
+-- Better
+-- data Word64 = Word64 Word deriving (Eq, Ord, Show, Generic, Model)
+
+data Word = Word (LeastSignificantFirst (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic, Model)
+
+data LeastSignificantFirst a = LeastSignificantFirst a deriving (Eq, Ord, Show, Generic)
+instance Model a => Model (LeastSignificantFirst a)
+
+-- Indicate ZigZag encoding
 data ZigZag a = ZigZag a deriving (Eq, Ord, Show, Generic)
 instance Model a => Model (ZigZag a)
 
@@ -42,6 +51,8 @@ data Int32 = Int32 (ZigZag Word32) deriving (Eq, Ord, Show, Generic, Model)
 data Int64 = Int64 (ZigZag Word64) deriving (Eq, Ord, Show, Generic, Model)
 
 data Integer = Integer (ZigZag (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic, Model)
+
+data Int = Int (ZigZag Word) deriving (Eq, Ord, Show, Generic, Model)
 
 data Char = Char Word32 deriving (Eq, Ord, Show, Generic, Model)
 

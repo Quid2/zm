@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Data.Typed.Transform(typeDefinition,adtDefinition
-                           ,stringADTs,stringADT,solvedADT,mutualDeps,recDeps
+module Data.Typed.Transform(typeDefinition,adtDefinition,mutualDeps,recDeps
+                           ,stringADT,solvedADT
                            ,runEnv,execEnv,solve,solveF
-                           ,label,mutualAbsADTName,relADT,adtEnv
+                           ,label
                            ,consIn) where
 import           Control.Applicative
 import           Control.Exception
@@ -36,15 +36,6 @@ stringADT env adt =
          solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
          solveS name Rec = TypRef $ LocalName name
 
--- stringADTs :: MutualADTEnv -> AbsADT -> [ADT LocalName (TypeRef LocalName)]
-stringADTs adtEnv = map (mutualStringADT adtEnv) . toList
-
-mutualStringADT :: MutualADTEnv -> RelADT -> ADT LocalName (TypeRef LocalName)
-mutualStringADT adtEnv adt = ADT (LocalName . declName $ adt) (declNumParameters adt) ((solveS <$>) <$> declCons adt)
-   where solveS (MVar n) = TypVar n
-         solveS (MExt k) = TypRef . LocalName . declName . relADT $ solve k adtEnv
-         solveS (MRec s) = TypRef $ LocalName s
-
 -- |Solve ADT by substituting variables and recursive refs
 solvedADT env at =
    let
@@ -58,41 +49,6 @@ saturate ref vs (TypeApp a b) = TypeApp (saturate ref vs a) (saturate ref vs b)
 saturate _    vs (TypeCon (Var n)) = vs !! fromIntegral n
 saturate _    _  (TypeCon (Ext k)) = TypeCon k
 saturate ref _  (TypeCon Rec) = TypeCon ref
-
-mutualSolvedADT :: AbsEnv -> MutualAbsType -> ADT Text MutualAbsRef
-mutualSolvedADT e at =
-   let
-     TypeN t ts = typeN at
-     as = map typeA ts
-     e' = absEnv' e
-     adt = relADT $ refToADT' t e'
-   in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
-
-mutualAbsADTName :: MutualAbsADT -> Text
-mutualAbsADTName = declName . relADT
-
-relADT :: MutualAbsADT -> RelADT
-relADT = head . toList
-
-saturateA :: AbsEnv' -> [Type MutualAbsRef] -> Type MutualADTRef -> Type MutualAbsRef
-saturateA e vs (TypeApp a b) = TypeApp (saturateA e vs a) (saturateA e vs b)
-saturateA e vs (TypeCon (MVar n)) = vs !! fromIntegral n
-saturateA e vs (TypeCon (MExt k)) = TypeCon k
-saturateA e vs (TypeCon (MRec s)) = TypeCon $ strToRef' s e
-
-data AbsEnv' = AbsEnv' {envStr2Ref::M.Map Text MutualAbsRef
-                       ,envRef2ADT::MutualADTEnv
-                       }
-absEnv' e = AbsEnv' (M.map fst e) (adtEnv e)
-
-adtEnv :: AbsEnv -> MutualADTEnv
-adtEnv = M.fromList . M.elems
-
-strToRef' :: Text -> AbsEnv' -> MutualAbsRef
-strToRef' s (AbsEnv' sr _) = solve s sr
-
-refToADT' :: MutualAbsRef -> AbsEnv' -> MutualAbsADT
-refToADT' r (AbsEnv' _ ra) = solve r ra
 
 -- |Find the code and types corresponding to a constructor
 consIn :: Text -> ADT name t -> Maybe ([Bool], [Type t])
@@ -113,11 +69,6 @@ absRecDeps env r = let (rs,errs) = recDeps__ ref id env r
                    in if null errs then Right rs else Left (unlines errs)
       where
         ref (Ext r) = Just r
-        ref _ = Nothing
-
-mutualAbsRecDeps = recDeps_ ref concatMap
-      where
-        ref (MExt r) = Just r
         ref _ = Nothing
 
 recDeps :: (Ord a, Show a, Foldable t) => M.Map a (t (TypeRef a)) -> a -> [a]

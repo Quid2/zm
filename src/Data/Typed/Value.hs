@@ -15,7 +15,7 @@ import           Data.Typed.Instances
 import           Data.Typed.Pretty
 import           Data.Typed.Transform
 import           Data.Typed.Types
-import Data.Word
+import           Data.Word
 -- import           Debug.Trace
 traceShowId = id
 
@@ -55,8 +55,8 @@ untypedValue ea = case ea of
                          else Right a
 
 typeErr typ typ' =
-  let rt  = prettyShow typ -- simpleTypeS typ
-      rt' = prettyShow typ' -- simpleTypeS typ'
+  let rt  = prettyShow typ
+      rt' = prettyShow typ'
       msg = unwords $ ["Was expecting type:\n",rt,"\n\nBut the data has type:\n",rt']
       -- putStrLn msg
   in Left msg
@@ -109,7 +109,7 @@ conDecoder e t bs (ConTree l r) = do
   tag <- getBool
   conDecoder e t (tag:bs) (if tag then r else l)
 
-conDecoder e t bs (Con cn cs) = TVal t cn (reverse bs) <$> mapM (typeDecoder e) (fieldsTypes cs)
+conDecoder e t bs (Con cn cs) = Val t cn (reverse bs) <$> mapM (typeDecoder e) (fieldsTypes cs)
 
 
 -- Decode a TypedValue without previous knowledge of its type

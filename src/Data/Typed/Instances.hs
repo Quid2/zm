@@ -46,7 +46,6 @@ instance (Model a,Model b) => Model (ADT a b)
 instance Model a => Model (ConTree a)
 instance Model a => Model (Ref a)
 instance Model ADTRef
-instance Model MutualADTRef
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
 -- instance Model AbsoluteType
@@ -142,7 +141,6 @@ instance (Flat a,Flat b) => Flat (ADT a b)
 instance Flat a => Flat (ConTree a)
 instance Flat a => Flat (Ref a)
 instance Flat ADTRef
-instance Flat MutualADTRef
 instance Flat a => Flat (Type a)
 instance Flat a => Flat (TypeRef a)
 instance Flat a => Flat (NonEmptyList a)

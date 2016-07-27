@@ -38,13 +38,13 @@ import           Text.Printf
 instance Pretty Val where
      pPrintPrec (PrettyLevel lev) prec = pp 0
        where -- TODO: fix precedence
-         pp l v@(TVal t n bs vs) = let (complex,doc) = sh l v
+         pp l v@(Val t n bs vs) = let (complex,doc) = sh l v
                                    in (if complex && l>0 then parens else id) (hsep $ (if null bs || lev == 0 then empty else (text (map (\b -> if b then '1' else '0') bs) <> char ':')) : doc) -- : if lev == 0 then empty else )
 
          -- pp l v@(Val n bs vs) = let (complex,doc) = sh l v
          --                        in (if complex && l>0 then parens else id) (hsep $ (if null bs || lev == 0 then empty else (text (map (\b -> if b then '1' else '0') bs) <> char ':')) : doc)
 
-         sh l v@(TVal t n _ vs) = case prettyPrinter t of
+         sh l v@(Val t n _ vs) = case prettyPrinter t of
            Nothing -> (not (null vs),txt n : map (pp (l+1)) vs)
            -- Nothing -> (not (null vs),[txt n] ++ map (pp (l+1)) vs ++ [text ":: ",text . show $ t])
            Just pr -> let (c,d) = pr v in (c,[d])
@@ -61,11 +61,11 @@ instance Pretty Val where
          -- sh l (Val n bs vs)                       = (not (null vs),txt n : map (pp (l+1)) vs)
 
          -- ch (Val "Char" _ [Val "Word32" _ [Val "Elem" _ [Val (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
-         ch (TVal _ _ _ [TVal _ _ _ [TVal _ _ _ [TVal _ (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
+         ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
          -- --ch v = error (show v)
 
          -- wrd_ (Val (T.unpack -> 'V':n) _ _) = read n :: Int
-         wrd_ (TVal _ (T.unpack -> 'V':n) _ _) = read n :: Int
+         wrd_ (Val _ (T.unpack -> 'V':n) _ _) = read n :: Int
          wrd_ v = error (show v) 
          wrd = int . wrd_
 
@@ -74,20 +74,20 @@ instance Pretty Val where
 
          wl = int . wl_
 
-         wl_ (TVal _ _ _ [vl]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd_ . neList $ vl
+         wl_ (Val _ _ _ [vl]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd_ . neList $ vl
          wl_ v = error (unwords ["wl_",show v])
 
          -- valList (Val "Cons" _ [h,t]) = h:valList t
          -- valList (Val "Nil" _ []) = []
-         valList (TVal _ "Cons" _ [h,t]) = h:valList t
-         valList (TVal _ "Nil"  _ []) = []
+         valList (Val _ "Cons" _ [h,t]) = h:valList t
+         valList (Val _ "Nil"  _ []) = []
          --valList v = error (show v)
 
-         neList (TVal _ "Cons" _ [h,t]) = h:neList t
-         neList (TVal _ "Elem"  _ [e]) = [e]
+         neList (Val _ "Cons" _ [h,t]) = h:neList t
+         neList (Val _ "Elem"  _ [e]) = [e]
 
-         arrList v@(TVal _ "A0" _ []) = []
-         arrList v@(TVal _ (T.unpack -> 'A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
+         arrList v@(Val _ "A0" _ []) = []
+         arrList v@(Val _ (T.unpack -> 'A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
 
          arr = arr_ (pp 0)
          ar = prettyList (pp 0)
@@ -111,7 +111,7 @@ instance Pretty Val where
            ,(absType (Proxy::Proxy (P.List Any)),\v -> (False,ar (valList v)))
            ,(absType (Proxy::Proxy (P.NonEmptyList Any)),\v -> (False,ar (neList v)))
            ,(absType (Proxy::Proxy (P.Array Any)),\v -> (True,arr (arrList v)))
-           ,(absType (Proxy::Proxy (BLOB UTF8Encoding)),\(TVal _ _ _ [_,TVal _ _ _ [_,vs]]) -> (False,text . map (chr . wrd_) . arrList $ vs))
+           ,(absType (Proxy::Proxy (BLOB UTF8Encoding)),\(Val _ _ _ [_,Val _ _ _ [_,vs]]) -> (False,text . map (chr . wrd_) . arrList $ vs))
            ,(absType (Proxy::Proxy (Tuple2 Any Any)),tuple)
            ,(absType (Proxy::Proxy (Tuple3 Any Any Any)),tuple)
            ,(absType (Proxy::Proxy (Tuple4 Any Any Any Any)),tuple)
@@ -121,8 +121,8 @@ instance Pretty Val where
            ,(absType (Proxy::Proxy (Tuple8 Any Any Any Any Any Any Any Any)),tuple)
            ,(absType (Proxy::Proxy (Tuple9 Any Any Any Any Any Any Any Any Any)),tuple)
            ]
-         p0 (TVal _ _ _ [v]) = v
-         tuple (TVal _ _ _ vs) = (False,tup vs)
+         p0 (Val _ _ _ [v]) = v
+         tuple (Val _ _ _ vs) = (False,tup vs)
 
 -- Used to match any type
 data Any deriving (Generic,Model)
@@ -162,9 +162,6 @@ instance Pretty T.Text where pPrint = text . T.unpack
 instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where
    pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
 
-instance {-# OVERLAPS #-} Pretty (MutualADTEnv,MutualAbsADT) where
-   pPrint (env,adt) = vcat . intersperse (text "") . map pPrint . stringADTs env $ adt
-
 instance Pretty LocalName where pPrint (LocalName n) = txt n
 
 instance Pretty (String,ADTRef) where
@@ -176,11 +173,6 @@ instance Pretty ADTRef where
    pPrint (Var v) = varP v
    pPrint Rec = char '\x21AB'
    pPrint (Ext r) = pPrint r
-
-instance Pretty MutualADTRef where
-   pPrint (MVar v) = varP v
-   pPrint (MRec s) = txt s
-   pPrint (MExt r) = pPrint r
 
 instance Pretty (Ref a) where
   pPrint (Verbatim bl) = char 'V' <> prettyNE bl -- pPrint bl
