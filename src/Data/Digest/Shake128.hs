@@ -39,12 +39,13 @@ shake128_ n bs = unsafePerformIO $ do
    Just bs' <- fromJSVal $ js_keccak256 jbs
    return . B.take n . B.pack $ bs' -- return $ toBS1 $ js_shake128 (n*8) jbs
 
-
+-- PROB: these references will be scrambled by the closure compiler, as they are not static functions but are setup dynamically by the sha3.hs library
 foreign import javascript unsafe "shake_128.array($2, $1)" js_shake128 :: Int -> JSVal -> JSVal
 
 foreign import javascript unsafe "sha3_256.array($1)" js_sha3 :: JSVal -> JSVal
 
 foreign import javascript unsafe "keccak_256.array($1)" js_keccak256 :: JSVal -> JSVal
+-- foreign import javascript unsafe "(window == undefined ? global : window)['keccak_256']['array']($1)" js_keccak256 :: JSVal -> JSVal
 #else
 
 -- fake implementation

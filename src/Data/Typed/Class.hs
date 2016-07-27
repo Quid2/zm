@@ -9,7 +9,7 @@
 module Data.Typed.Class(
   Typed(..)--,absoluteType
   --,absType
-  ,absTypeEnv,absADTs,absRef
+  ,absTypeEnv,absADTs,absRef--,asEnv
   ,AbsEnv,AbsType
   ) where
 
@@ -18,16 +18,23 @@ import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Data.Digest.Shake128
 import           Data.Flat
+import           Data.Int
 import           Data.List
 import qualified Data.Map             as M
 import           Data.Model
 import           Data.Ord
+import           Data.Text            (Text)
+-- import           Data.Typed.Generate
 import           Data.Typed.Instances
+import qualified Data.Typed.PrimTypes
 import           Data.Typed.Transform hiding (relADT)
 import           Data.Typed.Types
+import           Data.Word
+--import           Debug.Trace
+traceShowId = id
 
 absADTs :: Typed a => Proxy a -> [AbsADT]
-absADTs = M.elems . snd . absoluteType
+absADTs = M.elems . canonicalEnv . absoluteType
 
 --absType :: Typed a => Proxy a -> AbsType
  -- absType = fst . absoluteType
@@ -35,7 +42,7 @@ absADTs = M.elems . snd . absoluteType
 class Typed a where
   -- This can be overriden and set to a precalculated value
   absType :: Proxy a -> AbsType
-  absType = fst . absoluteType
+  absType = canonicalType . absoluteType
 
   absoluteType :: Proxy a -> AbsoluteType
 
@@ -44,11 +51,13 @@ class Typed a where
 
 instance {-# OVERLAPPABLE #-} Model a => Typed a where absoluteType = absTypeEnv
 
+-- asEnv :: AbsADT -> AbsoluteType
+-- asEnv adt = let r = absRef adt in (TypeCon r,M.fromList [(r,adt)])
+
 -- TOFIX: inefficient
--- BUG: no check for mutual recursive defs
-absTypeEnv :: Model a => Proxy a -> (AbsType, ADTEnv)
+absTypeEnv :: Model a => Proxy a -> AbsoluteType
 absTypeEnv a =
-  let (t, hadts) = hTypeEnv a
+  let (t, hadts) = traceShowId $ hTypeEnv a
       henv = M.fromList $ map (\d -> (declName d, d)) hadts
       mdeps = mutualDeps . M.fromList . map (\adt -> let n = declName adt in (n,recDeps henv n)) $ hadts
       errs = filter ((>1) . length) . M.elems $ mdeps
@@ -56,7 +65,7 @@ absTypeEnv a =
      then let qnEnv = M.fromList $ runReader (mapM (\hadt -> let qn = declName hadt in (qn,) <$> absADT qn) hadts) henv
               -- absEnv = adts . fst $ E.execRWS (mapM (absADT.declName) e) (traceShowId $ AbsRead mdeps henv) (AbsState [] M.empty)
               adtEnv = M.fromList . M.elems $ qnEnv
-            in (absType qnEnv t, adtEnv)
+            in AbsoluteType adtEnv (absType qnEnv t)
        else error .
             unlines
             . map (\ms -> unwords ["Found mutually recursive types",unwords . map prettyShow $ ms])
@@ -142,8 +151,9 @@ mutualAdtRef recSet (TypRef qn) =
       then return $ MRec (locName qn)
       else MExt . fst <$> mutualAbsADT qn
 
-absName :: ADT QualName ref -> String
+absName :: ADT QualName ref -> Text
 absName = locName . declName
 
 absRef :: Flat a => a -> Ref a
 absRef = Shake128 . nonEmptyList . B.unpack . shake128 4 . L.toStrict . flat
+

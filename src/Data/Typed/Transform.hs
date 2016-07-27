@@ -1,8 +1,9 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 module Data.Typed.Transform(typeDefinition,adtDefinition
                            ,stringADTs,stringADT,solvedADT,mutualDeps,recDeps
-                           ,runEnv,execEnv,solve
-                           ,label,mutualAbsADTName,relADT,adtEnv) where
+                           ,runEnv,execEnv,solve,solveF
+                           ,label,mutualAbsADTName,relADT,adtEnv
+                           ,consIn) where
 import           Control.Applicative
 import           Control.Exception
 import           Control.Monad
@@ -13,6 +14,7 @@ import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
+import           Data.Text                 (Text)
 import           Data.Typed.Types
 
 typeDefinition :: ADTEnv -> AbsType -> Either String [AbsADT]
@@ -57,7 +59,7 @@ saturate _    vs (TypeCon (Var n)) = vs !! fromIntegral n
 saturate _    _  (TypeCon (Ext k)) = TypeCon k
 saturate ref _  (TypeCon Rec) = TypeCon ref
 
-mutualSolvedADT :: AbsEnv -> MutualAbsType -> ADT String MutualAbsRef
+mutualSolvedADT :: AbsEnv -> MutualAbsType -> ADT Text MutualAbsRef
 mutualSolvedADT e at =
    let
      TypeN t ts = typeN at
@@ -66,7 +68,7 @@ mutualSolvedADT e at =
      adt = relADT $ refToADT' t e'
    in ADT (declName adt) 0 (conTreeTypeMap (saturateA e' as) <$> declCons adt)
 
-mutualAbsADTName :: MutualAbsADT -> String
+mutualAbsADTName :: MutualAbsADT -> Text
 mutualAbsADTName = declName . relADT
 
 relADT :: MutualAbsADT -> RelADT
@@ -78,22 +80,22 @@ saturateA e vs (TypeCon (MVar n)) = vs !! fromIntegral n
 saturateA e vs (TypeCon (MExt k)) = TypeCon k
 saturateA e vs (TypeCon (MRec s)) = TypeCon $ strToRef' s e
 
-data AbsEnv' = AbsEnv' {envStr2Ref::M.Map String MutualAbsRef
+data AbsEnv' = AbsEnv' {envStr2Ref::M.Map Text MutualAbsRef
                        ,envRef2ADT::MutualADTEnv
                        }
-absEnv' e = AbsEnv' (M.map fst e) (adtEnv $ e)
+absEnv' e = AbsEnv' (M.map fst e) (adtEnv e)
 
 adtEnv :: AbsEnv -> MutualADTEnv
 adtEnv = M.fromList . M.elems
 
-strToRef' :: String -> AbsEnv' -> MutualAbsRef
+strToRef' :: Text -> AbsEnv' -> MutualAbsRef
 strToRef' s (AbsEnv' sr _) = solve s sr
 
 refToADT' :: MutualAbsRef -> AbsEnv' -> MutualAbsADT
 refToADT' r (AbsEnv' _ ra) = solve r ra
 
 -- |Find the code and types corresponding to a constructor
-consIn :: String -> ADT name t -> Maybe ([Bool], [Type t])
+consIn :: Text -> ADT name t -> Maybe ([Bool], [Type t])
 consIn consName dt = maybe Nothing ((first reverse <$>) . loc []) (declCons dt)
   where
     loc bs (Con n ps) | n == consName = Just (bs,fieldsTypes ps)

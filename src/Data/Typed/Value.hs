@@ -1,5 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-module Data.Typed.Value(typedBytes,typedValue,decodeTypedValue,TypeDecoders,typeDecoderEnv,typeDecoder) where
+module Data.Typed.Value(typedBytes,untypedBytes
+                       ,typedValue,untypedValue
+                       ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType) where
 
 import           Control.Monad.Trans.State
 import           Data.Binary.Bits.Get      (Get, getBool, runGet, runPartialGet)
@@ -10,47 +12,78 @@ import qualified Data.Map                  as M
 import           Data.Model
 import           Data.Typed.Class
 import           Data.Typed.Instances
+import           Data.Typed.Pretty
 import           Data.Typed.Transform
 import           Data.Typed.Types
-import           Debug.Trace
+import Data.Word
+-- import           Debug.Trace
+traceShowId = id
+
+bb = flat . typedBytes $ (True,False,True)
+
+b :: Decoded (Bool,Bool,Bool)
+b = untypedBytes . unflat . flat . typedBytes $ (True,False,True)
 
 instance Flat TypedBytes
+-- instance Model TypedBytes
 instance Flat a => Flat (TypedValue a)
+instance Model a => Model (TypedValue a)
+-- instance Model Bytes
 
 typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBytes
-typedBytes a = TypedBytes (absType (Proxy :: Proxy a)) (L.unpack . flat $ a)
+typedBytes v = TypedBytes (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
 
---encodedTyped :: (HasModel a ,Binary a) => a -> Encoded
---encodedTyped = encoded . typedValue
+untypedBytes ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBytes -> Either DeserializeFailure a
+untypedBytes ea = case ea of
+                    Left e -> Left e
+                    Right (TypedBytes typ' bs) ->
+                      let typ = absType (Proxy :: Proxy a)
+                      in if (typ' /= typ)
+                         then typeErr typ typ'
+                         else unflat . unblob $ bs
 
--- |Decode making sure that the type is correct
--- decodeTypedValue :: forall m a . (Monad m, Typed a, Flat a) => Encoded (TypedValue a) -> m (Either DeserializeFailure a)
-decodeTypedValue bs =
-  case decoded bs of
-    Left e -> return $ Left e
-    Right (TypedValue typ' a) -> do
-      let typ = absType (proxyOf a)
-      if (typ' /= typ)
-        then do
-          let rt  = show typ -- simpleTypeS typ
-              rt' = show typ' -- simpleTypeS typ'
-              msg = unwords $ ["Was expecting type:\n",rt,"\n\nBut the data has type:\n",rt']
-              -- putStrLn msg
-          return . Left $ msg
-        else return . Right $ a
+untypedValue ::  (Flat a, Model a) => Either DeserializeFailure (TypedValue a) -> Either DeserializeFailure a
+untypedValue ea = case ea of
+                    Left e -> Left e
+                    Right (TypedValue typ' a) ->
+                      let typ = absType (proxyOf a)
+                      in if (typ' /= typ)
+                         then typeErr typ typ'
+                         else Right a
+
+typeErr typ typ' =
+  let rt  = prettyShow typ -- simpleTypeS typ
+      rt' = prettyShow typ' -- simpleTypeS typ'
+      msg = unwords $ ["Was expecting type:\n",rt,"\n\nBut the data has type:\n",rt']
+      -- putStrLn msg
+  in Left msg
 
 -- Dynamic decoding
-x :: Val
-x =
-   let (absType,absEnv) = absTypeEnv (Proxy::Proxy (Bool,Bool,Bool))
-       decEnv = typeDecoderEnv (traceShowId absEnv) (traceShowId absType)
-       dec = typeDecoder decEnv absType
-       v = runGet dec (L.pack [128+32])
-   in v
+-- x :: Val
+--x = decodeAbsType (absoluteType (Proxy::Proxy (Bool,Bool,Bool))) (L.pack [128+32])
+-- x = decodeAbsType (absoluteType (Proxy::Proxy Bool)) (L.pack [128+32])
+-- x = decodeAbsType (absoluteType (Proxy::Proxy Char)) (flat 'z')
+-- x = decodeAbsType (absoluteType (Proxy::Proxy String)) (flat "bhu")
+--x = decodeAbsType (absoluteType (Proxy::Proxy [Bool])) (flat $ [True,False,True])
+-- x = decodeAbsType (absoluteType (Proxy::Proxy Word8)) (flat $ 44::Word8
 
+p = mapM_ putStrLn [tst (),tst(False,'x'),tst True,tst 'j',tst "",tst "abc",tst (123::Word8),tst (12345::Word16),tst (123456::Word32),tst (123456789::Word64),tst (123456::Word)]
+
+tst :: forall a . (Model a,Flat a) => a -> String
+tst v = prettyShow $ decodeAbsType (absoluteType (Proxy::Proxy a)) (flat v)
+
+-- CHECK: ignores left over bits
+decodeAbsType :: AbsoluteType -> L.ByteString -> Val
+decodeAbsType at =
+  let
+    decEnv = typeDecoderEnv (traceShowId $ canonicalEnv at) (traceShowId $ canonicalType at)
+    dec = typeDecoder decEnv (canonicalType at)
+    in runGet dec
+
+-- A table of decoders, one for every relevant type
 type TypeDecoders = M.Map (Type AbsRef) (ConTree AbsRef)
 typeDecoderEnv :: ADTEnv -> Type AbsRef -> TypeDecoders
 typeDecoderEnv adtEnv absType = execEnv (addType adtEnv absType)
@@ -68,17 +101,15 @@ addType absEnv t = do
        mapM_ (addType absEnv) (conTreeTypeList ct)
     Just _ -> return ()
 
-typeDecoder
-  :: (Ord t, Show t) =>
-     M.Map (Type t) (ConTree t)
-     -> Type t -> Get Val
-typeDecoder e t = conDecoder e [] (solve t e)
+typeDecoder :: TypeDecoders -> AbsType -> Get Val
+typeDecoder e t = conDecoder e t [] (solve t e)
 
-conDecoder e bs (ConTree l r) = do
+-- conDecoder :: TypeDecoders -> [Bool] -> ConTree AbsRef -> Get Val
+conDecoder e t bs (ConTree l r) = do
   tag <- getBool
-  conDecoder e (tag:bs) (if tag then r else l)
+  conDecoder e t (tag:bs) (if tag then r else l)
 
-conDecoder e bs (Con cn cs) = Val cn (reverse bs) <$> mapM (typeDecoder e) (fieldsTypes cs)
+conDecoder e t bs (Con cn cs) = TVal t cn (reverse bs) <$> mapM (typeDecoder e) (fieldsTypes cs)
 
 
 -- Decode a TypedValue without previous knowledge of its type
