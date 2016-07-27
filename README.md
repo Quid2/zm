@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 Haskell implementation of canonical, language independent data types.
 
 ### How To Use It For Fun and Profit
