@@ -12,9 +12,9 @@ This can be used, for example:
 
  #### Canonical Models of Haskell Data Types
 
-For a data type o have a canonical representation, it has to implement the `Model` type class.
+For a data type to have a canonical representation, it has to implement the `Model` type class.
 
-Instances for a few common data types (`Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..`) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
+Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
 
 Let's see some code.
 
@@ -26,7 +26,7 @@ Import the library:
 
 > import Data.Typed
 
-We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print it nicely:
+We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 > b2 = pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
 
@@ -115,10 +115,50 @@ And this is wrong:
 
 > t7 = untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
 
+> t8 = flat . 
+
  ### Data Exchange
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the typed oriented protocol.
 
+ ### Long Term Data Preservation
+
+Inspect the data to figure out its type dynamically
+
+So far so good but what if we lose the definitions of our data types?
+
+Two ways:
+-- save the full canonical definition of the data with the data itself or
+-- save the def in the cloud so that it can be shared
+
+When we save
+
+Better save them for posterity:
+
+sv = saveTypeIn theCloud (Couple One Tre)
+
+The type has been saved, with all its dependencies.
+TypeApp (TypeApp (TypeCon (CRC16 91 93)) (TypeCon (CRC16 79 130))) (TypeCon (CRC16 65 167))
+
+Now that they are safe in the Cloud we can happily burn our code
+in the knowledge that when we are presented with a binary of unknown type
+we can always recover the full definition of our data.
+
+PUT BACK dt = e2 >>= recoverTypeFrom theCloud
+
+What if we have no idea of what is the type 
+
+instance (Flat a , Flat b) => Flat (CoupleB a b)
+
+t = ed False >> ed Tre >> ed (Couple (CoupleB True Uno One) Three)
+ed = pp . unflatDynamically . flat . typedValue
+
+
+We can now use it to define a hard-wired decoder
+
+Or use a dynamic decder to directly show the value.
+
+The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 
  ### Installation
 
