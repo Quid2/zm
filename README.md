@@ -12,7 +12,7 @@ This can be used, for example:
 
 #### Canonical Models of Haskell Data Types
 
-For a data type o have a canonical representation, it has to implement the `Model` type class.
+For a data type to have a canonical representation, it has to implement the `Model` type class.
 
 Instances for a few common data types (`Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..`) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
 
