@@ -155,7 +155,7 @@ instance Pretty L.ByteString where pPrint = arr_ (int . fromIntegral) . L.unpack
 instance Show a => Pretty (TypedValue a) where pPrint (TypedValue t v)= text (show v) <+> text "::" <+> pPrint t
 
 instance Pretty AbsoluteType where
- pPrint (AbsoluteType e t) = vcat . (pPrint t <+> text "->" <+> pPrint (declName <$> solveF e t) :) . (text "Data Types:" :) . map (\(h,adt) -> pPrint h <+> text "->" <+> pPrint (e,adt)) $ M.assocs e
+ pPrint (AbsoluteType e t) = vcat . (pPrint t <+> text "->" <+> pPrint (declName <$> solveF e t) :) . (text "" :) . (text "Data Types:" :) . map (\(h,adt) -> pPrint h <+> text "->" <+> pPrint (e,adt)) $ M.assocs e
 
 instance Pretty T.Text where pPrint = text . T.unpack
 

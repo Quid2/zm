@@ -36,6 +36,9 @@ We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
 (S06b78cab6224 Sac45f78b8700) -> (Maybe Bool)
+```
+
+```haskell
 Data Types:
 S06b78cab6224 -> data Maybe a ≡   Nothing
                | Just a
@@ -52,6 +55,9 @@ For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an e
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word7)
 Scbb7765fb7cf -> Word7
+```
+
+```haskell
 Data Types:
 Scbb7765fb7cf -> data Word7 ≡   V0
              | V1
@@ -72,6 +78,9 @@ A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definitio
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word32)
 S2e2c79e6dfe8 -> Word32
+```
+
+```haskell
 Data Types:
 S1c14fcc15b9a -> data NonEmptyList a ≡   Elem a
                       | Cons a (NonEmptyList a)
@@ -95,6 +104,9 @@ And finally a `Char` can be defined as a tagged `Word32`:
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Char)
 S0eb5cb81a1d6 -> Char
+```
+
+```haskell
 Data Types:
 S0eb5cb81a1d6 -> data Char ≡ Char Word32
 S1c14fcc15b9a -> data NonEmptyList a ≡   Elem a
@@ -209,6 +221,9 @@ However this time is obvious that the value is inconsistent with its type, as th
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy CinqueTerre)
 Sf517568b0215 -> CinqueTerre
+```
+
+```haskell
 Data Types:
 Sf517568b0215 -> data CinqueTerre ≡   Monterosso
                    | Vernazza
@@ -237,46 +252,6 @@ Left "Was expecting type:\n Sf517568b0215 \n\nBut the data has type:\n S844cade3
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
 
-### Long Term Data Preservation
-
-For an example of using canonical data types as a long term data preservation mechanism see [timeless](https://github.com/tittoassini/timeless).
-
-Inspect the data to figure out its type dynamically
-
-So far so good but what if we lose the definitions of our data types?
-
-Two ways:
--- save the full canonical definition of the data with the data itself or
--- save the def in the cloud so that it can be shared
-
-When we save
-
-Better save them for posterity:
-
-sv = saveTypeIn theCloud (Couple One Tre)
-
-The type has been saved, with all its dependencies.
-TypeApp (TypeApp (TypeCon (CRC16 91 93)) (TypeCon (CRC16 79 130))) (TypeCon (CRC16 65 167))
-
-Now that they are safe in the Cloud we can happily burn our code
-in the knowledge that when we are presented with a binary of unknown type
-we can always recover the full definition of our data.
-
-PUT BACK dt = e2 >>= recoverTypeFrom theCloud
-
-What if we have no idea of what is the type
-
-instance (Flat a , Flat b) => Flat (CoupleB a b)
-
-t = ed False >> ed Tre >> ed (Couple (CoupleB True Uno One) Three)
-ed = pp . unflatDynamically . flat . typedValue
-
-
-We can now use it to define a hard-wired decoder
-
-Or use a dynamic decder to directly show the value.
-
-The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 
 ### Installation
 
