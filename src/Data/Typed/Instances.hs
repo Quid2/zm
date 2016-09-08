@@ -44,8 +44,9 @@ instance Model Char where envType _ = envType (Proxy::Proxy P.Char)
 
 instance (Model a,Model b) => Model (ADT a b)
 instance Model a => Model (ConTree a)
-instance Model a => Model (Ref a)
-instance Model ADTRef
+-- instance Model a => Model (Ref a)
+instance Model SHA3_256_6
+instance Model a => Model (ADTRef a)
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
 -- instance Model AbsoluteType
@@ -139,8 +140,9 @@ instance Model a => Model [a] where envType _ = envType (Proxy::Proxy (P.List a)
 
 instance (Flat a,Flat b) => Flat (ADT a b)
 instance Flat a => Flat (ConTree a)
-instance Flat a => Flat (Ref a)
-instance Flat ADTRef
+-- instance Flat a => Flat (Ref a)
+instance Flat SHA3_256_6
+instance Flat a => Flat (ADTRef a)
 instance Flat a => Flat (Type a)
 instance Flat a => Flat (TypeRef a)
 instance Flat a => Flat (NonEmptyList a)

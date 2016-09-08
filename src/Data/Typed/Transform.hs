@@ -95,6 +95,30 @@ recDeps__ getRef refs env n  = first reverse $ execState (deps n) ([],[])
 
       add n = modify (first (n:))
 
+---------- Duplicated values
+u = redup $ undup [3,5,6,3,8,5]
+
+undup :: (Eq a, Traversable t) => t a -> t (LocalRef a)
+undup t = evalState (mapM sub t) []
+  where sub a = do
+          env <- get
+          case elemIndex a env of
+            Nothing -> do
+              put (a:env)
+              return $ LocalDef a -- (length env) a
+            --Just n -> return $ LocalRef (fromIntegral $ length env - fromIntegral (n+1))
+            Just n -> return $ LocalRef (fromIntegral n)
+
+redup :: Traversable t => t (LocalRef b) -> t b
+redup t = evalState (mapM sub t) []
+  where sub l = do
+          env <- get
+          case l of
+            LocalDef a -> do
+              put (a:env)
+              return a
+            LocalRef r -> return $ env !! fromIntegral r
+
 ----------- Utils
 runEnv op = runState op M.empty
 execEnv op = execState op M.empty

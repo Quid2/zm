@@ -1,3 +1,4 @@
+
 Haskell implementation of canonical, language independent data types.
 
 ### How To Use It For Fun and Profit
@@ -7,14 +8,14 @@ With `typed` you can derive and manipulate canonical description of (a subset) o
 This can be used, for example:
 
 * in combination with a serialisation library to provide type-safe deserialisation
-* for data exchange across different programming languages and sofware systems
+* for data exchange across different programming languages and software systems
 * for long term data preservation
 
 #### Canonical Models of Haskell Data Types
 
 For a data type to have a canonical representation, it has to implement the `Model` type class.
 
-Instances for a few common data types (`Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..`) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
+Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
 
 Let's see some code.
 
@@ -30,163 +31,98 @@ Import the library:
 import Data.Typed
 ```
 
-We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print it nicely:
+We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
-(H06b78cab Hac45f78b) -> (Maybe Bool)
+(K[6, 183, 140, 171, 98, 36] K[172, 69, 247, 139, 135,
+                               0]) -> (Maybe Bool)
 Data Types:
-H06b78cab ->  Maybe a ≡   Nothing
-                        | Just a
-Hac45f78b ->  Bool ≡   False
-                     | True
+K[6, 183, 140, 171, 98,
+  36] -> data Maybe a ≡   Nothing
+               | Just a
+K[172, 69, 247, 139, 135,
+  0] -> data Bool ≡   False
+            | True
 ```
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
-Some common classes have rather peculiar custom mappings:
+Contrary to Haskell, `typed` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
+
+For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
+
+```haskell
+pPrint $ absoluteType (Proxy :: Proxy Word7)
+K[203, 183, 118, 95, 183, 207] -> Word7
+Data Types:
+K[203, 183, 118, 95, 183,
+  207] -> data Word7 ≡   V0
+             | V1
+             | V2
+             | V3
+             | V4
+...
+             | V123
+             | V124
+             | V125
+             | V126
+             | V127
+```
+
+
+A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
+
+```haskell
+pPrint $ absoluteType (Proxy :: Proxy Word32)
+K[46, 44, 121, 230, 223, 232] -> Word32
+Data Types:
+K[28, 20, 252, 193, 91,
+  154] -> data NonEmptyList a ≡   Elem a
+                      | Cons a (NonEmptyList a)
+K[46, 44, 121, 230, 223,
+  232] -> data Word32 ≡ Word32 (NonEmptyList Word7)
+K[203, 183, 118, 95, 183,
+  207] -> data Word7 ≡   V0
+             | V1
+             | V2
+             | V3
+             | V4
+...
+             | V123
+             | V124
+             | V125
+             | V126
+             | V127
+```
+
+
+And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Char)
-H1e89074f -> Char
+K[14, 181, 203, 129, 161, 214] -> Char
 Data Types:
-H1c14fcc1 ->  NonEmptyList a ≡   Elem a
-                               | Cons a (NonEmptyList a)
-H1e89074f ->  Char ≡ Char Word32
-Hcbb7765f ->  Word7 ≡   V0
-                      | V1
-                      | V2
-                      | V3
-                      | V4
-                      | V5
-                      | V6
-                      | V7
-                      | V8
-                      | V9
-                      | V10
-                      | V11
-                      | V12
-                      | V13
-                      | V14
-                      | V15
-                      | V16
-                      | V17
-                      | V18
-                      | V19
-                      | V20
-                      | V21
-                      | V22
-                      | V23
-                      | V24
-                      | V25
-                      | V26
-                      | V27
-                      | V28
-                      | V29
-                      | V30
-                      | V31
-                      | V32
-                      | V33
-                      | V34
-                      | V35
-                      | V36
-                      | V37
-                      | V38
-                      | V39
-                      | V40
-                      | V41
-                      | V42
-                      | V43
-                      | V44
-                      | V45
-                      | V46
-                      | V47
-                      | V48
-                      | V49
-                      | V50
-                      | V51
-                      | V52
-                      | V53
-                      | V54
-                      | V55
-                      | V56
-                      | V57
-                      | V58
-                      | V59
-                      | V60
-                      | V61
-                      | V62
-                      | V63
-                      | V64
-                      | V65
-                      | V66
-                      | V67
-                      | V68
-                      | V69
-                      | V70
-                      | V71
-                      | V72
-                      | V73
-                      | V74
-                      | V75
-                      | V76
-                      | V77
-                      | V78
-                      | V79
-                      | V80
-                      | V81
-                      | V82
-                      | V83
-                      | V84
-                      | V85
-                      | V86
-                      | V87
-                      | V88
-                      | V89
-                      | V90
-                      | V91
-                      | V92
-                      | V93
-                      | V94
-                      | V95
-                      | V96
-                      | V97
-                      | V98
-                      | V99
-                      | V100
-                      | V101
-                      | V102
-                      | V103
-                      | V104
-                      | V105
-                      | V106
-                      | V107
-                      | V108
-                      | V109
-                      | V110
-                      | V111
-                      | V112
-                      | V113
-                      | V114
-                      | V115
-                      | V116
-                      | V117
-                      | V118
-                      | V119
-                      | V120
-                      | V121
-                      | V122
-                      | V123
-                      | V124
-                      | V125
-                      | V126
-                      | V127
-Hf8598df1 ->  Word32 ≡ Word32 (NonEmptyList Word7)
+K[14, 181, 203, 129, 161, 214] -> data Char ≡ Char Word32
+K[28, 20, 252, 193, 91,
+  154] -> data NonEmptyList a ≡   Elem a
+                      | Cons a (NonEmptyList a)
+K[46, 44, 121, 230, 223,
+  232] -> data Word32 ≡ Word32 (NonEmptyList Word7)
+K[203, 183, 118, 95, 183,
+  207] -> data Word7 ≡   V0
+             | V1
+             | V2
+             | V3
+             | V4
+...
+             | V123
+             | V124
+             | V125
+             | V126
+             | V127
 ```
 
-Contrary to Haskell, canonical types have no 'magic' built-in types so even something as basic as `Char` has to be defined explicitly.
-
-As you can see `Char` is defined as a tagged `Word32`, defined as a `NonEmptyList` list of `Word7`, defined in turn as an explicit enumeration of all the 128 different values that can fit in 7 bits.
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
@@ -223,14 +159,21 @@ data Direction = North | South | Center | East | West deriving (Show,Generic,Fla
 
 Though their meaning is obviously different they share the same syntactical structure (simple enumerations of 5 values) and most binary serialisation libraries won't be able to distinguish between the two.
 
-To demonstrate this let's serialise a value using the `flat` binary serialisation library.
+To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration.
 
 ```haskell
 flat Center
 "\129"
 ```
 
-We use `flat` as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
+```haskell
+flat Corniglia
+"\129"
+```
+
+As you can see they have the same binary representation.
+
+We have used the `flat` binary serialisation as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
 
 Let's go full circle, using `unflat` to decode the value :
 
@@ -248,40 +191,41 @@ Right Corniglia
 
 Oops, that's not quite right.
 
-We got our types crossed, a Direction was interpreted as one of the CinqueTerre.
+We got our types crossed, `Center` was read back as `Corniglia`, a Direction was interpreted as one of the CinqueTerre.
 
 To fix this, we convert the value to a `TypedValue`, a value combined with its canonical type:
 
 ```haskell
 pPrint $ typedValue Center
-Center :: H844cade3
+Center :: K[132, 76, 173, 227, 18, 100]
 ```
 
 TypedValues can be serialised as any other value:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue Direction))
-Right Center :: H844cade3
+Right Center :: K[132, 76, 173, 227, 18, 100]
 ```
 
 And just as before, we can get things wrong:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue CinqueTerre))
-Right Corniglia :: H844cade3
+Right Corniglia :: K[132, 76, 173, 227, 18, 100]
 ```
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy CinqueTerre)
-Hf517568b -> CinqueTerre
+K[245, 23, 86, 139, 2, 21] -> CinqueTerre
 Data Types:
-Hf517568b ->  CinqueTerre ≡   Monterosso
-                            | Vernazza
-                            | Corniglia
-                            | Manarola
-                            | RioMaggiore
+K[245, 23, 86, 139, 2,
+  21] -> data CinqueTerre ≡   Monterosso
+                   | Vernazza
+                   | Corniglia
+                   | Manarola
+                   | RioMaggiore
 ```
 
 We can automate this check, with `untypedValue`:
@@ -297,13 +241,12 @@ And this is wrong:
 
 ```haskell
 untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
-Left "Was expecting type:\n Hf517568b \n\nBut the data has type:\n H844cade3"
+Left "Was expecting type:\n K[245, 23, 86, 139, 2, 21] \n\nBut the data has type:\n K[132, 76, 173, 227, 18, 100]"
 ```
 
 ### Data Exchange
 
-For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the typed oriented protocol.
-
+For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
 
 ### Installation
 
@@ -311,5 +254,6 @@ Install as part of the [quid2](https://github.com/tittoassini/quid2) project.
 
 ### Known Bugs and Infelicities
 
+* The unique codes generated for the data types are not yet final and will change in the next version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
 * Messy source code

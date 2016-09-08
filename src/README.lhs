@@ -7,7 +7,7 @@ With `typed` you can derive and manipulate canonical description of (a subset) o
 This can be used, for example:
 
 * in combination with a serialisation library to provide type-safe deserialisation
-* for data exchange across different programming languages and sofware systems
+* for data exchange across different programming languages and software systems
 * for long term data preservation
 
  #### Canonical Models of Haskell Data Types
@@ -32,13 +32,19 @@ We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to 
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
-Some common classes have rather peculiar custom mappings:
+Contrary to Haskell, `typed` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
+
+For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
+
+> b344 = pPrint $ absoluteType (Proxy :: Proxy Word7)
+
+A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
+
+> b34 = pPrint $ absoluteType (Proxy :: Proxy Word32)
+
+And finally a `Char` can be defined as a tagged `Word32`:
 
 > b3 = pPrint $ absoluteType (Proxy :: Proxy Char)
-
-Contrary to Haskell, canonical types have no 'magic' built-in types so even something as basic as `Char` has to be defined explicitly.
-
-As you can see `Char` is defined as a tagged `Word32`, defined as a `NonEmptyList` list of `Word7`, defined in turn as an explicit enumeration of all the 128 different values that can fit in 7 bits.
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
@@ -91,7 +97,7 @@ One more time:
 
 Oops, that's not quite right.
 
-We got our types crossed, a Direction was interpreted as one of the CinqueTerre.
+We got our types crossed, `Center` was read back as `Corniglia`, a Direction was interpreted as one of the CinqueTerre.
 
 To fix this, we convert the value to a `TypedValue`, a value combined with its canonical type:
 
@@ -121,46 +127,7 @@ And this is wrong:
 
  ### Data Exchange
 
-For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the typed oriented protocol.
-
- ### Long Term Data Preservation
-
-Inspect the data to figure out its type dynamically
-
-So far so good but what if we lose the definitions of our data types?
-
-Two ways:
--- save the full canonical definition of the data with the data itself or
--- save the def in the cloud so that it can be shared
-
-When we save
-
-Better save them for posterity:
-
-sv = saveTypeIn theCloud (Couple One Tre)
-
-The type has been saved, with all its dependencies.
-TypeApp (TypeApp (TypeCon (CRC16 91 93)) (TypeCon (CRC16 79 130))) (TypeCon (CRC16 65 167))
-
-Now that they are safe in the Cloud we can happily burn our code
-in the knowledge that when we are presented with a binary of unknown type
-we can always recover the full definition of our data.
-
-PUT BACK dt = e2 >>= recoverTypeFrom theCloud
-
-What if we have no idea of what is the type
-
-instance (Flat a , Flat b) => Flat (CoupleB a b)
-
-t = ed False >> ed Tre >> ed (Couple (CoupleB True Uno One) Three)
-ed = pp . unflatDynamically . flat . typedValue
-
-
-We can now use it to define a hard-wired decoder
-
-Or use a dynamic decder to directly show the value.
-
-The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
+For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
 
  ### Installation
 

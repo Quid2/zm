@@ -19,7 +19,6 @@ instance Model String
 
 instance Model Word8 where envType p = addCT p (return word8CT)
 
-data Word7 = Word7 Word8 deriving (Eq, Ord, Show, Generic)
 instance Model Word7 where envType p = addCT p (return word7CT)
 
 instance Model a => Model (NonEmptyList a)
@@ -33,8 +32,10 @@ data Word64 = Word64 (NonEmptyList Word7) deriving (Eq, Ord, Show, Generic, Mode
 -- Better
 -- data Word64 = Word64 Word deriving (Eq, Ord, Show, Generic, Model)
 
+-- Unlimited, unsigned word
 data Word = Word (LeastSignificantFirst (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic, Model)
 
+-- Prob: LSB at the byte level but msb first at bit level?
 data LeastSignificantFirst a = LeastSignificantFirst a deriving (Eq, Ord, Show, Generic)
 instance Model a => Model (LeastSignificantFirst a)
 

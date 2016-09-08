@@ -1,12 +1,16 @@
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TupleSections    ,FlexibleContexts   ,FlexibleInstances  ,UndecidableInstances #-}
+{-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 module Main where
 
 import           Control.Applicative
 import           Data.Bifunctor
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Lazy  as L
+import           Data.Digest.SHA3
 import           Data.Foldable
 import           Data.Int
 import           Data.List
@@ -27,6 +31,7 @@ import qualified Test.Data3            as Data3
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
+
 -- import qualified P.Word7
 -- check that a type is encoded according to its declared type.
 -- encode then decode accord to type then
@@ -39,6 +44,7 @@ mainT = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [properties
+                           ,digestTests
                            ,unitTests]
 
 properties = testGroup "Typed Properties"
@@ -52,8 +58,13 @@ properties = testGroup "Typed Properties"
 prop_encoding :: forall a. (Flat a, Show a, Model a) => RT a
 prop_encoding x = prettyShow (decodeAbsType (traceShowId (absoluteType (Proxy::Proxy a))) (flat x)) == show x
 
-unitTests = testGroup "Typed Unit Tests" $ [
-  -- Test all custom flat instances for conformity to
+digestTests = testGroup "Digest Tests" [
+  tst [] [0xa7,0xff,0xc6]
+  ,tst [48,49,50,51] [0x33,0xbc,0xc2]
+  ] where tst inp out = testCase (unwords ["SHA3",show inp]) $ B.pack out @?= sha3_256 3 (B.pack inp)
+
+unitTests = testGroup "Typed Unit Tests" [
+  -- Test all custom flat instances for conformity to their model
   e ()
   ,e False
   ,e (Just True)
@@ -119,8 +130,8 @@ mainP = do
   -- print $ flat True
   -- print $ L.unpack $ flat (C True (C False N))
   -- prt (Proxy::Proxy Char)
-  print $ L.unpack . flat $ T.pack "abc" 
-  -- prt (Proxy::Proxy String)  
+  print $ L.unpack . flat $ T.pack "abc"
+  -- prt (Proxy::Proxy String)
   prt (Proxy::Proxy T.Text)
   prt (Proxy::Proxy (BLOB UTF8Encoding))
   -- prt (Proxy::Proxy (Array Word8))
@@ -128,7 +139,7 @@ mainP = do
   -- prt (Proxy::Proxy L.ByteString)
   -- prtH (Proxy::Proxy (Bool,()))
   -- prt (Proxy::Proxy L.ByteString)
-  -- prt (Proxy::Proxy T.Text) 
+  -- prt (Proxy::Proxy T.Text)
   -- print $ tstDec (Proxy::Proxy L.ByteString) [2,11,22,0,1]
   -- print $ tstDec (Proxy::Proxy (Bool,Bool,Bool)) [128+32]
   -- print $ tstDec (Proxy::Proxy (List Bool)) [72]
@@ -138,10 +149,11 @@ mainP = do
 -- [3,119,119,119,0,1,7,72,97,115,107,101,108,108,0,0,0,237,13,13,13,13,13,13,0,0,0,0,0,0,0,0]
 -- tstDec :: Val
     where
-      prt = putStrLn . take 1000 . prettyShow . absTypeEnv
+      prt = putStrLn . take 1000 . prettyShow . absoluteType
       prtH = putStrLn . take 1000 . prettyShow . hTypeEnv
+
 tstDec proxy bs =
-     let t@(AbsoluteType absEnv absType) = absTypeEnv proxy
+     let t@(AbsoluteType absEnv absType) = absoluteType proxy
          decEnv = typeDecoderEnv (traceShowId absEnv) (traceShowId absType)
          dec = typeDecoder decEnv absType
          v = runGet dec (L.pack bs)
@@ -244,6 +256,6 @@ instance Prettier Integer where prettier = text . show
 
 -- ar_ :: (a -> Doc) -> [a] -> Doc
 -- ar_ f elems = char '[' <> (hcat . intersperse (char ',') . map f $ elems) <> char ']'
- 
+
 arr_ :: (a -> Doc) -> [a] -> Doc
 arr_ f elems = hsep $ text "Array" : [prettyList f elems]

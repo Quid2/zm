@@ -160,32 +160,38 @@ instance Pretty AbsoluteType where
 instance Pretty T.Text where pPrint = text . T.unpack
 
 instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where
-   pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
-
+   -- pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
+  pPrint (env,adt) = pPrint . CompactPretty . stringADT env $ adt
+  
 instance Pretty LocalName where pPrint (LocalName n) = txt n
 
-instance Pretty (String,ADTRef) where
+instance Pretty a => Pretty (String,ADTRef a) where
    pPrint (_,Var v) = varP v
    pPrint (n,Rec) = text n
    pPrint (_,Ext r) = pPrint r
 
-instance Pretty ADTRef where
+instance Pretty a => Pretty (ADTRef a) where
    pPrint (Var v) = varP v
    pPrint Rec = char '\x21AB'
    pPrint (Ext r) = pPrint r
 
-instance Pretty (Ref a) where
-  pPrint (Verbatim bl) = char 'V' <> prettyNE bl -- pPrint bl
-  pPrint (Shake128 bl) = char 'H' <> prettyNE bl -- pPrint bl
+-- instance Pretty (Ref a) where
+--   pPrint (Verbatim bl) = char 'V' <> prettyNE bl -- pPrint bl
+--   pPrint (Shake128 bl) = char 'H' <> prettyNE bl -- pPrint bl
+
+-- instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 bl) = char 'K' <> prettyNE bl -- pPrint bl
+instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'K' <> pPrint [k1,k2,k3,k4,k5,k6]
 
 -- x =  unPrettyRef "H0a2d22a3"
 
  -- unPrettyRef ('H':code) = let [(bs,"")] = readP_to_S (many1 rdHex(readS_to_P readHex)) code
  --                          in Shake128 $ nonEmptyList $ bs
 
-unPrettyRef :: String -> Ref a
-unPrettyRef ('V':code) = Verbatim . nonEmptyList $ readHexCode code
-unPrettyRef ('H':code) = Shake128 . nonEmptyList $ readHexCode code
+-- unPrettyRef :: String -> Ref a
+-- unPrettyRef ('V':code) = Verbatim . nonEmptyList $ readHexCode code
+-- unPrettyRef ('H':code) = Shake128 . nonEmptyList $ readHexCode code
+
+unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
 
 rdHex :: String -> Word8
 rdHex s = let [(b,"")] = readP_to_S ((readS_to_P readHex)) s in b
@@ -204,9 +210,13 @@ instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
 
 -- instance Pretty Word8 where pPrint = text . hex
 
+--prettyWord = text . hex
+
 prettyNE :: NonEmptyList Word8 -> Doc
 -- prettyNE = cat . map pPrint . toList
-prettyNE = text . concatMap hex . toList
+prettyNE = prettyWords . toList
+
+prettyWords = text . concatMap hex
 
 hex = printf "%02x"
 

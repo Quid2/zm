@@ -1,4 +1,7 @@
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 module Data.Typed.Value(typedBytes,untypedBytes
                        ,typedValue,untypedValue
                        ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType) where
@@ -24,17 +27,101 @@ bb = flat . typedBytes $ (True,False,True)
 b :: Decoded (Bool,Bool,Bool)
 b = untypedBytes . unflat . flat . typedBytes $ (True,False,True)
 
+instance Flat Timeless
 instance Flat TypedBytes
 -- instance Model TypedBytes
 instance Flat a => Flat (TypedValue a)
 instance Model a => Model (TypedValue a)
 -- instance Model Bytes
 
+x :: Decoded Bool
+x = untimeless . unflat . flat . timelessSimple $ True
+
+xw :: Decoded Word8
+xw = untimeless . unflat . flat . timelessSimple $ True
+
+-- y = unTimeless . unflat $ k1
+
+y :: Decoded Bool
+y = untimeless . unflat . flat . timelessAbs $ True
+
+d = (unflat . flat . timelessAbs $ True) >>= untimelessDynamic_
+
+-- f = flat . timeless $ True
+
+k1 = L.pack [174,179,12,6,31,46,239,67,229,118,63,213,192,121,7,107,40,191,124,94,28,1,0,1,1,129,0,1]
+
+-- timeless :: forall a . (Model a, Flat a) => a -> Timeless
+-- timeless a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+
+-- Fake type system
+data SimpleType = SimpleBool deriving (Eq, Ord, Show, Generic)
+instance Model SimpleType
+instance Flat SimpleType
+
+timelessAbs :: forall a . (Model a, Flat a) => a -> Timeless
+timelessAbs a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+
+timelessSimple :: Bool -> Timeless
+timelessSimple a = Timeless (typedBytes SimpleBool) (blob FlatEncoding . flat $ a)
+
+-- WARN: adds additional end alignment byte
 typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBytes
 typedBytes v = TypedBytes (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
+
+{-
+Dynamically recover a value, discover metamodel of a data type, its type
+
+Reqs:
+-- Include metamodel
+-- Avoid duplication
+-}
+
+-- meta = TypeApp "Type" (TyCon "Keccak") :: Type Shake128
+-- Meta must be of a known type ?
+-- or it could be a Blob of known size so that we can compare it with known signatures?
+-- tbs = TypeCon "Bool" :: Type Keccak
+-- value = True :: Bool
+
+untimeless ::  forall a.  (Flat a, Model a) => Decoded Timeless -> Decoded a
+untimeless dt = dt >>= untimeless_
+
+untimelessDynamic_ :: Timeless -> Decoded (L.ByteString,AbsType, AbsType)
+untimelessDynamic_ (Timeless (TypedBytes meta tbs) bs) =
+  if meta == metaAbsType
+  then (unblob bs,,meta) <$> (unflat . unblob $ tbs :: Decoded AbsType)
+  else Left "unknown meta model"
+
+untimeless_ ::  forall a.  (Flat a, Model a) => Timeless -> Decoded a
+untimeless_ (Timeless (TypedBytes meta tbs) bs) =
+  let expectedType = absType (Proxy :: Proxy a)
+  in if meta == metaAbsType
+     then let Right (actualType :: AbsType) = unflat . unblob $ tbs
+          in if expectedType == actualType
+             then unflat . unblob $ bs
+             else typeErr expectedType actualType
+     else if meta == metaSimpleType
+          then if expectedType == metaBool
+               then unflat . unblob $ bs
+               else Left "SimpleType can only be a Boolean"
+          else Left "unknown meta model"
+
+metaAbsType :: AbsType
+metaAbsType = absType (Proxy :: Proxy AbsType)
+
+metaSimpleType :: AbsType
+metaSimpleType = absType (Proxy :: Proxy SimpleType)
+
+metaBool :: AbsType
+metaBool = absType (Proxy :: Proxy Bool)
+
+-- funKeccak = ta $ absType (Proxy :: Proxy (Type Keccak256_6))
+-- t2 = let TypeApp f a = absType (Proxy :: Proxy (Type Shake128)) in f
+
+fun ta = let TypeApp f a = ta in f
 
 untypedBytes ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBytes -> Either DeserializeFailure a
 untypedBytes ea = case ea of

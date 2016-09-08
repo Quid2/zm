@@ -11,7 +11,7 @@ import qualified Control.Monad.Reader    as R
 import           Control.Monad.Trans.RWS
 import           Data.Bifunctor
 import qualified Data.ByteString         as B
-import           Data.Digest.Shake128
+import           Data.Digest.SHA3
 import           Data.Either
 import           Data.Foldable
 import           Data.Functor.Identity

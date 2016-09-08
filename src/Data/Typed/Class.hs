@@ -7,16 +7,18 @@
 {-# LANGUAGE TupleSections        #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Data.Typed.Class(
-  Typed(..)--,absoluteType
-  --,absType
-  ,absTypeEnv,absADTs,absRef--,asEnv
+  Typed(..)
+  --,absoluteType,absType
+  ,absTypeEnvBy,absADTs--,absRef--,asEnv
+  -- ,refK
+  ,refS
   ,AbsType
   ) where
 
 import           Control.Monad.Reader
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Data.Digest.Shake128
+import           Data.Digest.SHA3
 import           Data.Flat
 import           Data.Int
 import           Data.List
@@ -36,7 +38,7 @@ absADTs :: Typed a => Proxy a -> [AbsADT]
 absADTs = M.elems . canonicalEnv . absoluteType
 
 --absType :: Typed a => Proxy a -> AbsType
- -- absType = fst . absoluteType
+-- absType = fst . absoluteType
 
 class Typed a where
   -- This can be overriden and set to a precalculated value
@@ -45,49 +47,53 @@ class Typed a where
 
   absoluteType :: Proxy a -> AbsoluteType
 
+  -- Is this needed?
   default absoluteType :: Model a => Proxy a -> AbsoluteType
   absoluteType = absTypeEnv
 
+-- Is this needed?
 instance {-# OVERLAPPABLE #-} Model a => Typed a where absoluteType = absTypeEnv
 
 -- asEnv :: AbsADT -> AbsoluteType
 -- asEnv adt = let r = absRef adt in (TypeCon r,M.fromList [(r,adt)])
+-- zz = absTypeEnvBy refS
 
 -- TOFIX: inefficient
-absTypeEnv :: Model a => Proxy a -> AbsoluteType
-absTypeEnv a =
+-- absTypeEnv :: Model a => Proxy a -> AbsoluteType
+absTypeEnv a = let (e,t) = absTypeEnvBy refS a in AbsoluteType e t
+
+absTypeEnvBy ref a =
   let (t, hadts) = traceShowId $ hTypeEnv a
       henv = M.fromList $ map (\d -> (declName d, d)) hadts
       mdeps = mutualDeps . M.fromList . map (\adt -> let n = declName adt in (n,recDeps henv n)) $ hadts
       errs = filter ((>1) . length) . M.elems $ mdeps
   in if null errs
-     then let qnEnv = M.fromList $ runReader (mapM (\hadt -> let qn = declName hadt in (qn,) <$> absADT qn) hadts) henv
-              -- absEnv = adts . fst $ E.execRWS (mapM (absADT.declName) e) (traceShowId $ AbsRead mdeps henv) (AbsState [] M.empty)
+     then let qnEnv = M.fromList $ runReader (mapM (\hadt -> let qn = declName hadt in (qn,) <$> absADT ref qn) hadts) henv
               adtEnv = M.fromList . M.elems $ qnEnv
-            in AbsoluteType adtEnv (absType qnEnv t)
+            in (adtEnv,absType qnEnv t)
        else error .
             unlines
             . map (\ms -> unwords ["Found mutually recursive types",unwords . map prettyShow $ ms])
             $ errs
   where
-    absType qnEnv t = runReader (mapM absRef t) qnEnv
-      where absRef (TypRef qn) = fst . solve qn <$> ask
+    absType qnEnv t = runReader (mapM absSolve t) qnEnv
+      where absSolve (TypRef qn) = fst . solve qn <$> ask
 
-absADT qn = do
+absADT ref qn = do
      -- E.modify (\e -> e {adts = M.insert (locName qn) (r,absADT) (adts e)
      --                   ,contexts = tail (contexts e)
      --                   })
      hadt <- solve qn <$> ask
-     cs' <- mapM (mapM (adtRef qn)) $ declCons hadt
+     cs' <- mapM (mapM (adtRef ref qn)) $ declCons hadt
      let adt = ADT (locName qn) (declNumParameters hadt) cs'
-     return (absRef adt,adt)
+     return (ref adt,adt)
 
-adtRef _ (TypVar v) = return $ Var v
+adtRef _ _ (TypVar v) = return $ Var v
 
-adtRef me (TypRef qn) =
+adtRef ref me (TypRef qn) =
      if me == qn
        then return Rec
-       else Ext . fst <$> absADT qn
+       else Ext . fst <$> absADT ref qn
 
 type AbsM = Reader AbsRead
 
@@ -101,6 +107,18 @@ data AbsRead = AbsRead {
 absName :: ADT QualName ref -> Text
 absName = locName . declName
 
-absRef :: Flat a => a -> Ref a
-absRef = Shake128 . nonEmptyList . B.unpack . shake128 4 . L.toStrict . flat
+-- absRef :: Flat a => a -> Ref a
+-- absRef = Shake128 . nonEmptyList . B.unpack . shake128 4 . L.toStrict . flat
 
+refS :: ADT Text (ADTRef SHA3_256_6) -> SHA3_256_6
+-- refK :: Flat a => a -> SHA3_256_6
+refS a = let (w1:w2:w3:w4:w5:w6:_) = B.unpack . keccak256_6 . L.toStrict . flat $ a
+           in SHA3_256_6 w1 w2 w3 w4 w5 w6
+
+-- refK :: ADT Text (ADTRef Keccak256_6) -> Keccak256_6
+-- -- refK :: Flat a => a -> Keccak256_6
+-- refK a = let (w1:w2:w3:w4:w5:w6:_) = B.unpack . keccak256_6 . L.toStrict . flat $ a
+--            in Keccak256_6 w1 w2 w3 w4 w5 w6
+
+-- refS a = let (w1:w2:w3:w4:_) = B.unpack . keccak256_6 . L.toStrict . flat $ a
+--            in Shake128_4 w1 w2 w3 w4
