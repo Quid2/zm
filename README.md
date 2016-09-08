@@ -251,7 +251,7 @@ Left "Was expecting type:\n Sf517568b0215 \n\nBut the data has type:\n S844cade3
 ### Data Exchange
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
-
+<!--
 ### Long Term Data Preservation
 
 For an example of using canonical data types as a long term data preservation mechanism see [timeless](https://github.com/tittoassini/timeless).
@@ -292,7 +292,7 @@ We can now use it to define a hard-wired decoder
 Or use a dynamic decder to directly show the value.
 
 The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
-
+-->
 ### Installation
 
 Install as part of the [quid2](https://github.com/tittoassini/quid2) project.
