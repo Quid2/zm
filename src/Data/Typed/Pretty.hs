@@ -180,7 +180,7 @@ instance Pretty a => Pretty (ADTRef a) where
 --   pPrint (Shake128 bl) = char 'H' <> prettyNE bl -- pPrint bl
 
 -- instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 bl) = char 'K' <> prettyNE bl -- pPrint bl
-instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'K' <> pPrint [k1,k2,k3,k4,k5,k6]
+instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
 
 -- x =  unPrettyRef "H0a2d22a3"
 
