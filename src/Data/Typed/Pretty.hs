@@ -1,14 +1,15 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE ViewPatterns  ,ScopedTypeVariables    #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE ViewPatterns        #-}
 module Data.Typed.Pretty(
   -- Pretty(..)
   -- ,module Text.PrettyPrint.HughesPJClass
   module Data.Model.Pretty
-  ,hex,unPrettyRef,prettyList,prettyTuple
+  ,hex,unPrettyRef,prettyList,prettyTuple--,prettyWords
   ) where
 
 import qualified Data.ByteString                as B
@@ -18,10 +19,12 @@ import           Data.Flat.Instances
 import           Data.Foldable                  (toList)
 import           Data.Int
 import           Data.List
+import qualified Data.ListLike.String           as L
 import qualified Data.Map                       as M
 import           Data.Maybe
 import           Data.Model.Class
 import           Data.Model.Pretty
+import           Data.Ord
 import qualified Data.Text                      as T
 import           Data.Typed.Class
 import           Data.Typed.Instances
@@ -61,12 +64,12 @@ instance Pretty Val where
          -- sh l (Val n bs vs)                       = (not (null vs),txt n : map (pp (l+1)) vs)
 
          -- ch (Val "Char" _ [Val "Word32" _ [Val "Elem" _ [Val (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
-         ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
+         ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (strName -> 'V':n) _ []]]]) = chr (read n::Int)
          -- --ch v = error (show v)
 
          -- wrd_ (Val (T.unpack -> 'V':n) _ _) = read n :: Int
-         wrd_ (Val _ (T.unpack -> 'V':n) _ _) = read n :: Int
-         wrd_ v = error (show v) 
+         wrd_ (Val _ (strName -> 'V':n) _ _) = read n :: Int
+         wrd_ v = error (show v)
          wrd = int . wrd_
 
          -- i :: forall a . Proxy a -> (AbsType, Val -> (Bool, Doc))
@@ -87,7 +90,7 @@ instance Pretty Val where
          neList (Val _ "Elem"  _ [e]) = [e]
 
          arrList v@(Val _ "A0" _ []) = []
-         arrList v@(Val _ (T.unpack -> 'A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
+         arrList v@(Val _ (strName -> 'A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
 
          arr = arr_ (pp 0)
          ar = prettyList (pp 0)
@@ -109,7 +112,7 @@ instance Pretty Val where
            ,(absType (Proxy::Proxy Char),\v -> (False,text ['\'',ch v,'\'']))
            ,(absType (Proxy::Proxy (P.List Char)),\v -> (False,char '"' <> (text . map ch . valList $ v) <> char '"'))
            ,(absType (Proxy::Proxy (P.List Any)),\v -> (False,ar (valList v)))
-           ,(absType (Proxy::Proxy (P.NonEmptyList Any)),\v -> (False,ar (neList v)))
+           ,(absType (Proxy::Proxy (NonEmptyList Any)),\v -> (False,ar (neList v)))
            ,(absType (Proxy::Proxy (P.Array Any)),\v -> (True,arr (arrList v)))
            ,(absType (Proxy::Proxy (BLOB UTF8Encoding)),\(Val _ _ _ [_,Val _ _ _ [_,vs]]) -> (False,text . map (chr . wrd_) . arrList $ vs))
            ,(absType (Proxy::Proxy (Tuple2 Any Any)),tuple)
@@ -157,13 +160,19 @@ instance Show a => Pretty (TypedValue a) where pPrint (TypedValue t v)= text (sh
 instance Pretty AbsoluteType where
  pPrint (AbsoluteType e t) = vcat . (pPrint t <+> text "->" <+> pPrint (declName <$> solveF e t) :) . (text "" :) . (text "Data Types:" :) . map (\(h,adt) -> pPrint h <+> text "->" <+> pPrint (e,adt)) $ M.assocs e
 
-instance Pretty T.Text where pPrint = text . T.unpack
+instance Pretty AbsRef where pPrint (AbsRef sha3) = pPrint sha3
+
+instance {-# OVERLAPS #-} Pretty ADTEnv where
+ -- pPrint e = vcat . map (\(h,adt) -> pPrint h <+> text "->" <+> pPrint (e,adt)) $ M.assocs e
+ pPrint e = vspacedP . sortBy (comparing snd) . map (\(h,adt) -> (e,adt)) $ M.assocs e
 
 instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where
    -- pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
   pPrint (env,adt) = pPrint . CompactPretty . stringADT env $ adt
-  
-instance Pretty LocalName where pPrint (LocalName n) = txt n
+
+instance Pretty LocalName where pPrint (LocalName n) = pPrint n
+
+instance Pretty Identifier where pPrint = text . L.toString
 
 instance Pretty a => Pretty (String,ADTRef a) where
    pPrint (_,Var v) = varP v
@@ -180,7 +189,7 @@ instance Pretty a => Pretty (ADTRef a) where
 --   pPrint (Shake128 bl) = char 'H' <> prettyNE bl -- pPrint bl
 
 -- instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 bl) = char 'K' <> prettyNE bl -- pPrint bl
-instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
+instance Pretty a => Pretty (SHA3_256_6 a) where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
 
 -- x =  unPrettyRef "H0a2d22a3"
 
@@ -191,7 +200,7 @@ instance Pretty SHA3_256_6 where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S
 -- unPrettyRef ('V':code) = Verbatim . nonEmptyList $ readHexCode code
 -- unPrettyRef ('H':code) = Shake128 . nonEmptyList $ readHexCode code
 
-unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
+unPrettyRef ('S':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
 
 rdHex :: String -> Word8
 rdHex s = let [(b,"")] = readP_to_S ((readS_to_P readHex)) s in b
@@ -207,6 +216,8 @@ instance Pretty a => Pretty (Label a) where
    pPrint (Label a (Just l)) = txt l
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
+
+instance Pretty T.Text where pPrint = text . T.unpack
 
 -- instance Pretty Word8 where pPrint = text . hex
 

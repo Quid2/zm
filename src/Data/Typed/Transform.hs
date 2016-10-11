@@ -3,7 +3,9 @@ module Data.Typed.Transform(typeDefinition,adtDefinition,mutualDeps,recDeps
                            ,stringADT,solvedADT
                            ,runEnv,execEnv,solve,solveF
                            ,label
-                           ,consIn) where
+                           ,consIn
+                           --,explicit,undup,redup
+                           ) where
 import           Control.Applicative
 import           Control.Exception
 import           Control.Monad
@@ -16,6 +18,7 @@ import           Data.Maybe
 import           Data.Model.Types          (fieldsTypes)
 import           Data.Text                 (Text)
 import           Data.Typed.Types
+-- import qualified Data.ListLike.String as L
 
 typeDefinition :: ADTEnv -> AbsType -> Either String [AbsADT]
 typeDefinition env t = solveAll env . nub . concat <$> (mapM (absRecDeps env) . toList $ t)
@@ -26,9 +29,10 @@ adtDefinition env t = solveAll env <$> absRecDeps env t
 -- solveAll env =  mapM (\k -> M.lookup k env)
 solveAll env = map (flip solve env)
 
+label :: (Functor f, Ord k) => M.Map k a -> (a -> Name) -> f k -> f (Label k)
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
-stringADT :: ADTEnv -> AbsADT -> ADT LocalName (TypeRef LocalName)
+stringADT :: ADTEnv -> AbsADT -> ADT LocalName Identifier (TypeRef LocalName)
 stringADT env adt =
   let name = declName adt
   in ADT (LocalName name) (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
@@ -51,7 +55,8 @@ saturate _    _  (TypeCon (Ext k)) = TypeCon k
 saturate ref _  (TypeCon Rec) = TypeCon ref
 
 -- |Find the code and types corresponding to a constructor
-consIn :: Text -> ADT name t -> Maybe ([Bool], [Type t])
+-- consIn :: Name -> ADT name Name t -> Maybe ([Bool], [Type t])
+consIn :: Eq a => a -> ADT name a t -> Maybe ([Bool], [Type t])
 consIn consName dt = maybe Nothing ((first reverse <$>) . loc []) (declCons dt)
   where
     loc bs (Con n ps) | n == consName = Just (bs,fieldsTypes ps)
@@ -123,10 +128,15 @@ redup t = evalState (mapM sub t) []
 runEnv op = runState op M.empty
 execEnv op = execState op M.empty
 
-solve :: (Ord a1, Show a1) => a1 -> M.Map a1 a -> a
+solve :: (Ord k, Show k) => k -> M.Map k a -> a
 solve k e = case M.lookup k e of
      Nothing -> error $ unwords ["Unknown reference to",show k]
      Just v -> v
 
 solveF :: (Functor f, Show k, Ord k) => M.Map k b -> f k -> f b
 solveF env f = (\r -> solve r env) <$> f
+
+-- solveR env f = (\r -> solve (solveR r env) env) <$> f
+
+--exp :: AbsoluteType -> 
+-- explicit absType = solveF (canonicalEnv absType) (canonicalType absType)

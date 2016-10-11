@@ -167,7 +167,7 @@ main3 = do
   -- TypeCon (Shake128 (Cons 50 (Cons 156 (Cons 252 (Elem 175)))))
   -- prt $ tst (Proxy :: Proxy P.String)
    -- TypeApp (TypeCon (Shake128 (Cons 62 (Cons 76 (Cons 155 (Elem 130)))))) (TypeCon (Shake128 (Cons 239 (Cons 54 (Cons 53 (Elem 175)))
-  prt $ tst (Proxy :: Proxy P.String)
+  -- prt $ tst (Proxy :: Proxy P.String)
   prt $ tst (Proxy :: Proxy (P.Array Bool))
   -- prt $ tst (Proxy :: Proxy Char)
   -- prt $ tst (Proxy :: Proxy [Word8])

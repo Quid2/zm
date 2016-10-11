@@ -16,62 +16,56 @@ import qualified Data.Typed.PrimTypes as P
 import           Data.Typed.Types
 import           Data.Word
 import           Debug.Trace
+import Data.Map(Map)
+import Type.Analyse
 
-#include "MachDeps.h"
-
-#if WORD_SIZE_IN_BITS == 64
-instance Model Word where envType _ = envType (Proxy::Proxy P.Word64)
-instance Model Int where envType _ = envType (Proxy::Proxy P.Int64)
-#elif WORD_SIZE_IN_BITS == 32
-instance Model Word where envType _ = envType (Proxy::Proxy P.Word32)
-instance Model Int where envType _ = envType (Proxy::Proxy P.Int32)
-#else
-#error expected WORD_SIZE_IN_BITS to be 32 or 64
-#endif
-
---instance Model Word8 where envType _ = envType (Proxy::Proxy P.Word8)
-instance Model Word16 where envType _ = envType (Proxy::Proxy P.Word16)
-instance Model Word32 where envType _ = envType (Proxy::Proxy P.Word32)
-instance Model Word64 where envType _ = envType (Proxy::Proxy P.Word64)
-
-instance Model Int8 where envType _ = envType (Proxy::Proxy P.Int8)
-instance Model Int16 where envType _ = envType (Proxy::Proxy P.Int16)
-instance Model Int32 where envType _ = envType (Proxy::Proxy P.Int32)
-instance Model Int64 where envType _ = envType (Proxy::Proxy P.Int64)
-instance Model Integer where envType _ = envType (Proxy::Proxy P.Integer)
-
-instance Model Char where envType _ = envType (Proxy::Proxy P.Char)
-
-instance (Model a,Model b) => Model (ADT a b)
-instance Model a => Model (ConTree a)
--- instance Model a => Model (Ref a)
-instance Model SHA3_256_6
+instance (Model a,Model b,Model c) => Model (ADT a b c)
+instance (Model a,Model b) => Model (ConTree a b)
+--instance Model SHA3_256_6
 instance Model a => Model (ADTRef a)
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
--- instance Model AbsoluteType
-
+instance Model a => Model (LocalRef a)
+--instance Model ExplicitRef 
+instance Model Timeless
+instance Model TypedBLOB
 instance Model UTF8Encoding
 instance Model FlatEncoding
+instance Model AbsoluteType
+instance Model Identifier
+instance Model UnicodeLetter
+instance Model UnicodeLetterOrNumberOrLine
+instance Model UnicodeSymbol
+
+instance Model a => Model (SHA3_256_6 a)
+instance Model AbsRef
 
 instance Model Filler
 instance Model a => Model (PreAligned a)
+
+nc = error "This should have never been called!"
 
 -- BUG, return as 'Array' (as these are zero-kinded, their abs type is assumed to be the same?)
 -- instance AsType B.ByteString where envType _ = envType (Proxy::Proxy (Tuple2 Bool ()))
 -- instance Model B.ByteString where envType _ = envType (Proxy::Proxy (Tuple2 Bool ()))
 -- NOTE: need to overload AsType as well as arity of ByteString =/= Array Word8
-instance Model B.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
+instance Model B.ByteString where envType _ = nc
+-- instance Model B.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
 instance {-# OVERLAPPING #-} AsType (Typ B.ByteString) where asType _ = asType (undefined::Ana (Array Word8))
 
-instance Model L.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
+instance Model L.ByteString where envType _ = nc
+-- instance Model L.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
 instance {-# OVERLAPPING #-} AsType (Typ L.ByteString) where asType _ = asType (undefined::Ana (Array Word8))
 
 --instance Model Text where envType _ = envType (Proxy::Proxy P.String)
-instance Model Text where envType _ = envType (Proxy::Proxy (BLOB UTF8Encoding))
+-- instance Model Text where envType _ = envType (Proxy::Proxy (BLOB UTF8Encoding))
+instance Model Text where envType _ = nc
 instance {-# OVERLAPPING #-} AsType (Typ Text) where asType _ = asType (undefined::Ana (BLOB UTF8Encoding))
 
 instance Model e => Model (BLOB e)
+
+instance (Model a,Model b) => Model (Map a b) where envType _ = nc
+instance {-# OVERLAPPING #-} (AsType a, AsType b) => AsType (App (App (Typ (Map A0 A1)) a) b) where asType _ = asType (undefined::(App (Typ [A0]) (App (App (Typ (A0, A1)) a) b)))
 
 data Tuple2 a b = Tuple2 a b deriving (Eq, Ord, Show, Generic)
 instance (Model a,Model b) => Model (Tuple2 a b)
@@ -107,7 +101,7 @@ instance (Model a1,Model a2,Model a3,Model a4,Model a5,Model a6,Model a7,Model a
 
 -- [a] == data String = String (List a)
 
-instance Model a => Model [a] where envType _ = envType (Proxy::Proxy (P.List a))
+
 
  -- instance {-# OVERLAPPABLE #-} Model a => Model [a] where envType _ = envType (Proxy::Proxy (P.List a))
 
@@ -138,12 +132,24 @@ instance Model a => Model [a] where envType _ = envType (Proxy::Proxy (P.List a)
 
 -- instance Typed [Char] where absoluteType _ = absoluteType (Proxy::Proxy P.String)
 
-instance (Flat a,Flat b) => Flat (ADT a b)
-instance Flat a => Flat (ConTree a)
--- instance Flat a => Flat (Ref a)
-instance Flat SHA3_256_6
+instance Flat a => Flat (SHA3_256_6 a)
+instance Flat AbsRef
+instance Flat AbsoluteType
+instance Flat Identifier
+instance Flat UnicodeLetter
+instance Flat UnicodeLetterOrNumberOrLine
+instance Flat UnicodeSymbol
+
+instance (Flat a,Flat b,Flat c) => Flat (ADT a b c)
+instance (Flat a,Flat b) => Flat (ConTree a b)
+-- instance Flat SHA3_256_6
 instance Flat a => Flat (ADTRef a)
 instance Flat a => Flat (Type a)
 instance Flat a => Flat (TypeRef a)
 instance Flat a => Flat (NonEmptyList a)
--- instance Flat AbsoluteType
+instance Flat Timeless
+instance Flat TypedBLOB
+-- instance Model TypedBLOB
+instance Flat a => Flat (TypedValue a)
+instance Model a => Model (TypedValue a)
+-- instance Model Bytes

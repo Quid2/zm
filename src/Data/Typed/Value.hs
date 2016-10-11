@@ -4,13 +4,16 @@
 {-# LANGUAGE TupleSections       #-}
 module Data.Typed.Value(typedBytes,untypedBytes
                        ,typedValue,untypedValue
-                       ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType) where
+                       ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType
+                       ,timelessSimple,timelessAbs,timelessExplicit
+                       ,TypeMatchers,BTree(..),matchTree) where
 
 import           Control.Monad.Trans.State
 import           Data.Binary.Bits.Get      (Get, getBool, runGet, runPartialGet)
 import qualified Data.ByteString.Lazy      as L
 import           Data.Flat
 import           Data.Foldable
+import qualified Data.ListLike.String      as L
 import qualified Data.Map                  as M
 import           Data.Model
 import           Data.Typed.Class
@@ -24,15 +27,10 @@ traceShowId = id
 
 bb = flat . typedBytes $ (True,False,True)
 
+rr = (flat . timelessExplicit $ [True],flat . timelessAbs $ [True])
+
 b :: Decoded (Bool,Bool,Bool)
 b = untypedBytes . unflat . flat . typedBytes $ (True,False,True)
-
-instance Flat Timeless
-instance Flat TypedBytes
--- instance Model TypedBytes
-instance Flat a => Flat (TypedValue a)
-instance Model a => Model (TypedValue a)
--- instance Model Bytes
 
 x :: Decoded Bool
 x = untimeless . unflat . flat . timelessSimple $ True
@@ -55,19 +53,24 @@ k1 = L.pack [174,179,12,6,31,46,239,67,229,118,63,213,192,121,7,107,40,191,124,9
 -- timeless a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 -- Fake type system
-data SimpleType = SimpleBool deriving (Eq, Ord, Show, Generic)
+data SimpleType = BoolType | CharType deriving (Eq, Ord, Show, Generic)
 instance Model SimpleType
 instance Flat SimpleType
 
+-- ex: True :: TypeCon () :: Type AbsRef
+-- ex: True :: BoolType :: SimpleType
 timelessAbs :: forall a . (Model a, Flat a) => a -> Timeless
 timelessAbs a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
+timelessExplicit :: forall a . (Model a, Flat a) => a -> Timeless
+timelessExplicit a = Timeless (typedBytes (absoluteType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+
 timelessSimple :: Bool -> Timeless
-timelessSimple a = Timeless (typedBytes SimpleBool) (blob FlatEncoding . flat $ a)
+timelessSimple a = Timeless (typedBytes BoolType) (blob FlatEncoding . flat $ a)
 
 -- WARN: adds additional end alignment byte
-typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBytes
-typedBytes v = TypedBytes (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
+typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBLOB
+typedBytes v = TypedBLOB (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
@@ -90,13 +93,13 @@ untimeless ::  forall a.  (Flat a, Model a) => Decoded Timeless -> Decoded a
 untimeless dt = dt >>= untimeless_
 
 untimelessDynamic_ :: Timeless -> Decoded (L.ByteString,AbsType, AbsType)
-untimelessDynamic_ (Timeless (TypedBytes meta tbs) bs) =
+untimelessDynamic_ (Timeless (TypedBLOB meta tbs) bs) =
   if meta == metaAbsType
   then (unblob bs,,meta) <$> (unflat . unblob $ tbs :: Decoded AbsType)
   else Left "unknown meta model"
 
 untimeless_ ::  forall a.  (Flat a, Model a) => Timeless -> Decoded a
-untimeless_ (Timeless (TypedBytes meta tbs) bs) =
+untimeless_ (Timeless (TypedBLOB meta tbs) bs) =
   let expectedType = absType (Proxy :: Proxy a)
   in if meta == metaAbsType
      then let Right (actualType :: AbsType) = unflat . unblob $ tbs
@@ -104,13 +107,18 @@ untimeless_ (Timeless (TypedBytes meta tbs) bs) =
              then unflat . unblob $ bs
              else typeErr expectedType actualType
      else if meta == metaSimpleType
-          then if expectedType == metaBool
-               then unflat . unblob $ bs
-               else Left "SimpleType can only be a Boolean"
+          then let Right (simpleType :: SimpleType) = unflat . unblob $ tbs
+                   actualType = if simpleType == BoolType then metaBool else metaChar
+               in if expectedType == actualType
+                  then unflat . unblob $ bs
+                  else typeErr expectedType actualType -- Left "SimpleType can only be a Boolean or a Char"
           else Left "unknown meta model"
 
 metaAbsType :: AbsType
 metaAbsType = absType (Proxy :: Proxy AbsType)
+
+metaExplicitType :: AbsType
+metaExplicitType = absType (Proxy :: Proxy AbsoluteType)
 
 metaSimpleType :: AbsType
 metaSimpleType = absType (Proxy :: Proxy SimpleType)
@@ -118,15 +126,18 @@ metaSimpleType = absType (Proxy :: Proxy SimpleType)
 metaBool :: AbsType
 metaBool = absType (Proxy :: Proxy Bool)
 
+metaChar :: AbsType
+metaChar = absType (Proxy :: Proxy Char)
+
 -- funKeccak = ta $ absType (Proxy :: Proxy (Type Keccak256_6))
 -- t2 = let TypeApp f a = absType (Proxy :: Proxy (Type Shake128)) in f
 
 fun ta = let TypeApp f a = ta in f
 
-untypedBytes ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBytes -> Either DeserializeFailure a
+untypedBytes ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBLOB -> Either DeserializeFailure a
 untypedBytes ea = case ea of
                     Left e -> Left e
-                    Right (TypedBytes typ' bs) ->
+                    Right (TypedBLOB typ' bs) ->
                       let typ = absType (Proxy :: Proxy a)
                       in if (typ' /= typ)
                          then typeErr typ typ'
@@ -157,10 +168,28 @@ typeErr typ typ' =
 --x = decodeAbsType (absoluteType (Proxy::Proxy [Bool])) (flat $ [True,False,True])
 -- x = decodeAbsType (absoluteType (Proxy::Proxy Word8)) (flat $ 44::Word8
 
-p = mapM_ putStrLn [tst (),tst(False,'x'),tst True,tst 'j',tst "",tst "abc",tst (123::Word8),tst (12345::Word16),tst (123456::Word32),tst (123456789::Word64),tst (123456::Word)]
+p = mapM_ putStrLn [--tst (),
+                    tst(False,'x')
+                   ,tst True,tst 'j',tst "",tst "abc",tst (123::Word8),tst (12345::Word16),tst (123456::Word32),tst (123456789::Word64),tst (123456::Word)]
 
 tst :: forall a . (Model a,Flat a) => a -> String
 tst v = prettyShow $ decodeAbsType (absoluteType (Proxy::Proxy a)) (flat v)
+
+dd = matchTree (absoluteType (Proxy::Proxy Word8)) --  [Bool])) -- [Bool])
+
+type TypeMatchers = M.Map AbsType BTree
+
+matchTree :: AbsoluteType -> TypeMatchers
+matchTree at =
+  let -- at = absoluteType proxy
+      decEnv = typeDecoderEnv (canonicalEnv at) (canonicalType at)
+  --in map typeTree decEnv (canonicalType at)  (canonicalEnv at)
+  in M.mapWithKey (\t _ -> simplifyBTree $ typeTree decEnv t) decEnv
+
+-- matchTree2 proxy =
+--   let at = absoluteType proxy
+--       decEnv = typeDecoderEnv (canonicalEnv at) (canonicalType at)
+--   in decEnv
 
 -- CHECK: ignores left over bits
 decodeAbsType :: AbsoluteType -> L.ByteString -> Val
@@ -171,7 +200,7 @@ decodeAbsType at =
     in runGet dec
 
 -- A table of decoders, one for every relevant type
-type TypeDecoders = M.Map (Type AbsRef) (ConTree AbsRef)
+type TypeDecoders = M.Map (Type AbsRef) (ConTree Identifier AbsRef)
 typeDecoderEnv :: ADTEnv -> Type AbsRef -> TypeDecoders
 typeDecoderEnv adtEnv absType = execEnv (addType adtEnv absType)
 
@@ -188,20 +217,63 @@ addType absEnv t = do
        mapM_ (addType absEnv) (conTreeTypeList ct)
     Just _ -> return ()
 
+-- data BTree = BFork BTree BTree | BCon [BTree] deriving (Show,Eq)
+data BTree = BFork BTree BTree
+           | BCon [AbsType]
+           | Skip Int
+           deriving (Show,Eq)
+
+simplifyBTree :: BTree -> BTree
+simplifyBTree = rec sym
+
+rec :: (BTree -> Maybe BTree) -> BTree -> BTree
+rec f n@(BFork l r) =
+      case f n of
+        Nothing -> let n = BFork (rec f l) (rec f r)
+                   in case f n of
+                        Nothing -> n
+                        Just nn -> nn
+        Just nn -> nn
+
+rec f n = case f n of
+      Nothing -> n
+      Just nn -> nn
+
+sym (BFork (BCon []) (BCon [])) = Just $ Skip 1
+sym (BFork (Skip n1) (Skip n2)) | n1 == n2 = Just $ Skip (n1+1)
+sym _ = Nothing
+
+sl (BFork (BCon []) (BCon [])) = Just 1
+sl (BFork l r) =( (,) <$> sl l <*> sl r) >>= snxt
+snxt (n1,n2) | n1 == n2 = Just (n1+1)
+snxt _ = Nothing
+
+typeTree :: TypeDecoders -> AbsType -> BTree
+typeTree = typeTree_ BFork (\t s bs ps -> BCon ps)
+
+typeTree_ f c e t = conTree_ f c t [] (solve t e)
+
+conTree_ f c t bs (ConTree l r) = f (conTree_ f c t (0:bs) l) (conTree_ f c t (1:bs) r)
+
+-- conTree_ f c e t bs (Con cn cs) = c t (L.toString cn) (reverse bs) (map (typeTree_ f c e) (fieldsTypes cs))
+conTree_ f c t bs (Con cn cs) = c t (L.toString cn) (reverse bs) (fieldsTypes cs)
+
 typeDecoder :: TypeDecoders -> AbsType -> Get Val
-typeDecoder e t = conDecoder e t [] (solve t e)
+typeDecoder = typeDecoder_ Val
+
+typeDecoder_ c e t = conDecoder_ c e t [] (solve t e)
 
 -- conDecoder :: TypeDecoders -> [Bool] -> ConTree AbsRef -> Get Val
-conDecoder e t bs (ConTree l r) = do
+conDecoder_ c e t bs (ConTree l r) = do
   tag <- getBool
-  conDecoder e t (tag:bs) (if tag then r else l)
+  conDecoder_ c e t (tag:bs) (if tag then r else l)
 
-conDecoder e t bs (Con cn cs) = Val t cn (reverse bs) <$> mapM (typeDecoder e) (fieldsTypes cs)
+conDecoder_ c e t bs (Con cn cs) = c t (L.toString cn) (reverse bs) <$> mapM (typeDecoder_ c e) (fieldsTypes cs)
 
 
 -- Decode a TypedValue without previous knowledge of its type
--- decodeTypedBytes :: Encoded TypedBytes -> Decoded Val
--- decodeTypedBytes enc =
+-- decodeTypedBLOB :: Encoded TypedBLOB -> Decoded Val
+-- decodeTypedBLOB enc =
 --   case runPartialGet decode (bytes enc) 0 of
 --     Left e -> Left e
 --     Right (typ,bs,n) -> case runPartialGet (decoderForType typ) bs n of
