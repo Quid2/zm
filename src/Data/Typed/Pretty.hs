@@ -38,6 +38,7 @@ import           Text.ParserCombinators.ReadP   hiding (char)
 import           Text.PrettyPrint.HughesPJClass
 import           Text.Printf
 
+-- Display as corresponding Haskell value
 instance Pretty Val where
      pPrintPrec (PrettyLevel lev) prec = pp 0
        where -- TODO: fix precedence
@@ -64,30 +65,37 @@ instance Pretty Val where
          -- sh l (Val n bs vs)                       = (not (null vs),txt n : map (pp (l+1)) vs)
 
          -- ch (Val "Char" _ [Val "Word32" _ [Val "Elem" _ [Val (T.unpack -> 'V':n) _ []]]]) = chr (read n::Int)
-         ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (strName -> 'V':n) _ []]]]) = chr (read n::Int)
-         -- --ch v = error (show v)
+         -- ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (strName -> 'V':n) _ []]]]) = chr (read n::Int)
+         ch (Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ _ _ [Val _ (strName -> 'V':n) _ []]]]]]]) = chr (read n::Int)
+         ch v = error (show v)
 
          -- wrd_ (Val (T.unpack -> 'V':n) _ _) = read n :: Int
          wrd_ (Val _ (strName -> 'V':n) _ _) = read n :: Int
-         wrd_ v = error (show v)
+         wrd_ v = error (unwords ["wrd_",show v])
+
          wrd = int . wrd_
+
+         wrd2_ (Val _ _ _ [Val _ (strName -> 'V':n) _ _]) = read n :: Int
+         wrd2_ v = error (unwords ["wrd2_",show v])
 
          -- i :: forall a . Proxy a -> (AbsType, Val -> (Bool, Doc))
          -- i p = (absType p,\v -> (False,int . (zzDecode::(Bits a,Integral a) => Word64 -> a) . wl_ . p0 . p0 $ v))
 
          wl = int . wl_
 
-         wl_ (Val _ _ _ [vl]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd_ . neList $ vl
+         --wl_ (Val _ _ _ [vl]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd_ . neList $ vl
+         wl_ (Val _ _ _ [Val _ _ _ [Val _ _ _ [vl]]]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd2_ . neList $ vl
          wl_ v = error (unwords ["wl_",show v])
 
          -- valList (Val "Cons" _ [h,t]) = h:valList t
          -- valList (Val "Nil" _ []) = []
          valList (Val _ "Cons" _ [h,t]) = h:valList t
          valList (Val _ "Nil"  _ []) = []
-         --valList v = error (show v)
+         valList v = error (unwords ["valList",show v])
 
          neList (Val _ "Cons" _ [h,t]) = h:neList t
          neList (Val _ "Elem"  _ [e]) = [e]
+         neList v = error (unwords ["neList",show v])
 
          arrList v@(Val _ "A0" _ []) = []
          arrList v@(Val _ (strName -> 'A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
@@ -98,7 +106,8 @@ instance Pretty Val where
          tup = prettyTuple_ (pp 0)
 
          prettyPrinter t = listToMaybe . map snd . filter fst . map (\(t2,p) -> (match t t2,p)) $ [
-           (absType (Proxy::Proxy Word8),\v -> (False,wrd v))
+           (absType (Proxy::Proxy Unit),\_ -> (False,text "()"))
+           ,(absType (Proxy::Proxy Word8),\v -> (False,wrd v))
            ,(absType (Proxy::Proxy Word16),\v -> (False,wl v))
            ,(absType (Proxy::Proxy Word32),\v -> (False,wl v))
            ,(absType (Proxy::Proxy Word64),\v -> (False,wl v))
@@ -147,13 +156,13 @@ prettyTuple_ = prettySeq '(' ')'
 
 prettySeq sep1 sep2 f elems = char sep1 <> (hcat . intersperse (char ',') . map f $ elems) <> char sep2
 
-x = prettyShow $ L.pack [11,22]
+-- x = prettyShow $ B.pack [11,22]
 y = prettyShow [11,22::Word8]
 z = prettyShow 'a'
 
 -- See also flat/Data.Flat.Run
-instance Pretty B.ByteString where pPrint = arr_ (int . fromIntegral) . B.unpack
-instance Pretty L.ByteString where pPrint = arr_ (int . fromIntegral) . L.unpack
+--instance Pretty B.ByteString where pPrint = arr_ (int . fromIntegral) . B.unpack
+-- instance Pretty L.ByteString where pPrint = arr_ (int . fromIntegral) . L.unpack
 
 instance Show a => Pretty (TypedValue a) where pPrint (TypedValue t v)= text (show v) <+> text "::" <+> pPrint t
 

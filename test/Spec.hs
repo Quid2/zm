@@ -23,8 +23,8 @@ import qualified Data.Typed.PrimTypes  as P
 import           Data.Word
 import           Debug.Trace
 import           System.Exit           (exitFailure)
-import           Test.Data
-import           Test.Data.Flat
+import           Test.Data hiding (Unit)
+import           Test.Data.Flat hiding (Unit)
 import           Test.Data.Model
 import qualified Test.Data2            as Data2
 import qualified Test.Data3            as Data3
@@ -243,6 +243,8 @@ instance {-# OVERLAPS #-} Prettier Char where prettier c = text ['\'',c,'\'']
 instance Prettier a => Prettier (Array a) where prettier (Array vs) = arr_ prettier vs
 instance Show e => Pretty (BLOB e) where pPrint b = text . show $ b
 
+instance Prettier Unit where prettier _ = text "()"
+
 instance Prettier Word where prettier = text . show
 instance Prettier Word16 where prettier = text . show
 instance Prettier Word32 where prettier = text . show
@@ -253,6 +255,9 @@ instance Prettier Int16 where prettier = text . show
 instance Prettier Int32 where prettier = text . show
 instance Prettier Int64 where prettier = text . show
 instance Prettier Integer where prettier = text . show
+
+instance Prettier B.ByteString where prettier = arr_ (int . fromIntegral) . B.unpack
+instance Prettier L.ByteString where prettier = arr_ (int . fromIntegral) . L.unpack
 
 -- ar_ :: (a -> Doc) -> [a] -> Doc
 -- ar_ f elems = char '[' <> (hcat . intersperse (char ',') . map f $ elems) <> char ']'

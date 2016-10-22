@@ -170,9 +170,21 @@ Or use a dynamic decder to directly show the value.
 
 The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 -->
+
  ### Installation
 
-Install as part of the [quid2](https://github.com/tittoassini/quid2) project.
+It is not yet on [hackage](https://hackage.haskell.org/) but you can still use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding a reference to its github location under the 'packages' section:
+
+````
+packages:
+- location:
+   git: https://github.com/tittoassini/typed
+   commit: 
+````
+
+ ### Compatibility
+
+Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
  ### Known Bugs and Infelicities
 

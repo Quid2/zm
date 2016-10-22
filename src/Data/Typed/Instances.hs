@@ -1,23 +1,24 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.Typed.Instances(
-  Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
+  Unit(..),Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
   ) where
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Data.Flat
 import           Data.Int
+import           Data.Map             (Map)
 import           Data.Model
 import           Data.Text            (Text)
 import qualified Data.Typed.PrimTypes as P
 import           Data.Typed.Types
 import           Data.Word
 import           Debug.Trace
-import Data.Map(Map)
-import Type.Analyse
+import           Type.Analyse
 
 instance (Model a,Model b,Model c) => Model (ADT a b c)
 instance (Model a,Model b) => Model (ConTree a b)
@@ -26,7 +27,7 @@ instance Model a => Model (ADTRef a)
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
 instance Model a => Model (LocalRef a)
---instance Model ExplicitRef 
+--instance Model ExplicitRef
 instance Model Timeless
 instance Model TypedBLOB
 instance Model UTF8Encoding
@@ -66,6 +67,9 @@ instance Model e => Model (BLOB e)
 
 instance (Model a,Model b) => Model (Map a b) where envType _ = nc
 instance {-# OVERLAPPING #-} (AsType a, AsType b) => AsType (App (App (Typ (Map A0 A1)) a) b) where asType _ = asType (undefined::(App (Typ [A0]) (App (App (Typ (A0, A1)) a) b)))
+
+data Unit = Unit deriving (Eq, Ord, Show, Generic, Model)
+instance Model () where envType _ = envType (Proxy::Proxy Unit)
 
 data Tuple2 a b = Tuple2 a b deriving (Eq, Ord, Show, Generic)
 instance (Model a,Model b) => Model (Tuple2 a b)

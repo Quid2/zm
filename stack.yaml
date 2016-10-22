@@ -1,16 +1,21 @@
-# resolver: lts-7.2
-resolver: lts-6.20
+resolver: lts-6.22
+#resolver: lts-7.4
 
 packages:
 - '.'
-#- ../flat
-#- ../model
-- location: https://github.com/tittoassini/flat/archive/master.zip
-- location: https://github.com/tittoassini/model/archive/master.zip
+
+# - ../flat
+- location:
+   git: https://github.com/tittoassini/flat
+   commit: 3ae580d
+
+# - ../model
+- location:
+   git: https://github.com/tittoassini/model
+   commit: 0e1fe4f
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: []
-# - x86-64bit-0.4.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}
