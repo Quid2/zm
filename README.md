@@ -35,15 +35,15 @@ We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to 
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
-(S06b78cab6224 Sac45f78b8700) -> (Maybe Bool)
+Scfe64fd7a36f S71aa1bacd97c -> Maybe Bool
 ```
 
 ```haskell
 Data Types:
-S06b78cab6224 -> data Maybe a ≡   Nothing
-               | Just a
-Sac45f78b8700 -> data Bool ≡   False
-            | True
+S71aa1bacd97c ->  Bool ≡   False
+        | True
+Scfe64fd7a36f ->  Maybe a ≡   Nothing
+           | Just a
 ```
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
@@ -54,22 +54,22 @@ For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an e
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word7)
-Scbb7765fb7cf -> Word7
+Sec001a6a1de3 -> Word7
 ```
 
 ```haskell
 Data Types:
-Scbb7765fb7cf -> data Word7 ≡   V0
-             | V1
-             | V2
-             | V3
-             | V4
+Sec001a6a1de3 ->  Word7 ≡   V0
+         | V1
+         | V2
+         | V3
+         | V4
 ...
-             | V123
-             | V124
-             | V125
-             | V126
-             | V127
+         | V123
+         | V124
+         | V125
+         | V126
+         | V127
 ```
 
 
@@ -77,54 +77,64 @@ A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definitio
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word32)
-S2e2c79e6dfe8 -> Word32
+Sf4543433b7ad -> Word32
 ```
 
 ```haskell
 Data Types:
-S1c14fcc15b9a -> data NonEmptyList a ≡   Elem a
-                      | Cons a (NonEmptyList a)
-S2e2c79e6dfe8 -> data Word32 ≡ Word32 (NonEmptyList Word7)
-Scbb7765fb7cf -> data Word7 ≡   V0
-             | V1
-             | V2
-             | V3
-             | V4
+S0ccddce51672 ->  NonEmptyList a ≡   Elem a
+                  | Cons a (NonEmptyList a)
+Sb629b033a6ea ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+Sd69caaba3e20 ->  MostSignificantFirst a ≡ MostSignificantFirst a
+Sec001a6a1de3 ->  Word7 ≡   V0
+         | V1
+         | V2
+         | V3
+         | V4
 ...
-             | V123
-             | V124
-             | V125
-             | V126
-             | V127
+         | V123
+         | V124
+         | V125
+         | V126
+         | V127
 ```
 
+```haskell
+Sf016cfe5d117 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+Sf4543433b7ad ->  Word32 ≡ Word32 Word
+```
 
 And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Char)
-S0eb5cb81a1d6 -> Char
+S4d90d0005d6a -> Char
 ```
 
 ```haskell
 Data Types:
-S0eb5cb81a1d6 -> data Char ≡ Char Word32
-S1c14fcc15b9a -> data NonEmptyList a ≡   Elem a
-                      | Cons a (NonEmptyList a)
-S2e2c79e6dfe8 -> data Word32 ≡ Word32 (NonEmptyList Word7)
-Scbb7765fb7cf -> data Word7 ≡   V0
-             | V1
-             | V2
-             | V3
-             | V4
+S0ccddce51672 ->  NonEmptyList a ≡   Elem a
+                  | Cons a (NonEmptyList a)
+S4d90d0005d6a ->  Char ≡ Char Word32
+Sb629b033a6ea ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+Sd69caaba3e20 ->  MostSignificantFirst a ≡ MostSignificantFirst a
+Sec001a6a1de3 ->  Word7 ≡   V0
+         | V1
+         | V2
+         | V3
+         | V4
 ...
-             | V123
-             | V124
-             | V125
-             | V126
-             | V127
+         | V123
+         | V124
+         | V125
+         | V126
+         | V127
 ```
 
+```haskell
+Sf016cfe5d117 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+Sf4543433b7ad ->  Word32 ≡ Word32 Word
+```
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
@@ -199,37 +209,37 @@ To fix this, we convert the value to a `TypedValue`, a value combined with its c
 
 ```haskell
 pPrint $ typedValue Center
-Center :: S844cade31264
+Center :: Sabbc0db9ba75
 ```
 
 TypedValues can be serialised as any other value:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue Direction))
-Right Center :: S844cade31264
+Right Center :: Sabbc0db9ba75
 ```
 
 And just as before, we can get things wrong:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue CinqueTerre))
-Right Corniglia :: S844cade31264
+Right Corniglia :: Sabbc0db9ba75
 ```
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy CinqueTerre)
-Sf517568b0215 -> CinqueTerre
+S0d596b699264 -> CinqueTerre
 ```
 
 ```haskell
 Data Types:
-Sf517568b0215 -> data CinqueTerre ≡   Monterosso
-                   | Vernazza
-                   | Corniglia
-                   | Manarola
-                   | RioMaggiore
+S0d596b699264 ->  CinqueTerre ≡   Monterosso
+               | Vernazza
+               | Corniglia
+               | Manarola
+               | RioMaggiore
 ```
 
 We can automate this check, with `untypedValue`:
@@ -245,7 +255,7 @@ And this is wrong:
 
 ```haskell
 untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
-Left "Was expecting type:\n Sf517568b0215 \n\nBut the data has type:\n S844cade31264"
+Left "Was expecting type:\n S0d596b699264 \n\nBut the data has type:\n Sabbc0db9ba75"
 ```
 
 ### Data Exchange
@@ -293,9 +303,21 @@ Or use a dynamic decder to directly show the value.
 
 The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 -->
+
 ### Installation
 
-Install as part of the [quid2](https://github.com/tittoassini/quid2) project.
+It is not yet on [hackage](https://hackage.haskell.org/) but you can still use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding a reference to its github location under the 'packages' section:
+
+````
+packages:
+- location:
+   git: https://github.com/tittoassini/typed
+   commit: 5cb0f72
+````
+
+### Compatibility
+
+Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
 ### Known Bugs and Infelicities
 

@@ -179,7 +179,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can still use i
 packages:
 - location:
    git: https://github.com/tittoassini/typed
-   commit: 
+   commit: 5cb0f72
 ````
 
  ### Compatibility
