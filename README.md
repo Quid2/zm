@@ -312,7 +312,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can still use i
 packages:
 - location:
    git: https://github.com/tittoassini/typed
-   commit: 5cb0f72
+   commit: c58a41f34e33635e79db0678b8bcdd60701cd0f2
    extra-dep: true
 - location:
    git: https://github.com/tittoassini/flat
