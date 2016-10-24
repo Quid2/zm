@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-module Data.Typed.Value(typedBytes,untypedBytes
+module Data.Typed.Value(typedBLOB,untypedBLOB
                        ,typedValue,untypedValue
                        ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType
                        ,timelessSimple,timelessAbs,timelessExplicit
@@ -25,12 +25,12 @@ import           Data.Word
 -- import           Debug.Trace
 traceShowId = id
 
-bb = flat . typedBytes $ (True,False,True)
+bb = flat . typedBLOB $ (True,False,True)
 
 rr = (flat . timelessExplicit $ [True],flat . timelessAbs $ [True])
 
 b :: Decoded (Bool,Bool,Bool)
-b = untypedBytes . unflat . flat . typedBytes $ (True,False,True)
+b = untypedBLOB . unflat . flat . typedBLOB $ (True,False,True)
 
 x :: Decoded Bool
 x = untimeless . unflat . flat . timelessSimple $ True
@@ -50,7 +50,7 @@ d = (unflat . flat . timelessAbs $ True) >>= untimelessDynamic_
 k1 = L.pack [174,179,12,6,31,46,239,67,229,118,63,213,192,121,7,107,40,191,124,94,28,1,0,1,1,129,0,1]
 
 -- timeless :: forall a . (Model a, Flat a) => a -> Timeless
--- timeless a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+-- timeless a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 -- Fake type system
 data SimpleType = BoolType | CharType deriving (Eq, Ord, Show, Generic)
@@ -60,17 +60,17 @@ instance Flat SimpleType
 -- ex: True :: TypeCon () :: Type AbsRef
 -- ex: True :: BoolType :: SimpleType
 timelessAbs :: forall a . (Model a, Flat a) => a -> Timeless
-timelessAbs a = Timeless (typedBytes (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+timelessAbs a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 timelessExplicit :: forall a . (Model a, Flat a) => a -> Timeless
-timelessExplicit a = Timeless (typedBytes (absoluteType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+timelessExplicit a = Timeless (typedBLOB (absoluteType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 timelessSimple :: Bool -> Timeless
-timelessSimple a = Timeless (typedBytes BoolType) (blob FlatEncoding . flat $ a)
+timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flat $ a)
 
 -- WARN: adds additional end alignment byte
-typedBytes :: forall a . (Typed a,Flat a) => a -> TypedBLOB
-typedBytes v = TypedBLOB (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
+typedBLOB :: forall a . (Typed a,Flat a) => a -> TypedBLOB
+typedBLOB v = TypedBLOB (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
@@ -134,8 +134,8 @@ metaChar = absType (Proxy :: Proxy Char)
 
 fun ta = let TypeApp f a = ta in f
 
-untypedBytes ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBLOB -> Either DeserializeFailure a
-untypedBytes ea = case ea of
+untypedBLOB ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBLOB -> Either DeserializeFailure a
+untypedBLOB ea = case ea of
                     Left e -> Left e
                     Right (TypedBLOB typ' bs) ->
                       let typ = absType (Proxy :: Proxy a)

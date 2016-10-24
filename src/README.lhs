@@ -180,13 +180,17 @@ packages:
 - location:
    git: https://github.com/tittoassini/typed
    commit: 5cb0f72
+   extra-dep: true
 - location:
    git: https://github.com/tittoassini/flat
    commit: 3ae580d
+   extra-dep: true
 - location:
    git: https://github.com/tittoassini/model
    commit: 0e1fe4f
+   extra-dep: true
 ````
+
 
  ### Compatibility
 

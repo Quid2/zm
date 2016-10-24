@@ -19,9 +19,11 @@ library
   exposed-modules:     Data.Digest.SHA3,Data.Typed,Data.Typed.Class,Data.Typed.Generate,Data.Typed.Instances,Data.Typed.Pretty,Data.Typed.PrimTypes,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Value,Quid2.QQ.DataType,Quid2.QQ.Pattern
   -- , QQ.BlockList
   -- other-modules:       README
-  build-depends:       base >= 4.7 && < 5, bytestring, containers, cryptonite, deepseq, directory >= 1.2.2.0, filepath >= 1.4.0.0, flat, memory, model, mtl, pretty, text, template-haskell >= 2.10.0.0, transformers,ListLike
+  build-depends:       base >= 4.7 && < 5, bytestring, containers, deepseq, directory >= 1.2.2.0, filepath >= 1.4.0.0, flat, model, mtl, pretty, text, template-haskell >= 2.10.0.0, transformers,ListLike
   if impl(ghcjs)
     build-depends:     ghcjs-base        >= 0.2 && < 0.3
+  else
+    build-depends: cryptonite, memory
   default-language:    Haskell2010
 
 test-suite typed-test

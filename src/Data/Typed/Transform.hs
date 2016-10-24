@@ -29,7 +29,7 @@ adtDefinition env t = solveAll env <$> absRecDeps env t
 -- solveAll env =  mapM (\k -> M.lookup k env)
 solveAll env = map (flip solve env)
 
-label :: (Functor f, Ord k) => M.Map k a -> (a -> Name) -> f k -> f (Label k)
+label :: (Functor f, Ord k) => M.Map k a -> (a -> l) -> f k -> f (Label k l)
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 
 stringADT :: ADTEnv -> AbsADT -> ADT LocalName Identifier (TypeRef LocalName)

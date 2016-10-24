@@ -220,9 +220,9 @@ readCode bs [] = reverse bs
 readCode bs s  = let (h,t) = splitAt 2 s
                   in readCode (rdHex h : bs) t
 
-instance Pretty a => Pretty (Label a) where
+instance (Pretty a,Pretty l) => Pretty (Label a l) where
    pPrint (Label a Nothing) = pPrint a
-   pPrint (Label a (Just l)) = txt l
+   pPrint (Label _ (Just l)) = pPrint l
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
 

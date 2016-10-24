@@ -1,16 +1,20 @@
-{-# LANGUAGE ForeignFunctionInterface, JavaScriptFFI, CPP, EmptyDataDecls #-}
+{-# LANGUAGE CPP                      #-}
+{-# LANGUAGE EmptyDataDecls           #-}
+{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE JavaScriptFFI            #-}
+{-# LANGUAGE PackageImports           #-}
 module Data.Digest.SHA3(shake128,keccak256_6,sha3_256) where
 
-import qualified Data.ByteString    as B
+import qualified Data.ByteString         as B
 
 #ifdef ghcjs_HOST_OS
-import System.IO.Unsafe
-import GHCJS.Types
-import GHCJS.Marshal
+import           GHCJS.Marshal
+import           GHCJS.Types
+import           System.IO.Unsafe
 #else
-import qualified Crypto.Hash as S
+import qualified "cryptonite" Crypto.Hash             as S
 -- import qualified Crypto.Hash.Types as S
-import qualified Data.ByteArray as S
+import qualified Data.ByteArray          as S
 import qualified Data.ByteArray.Encoding as S
 #endif
 

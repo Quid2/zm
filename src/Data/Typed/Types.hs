@@ -35,7 +35,7 @@ instance NFData a => NFData (BLOB a)
 instance NFData FlatEncoding
 
 -- An optionally labelled value
-data Label a = Label a (Maybe Name) deriving (Eq, Ord, Show, NFData, Generic)
+data Label a l = Label a (Maybe l) deriving (Eq, Ord, Show, NFData, Generic)
 
 newtype LocalName = LocalName Identifier deriving (Eq, Ord, Show, NFData, Generic)
 
@@ -125,7 +125,6 @@ type Value = TypedValue ParsedVal
 
 proxyOf :: a -> Proxy a
 proxyOf _ = Proxy ::Proxy a
-
 
 -- Is it necessary to specify a syntax for identifiers?
 data Identifier = Name UnicodeLetter [UnicodeLetterOrNumberOrLine]
