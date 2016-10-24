@@ -306,24 +306,22 @@ The final system will also keep track of the documentation that comes with the t
 
 ### Installation
 
-It is not yet on [hackage](https://hackage.haskell.org/) but you can still use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding a reference to its github location under the 'packages' section:
+It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding in the `stack.yaml` file, under the `packages` section:
 
 ````
-packages:
 - location:
-   git: https://github.com/tittoassini/typed
-   commit: c58a41f34e33635e79db0678b8bcdd60701cd0f2
-   extra-dep: true
+    git: https://github.com/tittoassini/typed
+    commit: c58a41f34e33635e79db0678b8bcdd60701cd0f2
+  extra-dep: true
 - location:
    git: https://github.com/tittoassini/flat
-   commit: 3ae580d
-   extra-dep: true
+   commit: 3771f5946dd506c6f199aa4047186d5b57bdce5f
+  extra-dep: true
 - location:
    git: https://github.com/tittoassini/model
-   commit: 0e1fe4f
-   extra-dep: true
+   commit: b05a56a993213271e3b13d28a5e8bb90c9d8576f
+  extra-dep: true
 ````
-
 
 ### Compatibility
 
