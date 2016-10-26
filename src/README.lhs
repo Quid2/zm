@@ -178,7 +178,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 ````
 - location:
     git: https://github.com/tittoassini/typed
-    commit: c58a41f34e33635e79db0678b8bcdd60701cd0f2
+    commit: 5da7fa9186e79ca4335456a17429afb9c9a9fe24
   extra-dep: true
 - location:
    git: https://github.com/tittoassini/flat

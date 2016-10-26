@@ -35,15 +35,15 @@ We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to 
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
-Scfe64fd7a36f S71aa1bacd97c -> Maybe Bool
+S793d1387f115 S81d428306f1d -> Maybe Bool
 ```
 
 ```haskell
 Data Types:
-S71aa1bacd97c ->  Bool ≡   False
-        | True
-Scfe64fd7a36f ->  Maybe a ≡   Nothing
-           | Just a
+S793d1387f115 ->  Maybe a ≡   Nothing
+                            | Just a
+S81d428306f1d ->  Bool ≡   False
+                         | True
 ```
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
@@ -54,86 +54,430 @@ For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an e
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word7)
-Sec001a6a1de3 -> Word7
+Sb1f0655240ab -> Word7
 ```
 
 ```haskell
 Data Types:
-Sec001a6a1de3 ->  Word7 ≡   V0
-         | V1
-         | V2
-         | V3
-         | V4
-...
-         | V123
-         | V124
-         | V125
-         | V126
-         | V127
+Sb1f0655240ab ->  Word7 ≡   V0
+                          | V1
+                          | V2
+                          | V3
+                          | V4
+                          | V5
+                          | V6
+                          | V7
+                          | V8
+                          | V9
+                          | V10
+                          | V11
+                          | V12
+                          | V13
+                          | V14
+                          | V15
+                          | V16
+                          | V17
+                          | V18
+                          | V19
+                          | V20
+                          | V21
+                          | V22
+                          | V23
+                          | V24
+                          | V25
+                          | V26
+                          | V27
+                          | V28
+                          | V29
+                          | V30
+                          | V31
+                          | V32
+                          | V33
+                          | V34
+                          | V35
+                          | V36
+                          | V37
+                          | V38
+                          | V39
+                          | V40
+                          | V41
+                          | V42
+                          | V43
+                          | V44
+                          | V45
+                          | V46
+                          | V47
+                          | V48
+                          | V49
+                          | V50
+                          | V51
+                          | V52
+                          | V53
+                          | V54
+                          | V55
+                          | V56
+                          | V57
+                          | V58
+                          | V59
+                          | V60
+                          | V61
+                          | V62
+                          | V63
+                          | V64
+                          | V65
+                          | V66
+                          | V67
+                          | V68
+                          | V69
+                          | V70
+                          | V71
+                          | V72
+                          | V73
+                          | V74
+                          | V75
+                          | V76
+                          | V77
+                          | V78
+                          | V79
+                          | V80
+                          | V81
+                          | V82
+                          | V83
+                          | V84
+                          | V85
+                          | V86
+                          | V87
+                          | V88
+                          | V89
+                          | V90
+                          | V91
+                          | V92
+                          | V93
+                          | V94
+                          | V95
+                          | V96
+                          | V97
+                          | V98
+                          | V99
+                          | V100
+                          | V101
+                          | V102
+                          | V103
+                          | V104
+                          | V105
+                          | V106
+                          | V107
+                          | V108
+                          | V109
+                          | V110
+                          | V111
+                          | V112
+                          | V113
+                          | V114
+                          | V115
+                          | V116
+                          | V117
+                          | V118
+                          | V119
+                          | V120
+                          | V121
+                          | V122
+                          | V123
+                          | V124
+                          | V125
+                          | V126
+                          | V127
 ```
-
 
 A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Word32)
-Sf4543433b7ad -> Word32
+S37c45c448792 -> Word32
 ```
 
 ```haskell
 Data Types:
-S0ccddce51672 ->  NonEmptyList a ≡   Elem a
-                  | Cons a (NonEmptyList a)
-Sb629b033a6ea ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
-Sd69caaba3e20 ->  MostSignificantFirst a ≡ MostSignificantFirst a
-Sec001a6a1de3 ->  Word7 ≡   V0
-         | V1
-         | V2
-         | V3
-         | V4
-...
-         | V123
-         | V124
-         | V125
-         | V126
-         | V127
-```
-
-```haskell
-Sf016cfe5d117 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
-Sf4543433b7ad ->  Word32 ≡ Word32 Word
+S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
+S37c45c448792 ->  Word32 ≡ Word32 Word
+S5eed4986e32b ->  NonEmptyList a ≡   Elem a
+                                   | Cons a (NonEmptyList a)
+S643e1d6c1fd5 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+S691fdd73b1b7 ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+Sb1f0655240ab ->  Word7 ≡   V0
+                          | V1
+                          | V2
+                          | V3
+                          | V4
+                          | V5
+                          | V6
+                          | V7
+                          | V8
+                          | V9
+                          | V10
+                          | V11
+                          | V12
+                          | V13
+                          | V14
+                          | V15
+                          | V16
+                          | V17
+                          | V18
+                          | V19
+                          | V20
+                          | V21
+                          | V22
+                          | V23
+                          | V24
+                          | V25
+                          | V26
+                          | V27
+                          | V28
+                          | V29
+                          | V30
+                          | V31
+                          | V32
+                          | V33
+                          | V34
+                          | V35
+                          | V36
+                          | V37
+                          | V38
+                          | V39
+                          | V40
+                          | V41
+                          | V42
+                          | V43
+                          | V44
+                          | V45
+                          | V46
+                          | V47
+                          | V48
+                          | V49
+                          | V50
+                          | V51
+                          | V52
+                          | V53
+                          | V54
+                          | V55
+                          | V56
+                          | V57
+                          | V58
+                          | V59
+                          | V60
+                          | V61
+                          | V62
+                          | V63
+                          | V64
+                          | V65
+                          | V66
+                          | V67
+                          | V68
+                          | V69
+                          | V70
+                          | V71
+                          | V72
+                          | V73
+                          | V74
+                          | V75
+                          | V76
+                          | V77
+                          | V78
+                          | V79
+                          | V80
+                          | V81
+                          | V82
+                          | V83
+                          | V84
+                          | V85
+                          | V86
+                          | V87
+                          | V88
+                          | V89
+                          | V90
+                          | V91
+                          | V92
+                          | V93
+                          | V94
+                          | V95
+                          | V96
+                          | V97
+                          | V98
+                          | V99
+                          | V100
+                          | V101
+                          | V102
+                          | V103
+                          | V104
+                          | V105
+                          | V106
+                          | V107
+                          | V108
+                          | V109
+                          | V110
+                          | V111
+                          | V112
+                          | V113
+                          | V114
+                          | V115
+                          | V116
+                          | V117
+                          | V118
+                          | V119
+                          | V120
+                          | V121
+                          | V122
+                          | V123
+                          | V124
+                          | V125
+                          | V126
+                          | V127
 ```
 
 And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy Char)
-S4d90d0005d6a -> Char
+S07755d0e181d -> Char
 ```
 
 ```haskell
 Data Types:
-S0ccddce51672 ->  NonEmptyList a ≡   Elem a
-                  | Cons a (NonEmptyList a)
-S4d90d0005d6a ->  Char ≡ Char Word32
-Sb629b033a6ea ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
-Sd69caaba3e20 ->  MostSignificantFirst a ≡ MostSignificantFirst a
-Sec001a6a1de3 ->  Word7 ≡   V0
-         | V1
-         | V2
-         | V3
-         | V4
-...
-         | V123
-         | V124
-         | V125
-         | V126
-         | V127
-```
-
-```haskell
-Sf016cfe5d117 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
-Sf4543433b7ad ->  Word32 ≡ Word32 Word
+S07755d0e181d ->  Char ≡ Char Word32
+S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
+S37c45c448792 ->  Word32 ≡ Word32 Word
+S5eed4986e32b ->  NonEmptyList a ≡   Elem a
+                                   | Cons a (NonEmptyList a)
+S643e1d6c1fd5 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+S691fdd73b1b7 ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+Sb1f0655240ab ->  Word7 ≡   V0
+                          | V1
+                          | V2
+                          | V3
+                          | V4
+                          | V5
+                          | V6
+                          | V7
+                          | V8
+                          | V9
+                          | V10
+                          | V11
+                          | V12
+                          | V13
+                          | V14
+                          | V15
+                          | V16
+                          | V17
+                          | V18
+                          | V19
+                          | V20
+                          | V21
+                          | V22
+                          | V23
+                          | V24
+                          | V25
+                          | V26
+                          | V27
+                          | V28
+                          | V29
+                          | V30
+                          | V31
+                          | V32
+                          | V33
+                          | V34
+                          | V35
+                          | V36
+                          | V37
+                          | V38
+                          | V39
+                          | V40
+                          | V41
+                          | V42
+                          | V43
+                          | V44
+                          | V45
+                          | V46
+                          | V47
+                          | V48
+                          | V49
+                          | V50
+                          | V51
+                          | V52
+                          | V53
+                          | V54
+                          | V55
+                          | V56
+                          | V57
+                          | V58
+                          | V59
+                          | V60
+                          | V61
+                          | V62
+                          | V63
+                          | V64
+                          | V65
+                          | V66
+                          | V67
+                          | V68
+                          | V69
+                          | V70
+                          | V71
+                          | V72
+                          | V73
+                          | V74
+                          | V75
+                          | V76
+                          | V77
+                          | V78
+                          | V79
+                          | V80
+                          | V81
+                          | V82
+                          | V83
+                          | V84
+                          | V85
+                          | V86
+                          | V87
+                          | V88
+                          | V89
+                          | V90
+                          | V91
+                          | V92
+                          | V93
+                          | V94
+                          | V95
+                          | V96
+                          | V97
+                          | V98
+                          | V99
+                          | V100
+                          | V101
+                          | V102
+                          | V103
+                          | V104
+                          | V105
+                          | V106
+                          | V107
+                          | V108
+                          | V109
+                          | V110
+                          | V111
+                          | V112
+                          | V113
+                          | V114
+                          | V115
+                          | V116
+                          | V117
+                          | V118
+                          | V119
+                          | V120
+                          | V121
+                          | V122
+                          | V123
+                          | V124
+                          | V125
+                          | V126
+                          | V127
 ```
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
@@ -209,37 +553,37 @@ To fix this, we convert the value to a `TypedValue`, a value combined with its c
 
 ```haskell
 pPrint $ typedValue Center
-Center :: Sabbc0db9ba75
+Center :: Sc27a1135e194
 ```
 
 TypedValues can be serialised as any other value:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue Direction))
-Right Center :: Sabbc0db9ba75
+Right Center :: Sc27a1135e194
 ```
 
 And just as before, we can get things wrong:
 
 ```haskell
 pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue CinqueTerre))
-Right Corniglia :: Sabbc0db9ba75
+Right Corniglia :: Sc27a1135e194
 ```
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
 ```haskell
 pPrint $ absoluteType (Proxy :: Proxy CinqueTerre)
-S0d596b699264 -> CinqueTerre
+Sabe8a4afc323 -> CinqueTerre
 ```
 
 ```haskell
 Data Types:
-S0d596b699264 ->  CinqueTerre ≡   Monterosso
-               | Vernazza
-               | Corniglia
-               | Manarola
-               | RioMaggiore
+Sabe8a4afc323 ->  CinqueTerre ≡   Monterosso
+                                | Vernazza
+                                | Corniglia
+                                | Manarola
+                                | RioMaggiore
 ```
 
 We can automate this check, with `untypedValue`:
@@ -255,7 +599,7 @@ And this is wrong:
 
 ```haskell
 untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
-Left "Was expecting type:\n S0d596b699264 \n\nBut the data has type:\n Sabbc0db9ba75"
+Left "Was expecting type:\n Sabe8a4afc323 \n\nBut the data has type:\n Sc27a1135e194"
 ```
 
 ### Data Exchange
@@ -311,7 +655,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 ````
 - location:
     git: https://github.com/tittoassini/typed
-    commit: c58a41f34e33635e79db0678b8bcdd60701cd0f2
+    commit: 5da7fa9186e79ca4335456a17429afb9c9a9fe24
   extra-dep: true
 - location:
    git: https://github.com/tittoassini/flat
