@@ -1,11 +1,13 @@
-{-# LANGUAGE DefaultSignatures    #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TupleSections        #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DefaultSignatures         #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE PackageImports            #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 module Data.Typed.Class(
   Typed(..)
   --,absoluteType,absType
@@ -15,7 +17,8 @@ module Data.Typed.Class(
   ,AbsType
   ) where
 
-import           Control.Monad.Reader
+import           "mtl" Control.Monad.Reader
+import           Data.Bifunctor       (first, second)
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Data.Digest.SHA3
@@ -32,7 +35,6 @@ import qualified Data.Typed.PrimTypes
 import           Data.Typed.Transform hiding (relADT)
 import           Data.Typed.Types
 import           Data.Word
-import           Data.Bifunctor  (first,second)
 
 --import           Debug.Trace
 traceShowId = id
@@ -65,16 +67,20 @@ instance {-# OVERLAPPABLE #-} Model a => Typed a where absoluteType = absTypeEnv
 -- absTypeEnv :: Model a => Proxy a -> AbsoluteType
 absTypeEnv a = let (e,t) = absTypeEnvBy refS a in AbsoluteType e t
 
+-- absTypeEnvBy :: (AsType (Ana a),Flat a) => (HADT -> AbsRef) -> Proxy a -> (ADTEnv,AbsType)
 absTypeEnvBy ref a =
   let (t, hadts) = traceShowId $ hTypeEnv a
+      -- hadts = absNames <$> hadts0
   -- let (t, hadts) = traceShowId $ second (map (adtNamesMap (L.fromString . declName) L.fromString)) $ hTypeEnv a
       henv = M.fromList $ map (\d -> (declName d, d)) hadts
       mdeps = mutualDeps . M.fromList . map (\adt -> let n = declName adt in (n,recDeps henv n)) $ hadts
       errs = filter ((>1) . length) . M.elems $ mdeps
   in if null errs
      then let qnEnv = M.fromList $ runReader (mapM (\hadt -> let qn = declName hadt in (qn,) <$> absADT ref qn) hadts) henv
-              adtEnv = M.map (adtNamesMap L.fromString L.fromString) . M.fromList . M.elems $ qnEnv
-            in (adtEnv,absType qnEnv t)
+              -- adtEnv = M.map (adtNamesMap L.fromString L.fromString) . M.fromList . M.elems $ qnEnv
+              adtEnv = M.fromList . M.elems $ qnEnv
+              --adtEnv = M.fromList . M.elems $ qnEnv
+          in (adtEnv,absType qnEnv t)
        else error .
             unlines
             . map (\ms -> unwords ["Found mutually recursive types",unwords . map prettyShow $ ms])
@@ -84,13 +90,16 @@ absTypeEnvBy ref a =
       where absSolve (TypRef qn) = fst . solve qn <$> ask
     -- adtName = L.fromString . declName
 
+absNames = adtNamesMap L.fromString L.fromString
+
 absADT ref qn = do
      -- E.modify (\e -> e {adts = M.insert (locName qn) (r,absADT) (adts e)
      --                   ,contexts = tail (contexts e)
      --                   })
      hadt <- solve qn <$> ask
      cs' <- mapM (mapM (adtRef ref qn)) $ declCons hadt
-     let adt = ADT (locName qn) (declNumParameters hadt) cs'
+     -- let adt = ADT (locName qn) (declNumParameters hadt) cs'
+     let adt :: AbsADT = absNames $ ADT (locName qn) (declNumParameters hadt) cs'
      return (ref adt,adt)
 
 adtRef _ _ (TypVar v) = return $ Var v

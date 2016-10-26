@@ -45,6 +45,7 @@ mainT = defaultMain tests
 tests :: TestTree
 tests = testGroup "Tests" [properties
                            ,digestTests
+                           ,zmTests
                            ,unitTests]
 
 properties = testGroup "Typed Properties"
@@ -58,10 +59,36 @@ properties = testGroup "Typed Properties"
 prop_encoding :: forall a. (Flat a, Show a, Model a) => RT a
 prop_encoding x = prettyShow (decodeAbsType (traceShowId (absoluteType (Proxy::Proxy a))) (flat x)) == show x
 
+-- absoluteType ()
+
 digestTests = testGroup "Digest Tests" [
   tst [] [0xa7,0xff,0xc6]
   ,tst [48,49,50,51] [0x33,0xbc,0xc2]
-  ] where tst inp out = testCase (unwords ["SHA3",show inp]) $ B.pack out @?= sha3_256 3 (B.pack inp)
+  ] where
+    tst inp out = testCase (unwords ["SHA3",show inp]) $ B.pack out @?= sha3_256 3 (B.pack inp)
+
+zmTests = testGroup "ZhengMing Tests" [
+  tst (Proxy::Proxy Word32)
+  ,tst (Proxy::Proxy AbsADT)
+  ] where
+  tst proxy = testCase (unwords ["Consistency"]) $ internalConsistency proxy && externalConsistency proxy @?= True
+  --tstIn proxy = testCase (unwords ["Internal Consistency"]) $ internalConsistency proxy @?= True
+    --tstOut proxy = testCase (unwords ["Internal Consistency"]) $ internalConsistency proxy @?= True
+
+-- CHECK internal consistency of env (all internal references are to entries in the env)
+internalConsistency :: Model a => Proxy a -> Bool
+internalConsistency proxy =
+  let at = absoluteType proxy
+      innerRefs = nub . catMaybes . concatMap (map extRef. toList) $ M.elems $ canonicalEnv at
+      envRefs = M.keys $ canonicalEnv at
+  in innerRefs \\ envRefs == []
+
+extRef (Ext ref) = Just ref
+extRef _ = Nothing
+
+-- Check external consistency, the key of every ADT in the env is the same as calculated on the ADT
+externalConsistency :: Model a => Proxy a -> Bool
+externalConsistency = all (\(r,adt) -> refS adt == r) . M.toList . canonicalEnv . absoluteType
 
 unitTests = testGroup "Typed Unit Tests" [
   -- Test all custom flat instances for conformity to their model

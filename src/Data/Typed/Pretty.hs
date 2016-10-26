@@ -176,8 +176,10 @@ instance {-# OVERLAPS #-} Pretty ADTEnv where
  pPrint e = vspacedP . sortBy (comparing snd) . map (\(h,adt) -> (e,adt)) $ M.assocs e
 
 instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where
-   -- pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
-  pPrint (env,adt) = pPrint . CompactPretty . stringADT env $ adt
+  -- pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
+  -- pPrint (env,adt) = pPrint . CompactPretty . stringADT env $ adt
+  -- if we use CompactPretty the ui won't display correctly
+  pPrint (env,adt) = pPrint . stringADT env $ adt
 
 instance Pretty LocalName where pPrint (LocalName n) = pPrint n
 

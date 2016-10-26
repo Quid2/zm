@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-module Data.Typed.Value(typedBLOB,untypedBLOB
+module Data.Typed.Value(typedBLOB,typedBLOB_,untypedBLOB
                        ,typedValue,untypedValue
                        ,TypeDecoders,typeDecoderEnv,typeDecoder,decodeAbsType
                        ,timelessSimple,timelessAbs,timelessExplicit
@@ -70,7 +70,9 @@ timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flat $ a)
 
 -- WARN: adds additional end alignment byte
 typedBLOB :: forall a . (Typed a,Flat a) => a -> TypedBLOB
-typedBLOB v = TypedBLOB (absType (Proxy :: Proxy a)) (blob FlatEncoding . flat $ v)
+typedBLOB = typedBLOB_ (absType (Proxy :: Proxy a))
+
+typedBLOB_ t v = TypedBLOB t (blob FlatEncoding . flat $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
