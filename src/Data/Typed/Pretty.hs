@@ -181,6 +181,10 @@ instance {-# OVERLAPS #-} Pretty (ADTEnv,AbsADT) where
   -- if we use CompactPretty the ui won't display correctly
   pPrint (env,adt) = pPrint . stringADT env $ adt
 
+instance {-# OVERLAPS #-} Pretty (CompactPretty (ADTEnv,AbsADT)) where
+  -- pPrint (env,adt) = prettyADT "" '≡'. stringADT env $ adt
+  pPrint (CompactPretty (env,adt)) = pPrint . CompactPretty . stringADT env $ adt
+
 instance Pretty LocalName where pPrint (LocalName n) = pPrint n
 
 instance Pretty Identifier where pPrint = text . L.toString

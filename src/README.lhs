@@ -28,7 +28,9 @@ Import the library:
 
 We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
-> b2 = pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
+> prt = pPrint . CompactPretty
+
+> b2 = prt $ absoluteType (Proxy :: Proxy (Maybe Bool))
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
@@ -36,15 +38,15 @@ Contrary to Haskell, `typed` has no 'magic' built-in types so even something as 
 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
-> b344 = pPrint $ absoluteType (Proxy :: Proxy Word7)
+> b344 = prt $ absoluteType (Proxy :: Proxy Word7)
 
 A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
-> b34 = pPrint $ absoluteType (Proxy :: Proxy Word32)
+> b34 = prt $ absoluteType (Proxy :: Proxy Word32)
 
 And finally a `Char` can be defined as a tagged `Word32`:
 
-> b3 = pPrint $ absoluteType (Proxy :: Proxy Char)
+> b3 = prt $ absoluteType (Proxy :: Proxy Char)
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 

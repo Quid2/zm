@@ -34,7 +34,11 @@ import Data.Typed
 We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 ```haskell
-pPrint $ absoluteType (Proxy :: Proxy (Maybe Bool))
+prt = pPrint . CompactPretty
+```
+
+```haskell
+prt $ absoluteType (Proxy :: Proxy (Maybe Bool))
 S793d1387f115 S81d428306f1d -> Maybe Bool
 ```
 
@@ -53,7 +57,7 @@ Contrary to Haskell, `typed` has no 'magic' built-in types so even something as 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
 ```haskell
-pPrint $ absoluteType (Proxy :: Proxy Word7)
+prt $ absoluteType (Proxy :: Proxy Word7)
 Sb1f0655240ab -> Word7
 ```
 
@@ -61,127 +65,7 @@ Sb1f0655240ab -> Word7
 Data Types:
 Sb1f0655240ab ->  Word7 ≡   V0
                           | V1
-                          | V2
-                          | V3
-                          | V4
-                          | V5
-                          | V6
-                          | V7
-                          | V8
-                          | V9
-                          | V10
-                          | V11
-                          | V12
-                          | V13
-                          | V14
-                          | V15
-                          | V16
-                          | V17
-                          | V18
-                          | V19
-                          | V20
-                          | V21
-                          | V22
-                          | V23
-                          | V24
-                          | V25
-                          | V26
-                          | V27
-                          | V28
-                          | V29
-                          | V30
-                          | V31
-                          | V32
-                          | V33
-                          | V34
-                          | V35
-                          | V36
-                          | V37
-                          | V38
-                          | V39
-                          | V40
-                          | V41
-                          | V42
-                          | V43
-                          | V44
-                          | V45
-                          | V46
-                          | V47
-                          | V48
-                          | V49
-                          | V50
-                          | V51
-                          | V52
-                          | V53
-                          | V54
-                          | V55
-                          | V56
-                          | V57
-                          | V58
-                          | V59
-                          | V60
-                          | V61
-                          | V62
-                          | V63
-                          | V64
-                          | V65
-                          | V66
-                          | V67
-                          | V68
-                          | V69
-                          | V70
-                          | V71
-                          | V72
-                          | V73
-                          | V74
-                          | V75
-                          | V76
-                          | V77
-                          | V78
-                          | V79
-                          | V80
-                          | V81
-                          | V82
-                          | V83
-                          | V84
-                          | V85
-                          | V86
-                          | V87
-                          | V88
-                          | V89
-                          | V90
-                          | V91
-                          | V92
-                          | V93
-                          | V94
-                          | V95
-                          | V96
-                          | V97
-                          | V98
-                          | V99
-                          | V100
-                          | V101
-                          | V102
-                          | V103
-                          | V104
-                          | V105
-                          | V106
-                          | V107
-                          | V108
-                          | V109
-                          | V110
-                          | V111
-                          | V112
-                          | V113
-                          | V114
-                          | V115
-                          | V116
-                          | V117
-                          | V118
-                          | V119
-                          | V120
-                          | V121
-                          | V122
+...
                           | V123
                           | V124
                           | V125
@@ -189,10 +73,11 @@ Sb1f0655240ab ->  Word7 ≡   V0
                           | V127
 ```
 
+
 A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
 ```haskell
-pPrint $ absoluteType (Proxy :: Proxy Word32)
+prt $ absoluteType (Proxy :: Proxy Word32)
 S37c45c448792 -> Word32
 ```
 
@@ -200,133 +85,7 @@ S37c45c448792 -> Word32
 Data Types:
 S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
 S37c45c448792 ->  Word32 ≡ Word32 Word
-S5eed4986e32b ->  NonEmptyList a ≡   Elem a
-                                   | Cons a (NonEmptyList a)
-S643e1d6c1fd5 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
-S691fdd73b1b7 ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
-Sb1f0655240ab ->  Word7 ≡   V0
-                          | V1
-                          | V2
-                          | V3
-                          | V4
-                          | V5
-                          | V6
-                          | V7
-                          | V8
-                          | V9
-                          | V10
-                          | V11
-                          | V12
-                          | V13
-                          | V14
-                          | V15
-                          | V16
-                          | V17
-                          | V18
-                          | V19
-                          | V20
-                          | V21
-                          | V22
-                          | V23
-                          | V24
-                          | V25
-                          | V26
-                          | V27
-                          | V28
-                          | V29
-                          | V30
-                          | V31
-                          | V32
-                          | V33
-                          | V34
-                          | V35
-                          | V36
-                          | V37
-                          | V38
-                          | V39
-                          | V40
-                          | V41
-                          | V42
-                          | V43
-                          | V44
-                          | V45
-                          | V46
-                          | V47
-                          | V48
-                          | V49
-                          | V50
-                          | V51
-                          | V52
-                          | V53
-                          | V54
-                          | V55
-                          | V56
-                          | V57
-                          | V58
-                          | V59
-                          | V60
-                          | V61
-                          | V62
-                          | V63
-                          | V64
-                          | V65
-                          | V66
-                          | V67
-                          | V68
-                          | V69
-                          | V70
-                          | V71
-                          | V72
-                          | V73
-                          | V74
-                          | V75
-                          | V76
-                          | V77
-                          | V78
-                          | V79
-                          | V80
-                          | V81
-                          | V82
-                          | V83
-                          | V84
-                          | V85
-                          | V86
-                          | V87
-                          | V88
-                          | V89
-                          | V90
-                          | V91
-                          | V92
-                          | V93
-                          | V94
-                          | V95
-                          | V96
-                          | V97
-                          | V98
-                          | V99
-                          | V100
-                          | V101
-                          | V102
-                          | V103
-                          | V104
-                          | V105
-                          | V106
-                          | V107
-                          | V108
-                          | V109
-                          | V110
-                          | V111
-                          | V112
-                          | V113
-                          | V114
-                          | V115
-                          | V116
-                          | V117
-                          | V118
-                          | V119
-                          | V120
-                          | V121
-                          | V122
+...
                           | V123
                           | V124
                           | V125
@@ -334,10 +93,11 @@ Sb1f0655240ab ->  Word7 ≡   V0
                           | V127
 ```
 
+
 And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
-pPrint $ absoluteType (Proxy :: Proxy Char)
+prt $ absoluteType (Proxy :: Proxy Char)
 S07755d0e181d -> Char
 ```
 
@@ -345,140 +105,14 @@ S07755d0e181d -> Char
 Data Types:
 S07755d0e181d ->  Char ≡ Char Word32
 S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
-S37c45c448792 ->  Word32 ≡ Word32 Word
-S5eed4986e32b ->  NonEmptyList a ≡   Elem a
-                                   | Cons a (NonEmptyList a)
-S643e1d6c1fd5 ->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
-S691fdd73b1b7 ->  LeastSignificantFirst a ≡ LeastSignificantFirst a
-Sb1f0655240ab ->  Word7 ≡   V0
-                          | V1
-                          | V2
-                          | V3
-                          | V4
-                          | V5
-                          | V6
-                          | V7
-                          | V8
-                          | V9
-                          | V10
-                          | V11
-                          | V12
-                          | V13
-                          | V14
-                          | V15
-                          | V16
-                          | V17
-                          | V18
-                          | V19
-                          | V20
-                          | V21
-                          | V22
-                          | V23
-                          | V24
-                          | V25
-                          | V26
-                          | V27
-                          | V28
-                          | V29
-                          | V30
-                          | V31
-                          | V32
-                          | V33
-                          | V34
-                          | V35
-                          | V36
-                          | V37
-                          | V38
-                          | V39
-                          | V40
-                          | V41
-                          | V42
-                          | V43
-                          | V44
-                          | V45
-                          | V46
-                          | V47
-                          | V48
-                          | V49
-                          | V50
-                          | V51
-                          | V52
-                          | V53
-                          | V54
-                          | V55
-                          | V56
-                          | V57
-                          | V58
-                          | V59
-                          | V60
-                          | V61
-                          | V62
-                          | V63
-                          | V64
-                          | V65
-                          | V66
-                          | V67
-                          | V68
-                          | V69
-                          | V70
-                          | V71
-                          | V72
-                          | V73
-                          | V74
-                          | V75
-                          | V76
-                          | V77
-                          | V78
-                          | V79
-                          | V80
-                          | V81
-                          | V82
-                          | V83
-                          | V84
-                          | V85
-                          | V86
-                          | V87
-                          | V88
-                          | V89
-                          | V90
-                          | V91
-                          | V92
-                          | V93
-                          | V94
-                          | V95
-                          | V96
-                          | V97
-                          | V98
-                          | V99
-                          | V100
-                          | V101
-                          | V102
-                          | V103
-                          | V104
-                          | V105
-                          | V106
-                          | V107
-                          | V108
-                          | V109
-                          | V110
-                          | V111
-                          | V112
-                          | V113
-                          | V114
-                          | V115
-                          | V116
-                          | V117
-                          | V118
-                          | V119
-                          | V120
-                          | V121
-                          | V122
+...
                           | V123
                           | V124
                           | V125
                           | V126
                           | V127
 ```
+
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
