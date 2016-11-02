@@ -3,7 +3,7 @@ module Data.Typed.Transform(typeDefinition,adtDefinition,mutualDeps,recDeps
                            ,stringADT,solvedADT
                            ,runEnv,execEnv,solve,solveF
                            ,label
-                           ,consIn
+                           ,consIn,innerReferences,references
                            --,explicit,undup,redup
                            ) where
 import           Control.Applicative
@@ -21,7 +21,7 @@ import           Data.Typed.Types
 -- import qualified Data.ListLike.String as L
 
 typeDefinition :: ADTEnv -> AbsType -> Either String [AbsADT]
-typeDefinition env t = solveAll env . nub . concat <$> (mapM (absRecDeps env) . toList $ t)
+typeDefinition env t = solveAll env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
 
 adtDefinition :: ADTEnv -> AbsRef -> Either String [AbsADT]
 adtDefinition env t = solveAll env <$> absRecDeps env t
@@ -75,6 +75,13 @@ absRecDeps env r = let (rs,errs) = recDeps__ ref id env r
       where
         ref (Ext r) = Just r
         ref _ = Nothing
+
+innerReferences = nub . catMaybes . map ref . references
+   where
+     ref (Ext r) = Just r
+     ref _ = Nothing
+
+references = nub . toList
 
 recDeps :: (Ord a, Show a, Foldable t) => M.Map a (t (TypeRef a)) -> a -> [a]
 recDeps = recDeps_ ref id
