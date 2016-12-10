@@ -1,21 +1,21 @@
-resolver: lts-6.22
-#resolver: lts-7.4
+#resolver: lts-6.26
+resolver: lts-7.11
 
 packages:
 - '.'
-
-# - ../flat
-- location:
-   git: https://github.com/tittoassini/flat
-   commit: 3ae580d
-
-# - ../model
+#- ../model
+#- ../flat
 - location:
    git: https://github.com/tittoassini/model
-   commit: 0e1fe4f
+   commit: 02babc602daa342ed42827a9cfe24dbe5ce6bec2
+  extra-dep: true
+
+- location:
+   git: https://github.com/tittoassini/flat
+   commit: 314c185ba9be0ebcf08978625b45a6da42e0f675
+  extra-dep: true
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
-
-# Override default flag values for local packages and extra-deps
-flags: {}
+extra-deps:
+# - model-0.2.1
+- timeit-1.0.0.0 

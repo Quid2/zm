@@ -1,48 +1,130 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveFoldable      #-}
+{-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Data.Typed.Instances(
-  Unit(..),Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
-  ) where
+
+-- |Instances of Model for primitive types (Words,Ints,Char,[a],tuples,Text,ByteString..)
+module Data.Typed.Model () where
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Data.Flat
-import           Data.Int
 import           Data.Map             (Map)
 import           Data.Model
 import           Data.Text            (Text)
-import qualified Data.Typed.PrimTypes as P
+import           Data.Flat
+import qualified Data.Int             as H
+import           Data.Model
+import           Data.Typed.Generate
 import           Data.Typed.Types
-import           Data.Word
-import           Debug.Trace
 import           Type.Analyse
+import qualified Data.Word            as H
+import           Prelude              (Eq, Ord, Show, error, undefined)
+import qualified Prelude              as H
+import Data.List.NonEmpty
 
 instance (Model a,Model b,Model c) => Model (ADT a b c)
 instance (Model a,Model b) => Model (ConTree a b)
---instance Model SHA3_256_6
+instance Model a => Model (TypedValue a)
 instance Model a => Model (ADTRef a)
 instance Model a => Model (Type a)
 instance Model a => Model (TypeRef a)
-instance Model a => Model (LocalRef a)
---instance Model ExplicitRef
-instance Model Timeless
+-- instance Model a => Model (LocalRef a)
 instance Model TypedBLOB
 instance Model UTF8Encoding
 instance Model FlatEncoding
-instance Model AbsoluteType
+instance (Model adtName, Model consName, Model inRef, Model exRef) => Model (TypeModel adtName consName inRef exRef)
 instance Model Identifier
 instance Model UnicodeLetter
 instance Model UnicodeLetterOrNumberOrLine
 instance Model UnicodeSymbol
-
 instance Model a => Model (SHA3_256_6 a)
 instance Model AbsRef
-
+instance Model e => Model (BLOB e)
 instance Model Filler
 instance Model a => Model (PreAligned a)
+instance Model a => Model (LeastSignificantFirst a)
+instance Model a => Model (MostSignificantFirst a)
+instance Model a => Model (ZigZag a)
+
+
+-- |Instances for primitive types
+#include "MachDeps.h"
+
+#if WORD_SIZE_IN_BITS == 64
+instance Model H.Word where envType _ = envType (Proxy::Proxy Word64)
+instance Model H.Int where envType _ = envType (Proxy::Proxy Int64)
+#elif WORD_SIZE_IN_BITS == 32
+instance Model H.Word where envType _ = envType (Proxy::Proxy Word32)
+instance Model H.Int where envType _ = envType (Proxy::Proxy Int32)
+#else
+#error expected WORD_SIZE_IN_BITS to be 32 or 64
+#endif
+
+instance Model H.Word8 where envType = useCT word8CT
+instance Model H.Word16 where envType _ = envType (Proxy::Proxy Word16)
+instance Model H.Word32 where envType _ = envType (Proxy::Proxy Word32)
+instance Model H.Word64 where envType _ = envType (Proxy::Proxy Word64)
+instance Model H.Int8 where envType _ = envType (Proxy::Proxy Int8)
+instance Model H.Int16 where envType _ = envType (Proxy::Proxy Int16)
+instance Model H.Int32 where envType _ = envType (Proxy::Proxy Int32)
+instance Model H.Int64 where envType _ = envType (Proxy::Proxy Int64)
+instance Model H.Integer where envType _ = envType (Proxy::Proxy Int)
+instance Model H.Char where envType _ = envType (Proxy::Proxy Char)
+instance Model a => Model [a] where envType _ = envType (Proxy::Proxy (List a))
+
+data Word16 = Word16 Word
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Word32 = Word32 Word
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Word64 = Word64 Word
+  deriving (Eq, Ord, Show, Generic, Model)
+
+-- |An unsigned integer of arbitrary length
+-- encoded as a non empty list of Word7 words
+-- with least significant word first
+-- and, inside each word, most significant bit first
+data Word = Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Int8 = Int8 (ZigZag H.Word8)
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Int16 = Int16 (ZigZag Word16)
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Int32 = Int32 (ZigZag Word32)
+  deriving (Eq, Ord, Show, Generic, Model)
+
+data Int64 = Int64 (ZigZag Word64)
+  deriving (Eq, Ord, Show, Generic, Model)
+
+-- data Integer = Integer (ZigZag (NonEmptyList Word7)) deriving (Eq, Ord, Show, Generic, Model)
+
+data Int = Int (ZigZag Word) deriving (Eq, Ord, Show, Generic, Model)
+
+--data String = String (Array Char) deriving (Generic,Model)
+
+data Char = Char Word32 deriving (Eq, Ord, Show, Generic, Model)
+
+data List a = Nil
+             | Cons a (List a) deriving (Eq, Ord, Show, Generic)
+instance Model a => Model (List a)
+
+instance Model a => Model (Array a) where envType = useCT arrayCT
+
+instance Model a => Model (NonEmptyList a)
+
+instance Model Word7 where envType = useCT word7CT
+
+data Unit = Unit deriving (Eq, Ord, Show, Generic, Model)
+instance Model () where envType _ = envType (Proxy::Proxy Unit)
+
 
 nc = error "This should have never been called!"
 
@@ -52,24 +134,19 @@ nc = error "This should have never been called!"
 -- NOTE: need to overload AsType as well as arity of ByteString =/= Array Word8
 instance Model B.ByteString where envType _ = nc
 -- instance Model B.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
-instance {-# OVERLAPPING #-} AsType (Typ B.ByteString) where asType _ = asType (undefined::Ana (Array Word8))
+instance {-# OVERLAPPING #-} AsType (Typ B.ByteString) where asType _ = asType (undefined::Ana (Array H.Word8))
 
 instance Model L.ByteString where envType _ = nc
 -- instance Model L.ByteString where envType _ = envType (Proxy::Proxy (Array Word8))
-instance {-# OVERLAPPING #-} AsType (Typ L.ByteString) where asType _ = asType (undefined::Ana (Array Word8))
+instance {-# OVERLAPPING #-} AsType (Typ L.ByteString) where asType _ = asType (undefined::Ana (Array H.Word8))
 
 --instance Model Text where envType _ = envType (Proxy::Proxy P.String)
 -- instance Model Text where envType _ = envType (Proxy::Proxy (BLOB UTF8Encoding))
 instance Model Text where envType _ = nc
 instance {-# OVERLAPPING #-} AsType (Typ Text) where asType _ = asType (undefined::Ana (BLOB UTF8Encoding))
 
-instance Model e => Model (BLOB e)
-
 instance (Model a,Model b) => Model (Map a b) where envType _ = nc
 instance {-# OVERLAPPING #-} (AsType a, AsType b) => AsType (App (App (Typ (Map A0 A1)) a) b) where asType _ = asType (undefined::(App (Typ [A0]) (App (App (Typ (A0, A1)) a) b)))
-
-data Unit = Unit deriving (Eq, Ord, Show, Generic, Model)
-instance Model () where envType _ = envType (Proxy::Proxy Unit)
 
 data Tuple2 a b = Tuple2 a b deriving (Eq, Ord, Show, Generic)
 instance (Model a,Model b) => Model (Tuple2 a b)
@@ -102,58 +179,3 @@ instance (Model a1,Model a2,Model a3,Model a4,Model a5,Model a6,Model a7,Model a
 data Tuple9 a1 a2 a3 a4 a5 a6 a7 a8 a9 = Tuple9 a1 a2 a3 a4 a5 a6 a7 a8 a9 deriving (Eq, Ord, Show, Generic)
 instance (Model a1,Model a2,Model a3,Model a4,Model a5,Model a6,Model a7,Model a8,Model a9) => Model (Tuple9 a1 a2 a3 a4 a5 a6 a7 a8 a9)
 instance (Model a1,Model a2,Model a3,Model a4,Model a5,Model a6,Model a7,Model a8,Model a9) => Model (a1,a2,a3,a4,a5,a6,a7,a8,a9) where envType _ = envType (Proxy::Proxy (Tuple9 a1 a2 a3 a4 a5 a6 a7 a8 a9))
-
--- [a] == data String = String (List a)
-
-
-
- -- instance {-# OVERLAPPABLE #-} Model a => Model [a] where envType _ = envType (Proxy::Proxy (P.List a))
-
--- last resort :-(
--- instance {-# OVERLAPPABLE #-} Model a => Model [a] where
---   envType _ = do
---      t <- envType (Proxy::Proxy a)
---      -- (show t) -- !! TypeCon (TypVar 0)
---      case traceShowId t of
---        -- Char
---        TypeCon (TypRef (QualName _ _ "Char")) -> envType (Proxy::Proxy P.String)
---        _ -> envType (Proxy::Proxy (P.List a))
-
--- Why is this ignored?
--- Because [Char] is analysed as [TypVar..]
--- instance {-# OVERLAPS #-} Model [Char] where envType _ = envType (Proxy::Proxy Bool)
--- instance {-# OVERLAPS #-} Model [Word8] where envType _ = envType (Proxy::Proxy Bool)
--- instance {-# OVERLAPS #-} Model [Char] where envType _ = envType (Proxy::Proxy P.String)
--- instance {-# OVERLAPS #-} Model [Char] where envType p = addCT (Proxy::Proxy P.String)
--- instance Model (Char,Char) where envType _ = envType (Proxy::Proxy (P.Word8))
-
--- instance Typed P.String
--- instance Model a => Typed (P.List a)
-
--- x = absoluteType (Proxy::Proxy P.String)
-
--- --- instance {-# OVERLAPPABLE #-} Typed a => Typed [a] where absoluteType _ = absoluteType (Proxy::Proxy (P.List a))
-
--- instance Typed [Char] where absoluteType _ = absoluteType (Proxy::Proxy P.String)
-
-instance Flat a => Flat (SHA3_256_6 a)
-instance Flat AbsRef
-instance Flat AbsoluteType
-instance Flat Identifier
-instance Flat UnicodeLetter
-instance Flat UnicodeLetterOrNumberOrLine
-instance Flat UnicodeSymbol
-
-instance (Flat a,Flat b,Flat c) => Flat (ADT a b c)
-instance (Flat a,Flat b) => Flat (ConTree a b)
--- instance Flat SHA3_256_6
-instance Flat a => Flat (ADTRef a)
-instance Flat a => Flat (Type a)
-instance Flat a => Flat (TypeRef a)
-instance Flat a => Flat (NonEmptyList a)
-instance Flat Timeless
-instance Flat TypedBLOB
--- instance Model TypedBLOB
-instance Flat a => Flat (TypedValue a)
-instance Model a => Model (TypedValue a)
--- instance Model Bytes

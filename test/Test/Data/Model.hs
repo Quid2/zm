@@ -1,4 +1,4 @@
-{-# LANGUAGE StandaloneDeriving ,DeriveGeneric ,ScopedTypeVariables ,FlexibleContexts #-}
+{-# LANGUAGE StandaloneDeriving ,DeriveGeneric ,ScopedTypeVariables ,FlexibleContexts ,DeriveAnyClass #-}
 module Test.Data.Model where
 
 import           Data.Model
@@ -36,8 +36,8 @@ instance Model B0
 instance Model C0
 instance Model D0
 instance Model E0
--- instance Model ()
 
+instance Model Various
 instance Model a => Model (Phantom a)
 instance Model a => Model (Data2.List a)
 instance Model a => Model (Data3.List a)
@@ -45,8 +45,6 @@ instance Model a => Model (List a)
 instance Model a => Model (Tree a)
 instance (Model a, Model b, Model c) => Model (RR a b c)
 instance Model Expr
--- instance (Model (f a),Typeable f,Model a) => Model (PerfectF f a)
--- instance (Model a) => Model (Free f a)
 instance Model a => Model (Perfect a)
 instance Model a => Model (Fork a)
 instance Model a => Model (Forest a)
@@ -54,4 +52,10 @@ instance Model a => Model (Tr a)
 instance Model t => Model (ForestD t)
 instance (Model f,Model a) => Model (TrD f a)
 instance Model a => Model (Forest2 a)
-instance Model a => Model (Tr2 a) 
+instance Model a => Model (Tr2 a)
+
+-- Higher kind
+-- instance (Model a,Model f) => Model (Higher f a)
+-- instance (Model (f a),Typeable f,Model a) => Model (PerfectF f a)
+-- instance (Model v,Model (f v),Model a) => Model (Free f a)
+

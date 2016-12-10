@@ -196,9 +196,21 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 
 Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
+ ### Acknowledgements
+ Contains the following JavaScript library:
+``
+ * js-sha3 v0.5.1
+ * https://github.com/emn178/js-sha3
+ *
+ * Copyright 2015, emn178@gmail.com
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+``
+
  ### Known Bugs and Infelicities
 
-* The unique codes generated for the data types are not yet final and will change in the next version.
+* The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
 * Messy source code
 

@@ -1,29 +1,43 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.Typed.Generate where
+-- |Generate some large constructor trees for primitive types
+module Data.Typed.Generate(arrayCT,word8CT,word7CT) where
 
--- import Data.Typed.Class
 import Data.Typed.Types
-import qualified Data.Text       as T
 
-arrayCT = Just (asACT $ mkT_ 0 256)
+-- |Constructor Tree for:
+-- data Array a = A0 | A1 a (Array a) .. | A255 a .. a (Array a)
+arrayCT = Just (asACT $ mkCons 256)
+
+asACT :: Cons -> ConTree String (TypeRef QualName)
 asACT (P t1 t2) = ConTree (asACT t1) (asACT t2)
 asACT (L 0) = Con "A0" (Left [])
 asACT (L n) = let a = TypeCon $ TypVar 0
-              in Con (nameConcat["A",sh n]) (Left $ replicate n a ++ [TypeApp (TypeCon (TypRef (QualName "" "" "Array"))) a])
+              in Con ("A"++show n) (Left $ replicate n a ++ [TypeApp (TypeCon (TypRef (QualName "" "" "Array"))) a])
 
 --word8ADT = ADT {declName = "Word8", declNumParameters = 0, declCons = word8CT}
-word8CT = Just (asWCT $ mkT_ 0 256)
-word7CT = Just (asWCT $ mkT_ 0 128)
 
+-- |Constructor Tree for:
+-- data Word8 = V0 | V1 .. | V255
+word8CT :: Maybe (ConTree String ref)
+word8CT = Just (asWCT $ mkCons 256)
+
+-- |Constructor Tree for:
+-- data Word7 = V0 | V1 .. | V127
+word7CT :: Maybe (ConTree String ref)
+word7CT = Just (asWCT $ mkCons 128)
+
+asWCT :: Cons -> ConTree String ref
 asWCT (P t1 t2) = ConTree (asWCT t1) (asWCT t2)
-asWCT (L n) = Con (nameConcat ["V",sh n]) (Left [])
+asWCT (L n) = Con (concat ["V",show n]) (Left [])
 
-sh = name . show
+-- |A binary tree with integer leaves, used to represent constructor trees
+data Cons = L Int | P Cons Cons deriving (Show)
 
-data T = L Int | P T T deriving (Show) -- ,Generic)
-
-mkT = mkT_ 1
-mkT_ :: Int -> Int -> T
+-- |Generate a right heavier binary tree whose leaves are marked
+-- with the position (starting with 0) of the corresponding constructor
+-- in the list of constructors
+mkCons = mkT_ 0
+mkT_ :: Int -> Int -> Cons
 mkT_ p 1 = L p
 mkT_ p n = let (d,m) = n `divMod` 2
            in  P (mkT_ p d) (mkT_ (p+d) (d+m))

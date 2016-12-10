@@ -1,14 +1,18 @@
-
 module Data.Typed(
-  module X--,Word8,Word16,Word32,Word64,Int8,Int16,Int32,Int64
+  -- |Check the <https://github.com/tittoassini/typed tutorial and github repo>
+  module X
+  ,module Data.Model
   ) where
 
 import           Data.Flat            as X
-import           Data.Model           as X
+import           Data.Model           hiding (Name)
+import           Data.Typed.Abs       as X
+import           Data.Typed.BLOB      as X
 import           Data.Typed.Class     as X
-import           Data.Typed.Instances as X
-import           Data.Int
+import           Data.Typed.Dynamic   as X
+import           Data.Typed.Model     ()
 import           Data.Typed.Pretty    as X
+import           Data.Typed.Timeless  as X
 import           Data.Typed.Transform as X
 import           Data.Typed.Types     as X
 import           Data.Typed.Value     as X

@@ -1,46 +1,80 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Data.Typed.Transform(typeDefinition,adtDefinition,mutualDeps,recDeps
-                           ,stringADT,solvedADT
-                           ,runEnv,execEnv,solve,solveF
-                           ,label
-                           ,consIn,innerReferences,references
-                           --,explicit,undup,redup
-                           ) where
-import           Control.Applicative
-import           Control.Exception
-import           Control.Monad
+-- |Utilities to operate on the absolute type model
+module Data.Typed.Transform(
+  typeDefinition,adtDefinition
+  ,MapTypeTree,typeTree
+  -- |*State utilities
+  -- ,recDeps
+  ,stringADT
+  ,solvedADT
+  ,innerReferences,references
+  ) where
+
 import           Control.Monad.Trans.State
-import           Data.Bifunctor
 import           Data.Foldable             (toList)
 import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
-import           Data.Model.Types          (fieldsTypes)
-import           Data.Text                 (Text)
+import           Data.Model.Util
 import           Data.Typed.Types
--- import qualified Data.ListLike.String as L
+import           Data.Typed.Util
 
-typeDefinition :: ADTEnv -> AbsType -> Either String [AbsADT]
-typeDefinition env t = solveAll env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
+-- typeDefinition :: AbsTypeModel -> Either String [AbsADT]
+-- typeDefinition (TypeModel t env) = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
 
-adtDefinition :: ADTEnv -> AbsRef -> Either String [AbsADT]
-adtDefinition env t = solveAll env <$> absRecDeps env t
+-- |A map of saturated types to the corresponding saturated constructor tree
+type MapTypeTree = M.Map (Type AbsRef) (ConTree Identifier AbsRef)
 
--- solveAll env =  mapM (\k -> M.lookup k env)
-solveAll env = map (flip solve env)
+typeTree :: AbsTypeModel -> MapTypeTree
+typeTree tm = execEnv (addType (typeEnv tm) (typeName tm))
+ where
+   -- |Insert in the env the saturated constructor trees corresponding to the passed type
+   -- and any type nested in its definition
+   addType absEnv t = do
+     mct <- M.lookup t <$> get
+     case mct of
+       Nothing ->
+         case declCons $ solvedADT absEnv t of
+           Just ct -> do
+             modify (M.insert t ct)
+             -- Recursively on all saturated types inside the contructor tree
+             mapM_ (addType absEnv) (conTreeTypeList ct)
+           Nothing -> return ()
+       Just _ -> return ()
 
-label :: (Functor f, Ord k) => M.Map k a -> (a -> l) -> f k -> f (Label k l)
-label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
+typeDefinition :: AbsEnv -> AbsType -> Either String [AbsADT]
+typeDefinition env t = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
 
-stringADT :: ADTEnv -> AbsADT -> ADT LocalName Identifier (TypeRef LocalName)
+adtDefinition :: AbsEnv -> AbsRef -> Either String [AbsADT]
+adtDefinition env t = mapSolve env <$> absRecDeps env t
+
+absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
+absRecDeps env ref = either (Left . unlines) Right $ recursively getADTRef env ref
+
+mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
+mapSolve env = map (flip solve env)
+
+-- stringADT :: AbsEnv -> AbsADT -> ADT LocalName Identifier (TypeRef LocalName)
+-- stringADT env adt =
+--   let name = declName adt
+--   in ADT (LocalName name) (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+--    where solveS _ (Var n) = TypVar n
+--          solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
+--          solveS name Rec  = TypRef $ LocalName name
+
+stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
 stringADT env adt =
   let name = declName adt
-  in ADT (LocalName name) (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+  in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
    where solveS _ (Var n) = TypVar n
-         solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
-         solveS name Rec = TypRef $ LocalName name
+         solveS _ (Ext k) = TypRef . declName . solve k $ env
+         solveS name Rec  = TypRef name
 
 -- |Solve ADT by substituting variables and recursive refs
+solvedADT
+  :: (Ord ref, Show ref) =>
+     M.Map ref (ADT name consName (ADTRef ref))
+     -> Type ref -> ADT name consName ref
 solvedADT env at =
    let
      TypeN t ts = typeN at
@@ -48,102 +82,37 @@ solvedADT env at =
      adt = solve t env
      name = declName adt
    in ADT name 0 (conTreeTypeMap (saturate t as) <$> declCons adt)
+--      where -- PROB!
 
+-- |Substitute variables in type with the
+saturate :: ref -> [Type ref] -> Type (ADTRef ref) -> Type ref
 saturate ref vs (TypeApp a b) = TypeApp (saturate ref vs a) (saturate ref vs b)
-saturate _    vs (TypeCon (Var n)) = vs !! fromIntegral n
-saturate _    _  (TypeCon (Ext k)) = TypeCon k
-saturate ref _  (TypeCon Rec) = TypeCon ref
+saturate _   vs (TypeCon (Var n)) = vs !! fromIntegral n -- Different!
+saturate _    _  (TypeCon (Ext r)) = TypeCon r
+saturate selfRef _  (TypeCon Rec) = TypeCon selfRef
 
--- |Find the code and types corresponding to a constructor
--- consIn :: Name -> ADT name Name t -> Maybe ([Bool], [Type t])
-consIn :: Eq a => a -> ADT name a t -> Maybe ([Bool], [Type t])
-consIn consName dt = maybe Nothing ((first reverse <$>) . loc []) (declCons dt)
+saturate2 :: ref -> [ref] -> Type (ADTRef ref) -> Type ref
+saturate2 ref vs t = subs ref vs <$> t
   where
-    loc bs (Con n ps) | n == consName = Just (bs,fieldsTypes ps)
-                      | otherwise = Nothing
-    loc bs (ConTree l r) = loc (False:bs) l <|> loc (True:bs) r
+    subs _       vs (Var n) = vs !! fromIntegral n
+    subs selfRef vs Rec     = selfRef
+    subs _       _  (Ext r) = r
 
---- Mutual dependencies
-mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
-mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
+---------- ADT dependencies
+-- |Mutual dependencies, for every entry the list of mutual dependencies
+-- >>>mutualDeps (M.fromList [("a",["b","c"]),("b",["a","c"]),("c",[])])
+-- fromList [("a",["b"]),("b",["a"]),("c",[])]
+-- mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
+-- mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
 
----------- Recursive deps
 
--- absRecDeps :: Foldable t => M.Map AbsRef (t ADTRef) -> AbsRef -> [AbsRef]
-absRecDeps env r = let (rs,errs) = recDeps__ ref id env r
-                   in if null errs then Right rs else Left (unlines errs)
-      where
-        ref (Ext r) = Just r
-        ref _ = Nothing
-
-innerReferences = nub . catMaybes . map ref . references
-   where
-     ref (Ext r) = Just r
-     ref _ = Nothing
+innerReferences = nub . catMaybes . map getADTRef . references
 
 references = nub . toList
 
-recDeps :: (Ord a, Show a, Foldable t) => M.Map a (t (TypeRef a)) -> a -> [a]
-recDeps = recDeps_ ref id
-     where
-       ref (TypRef r) = Just r
-       ref (TypVar _) = Nothing
 
-recDeps_ getRef refs env n = fst $ recDeps__ getRef refs env n
 
-recDeps__ getRef refs env n  = first reverse $ execState (deps n) ([],[])
-    where
-      deps n = do
-         p <- present n
-         unless p $ do
-           add n
-           case M.lookup n env of
-             Nothing -> err $ unwords ["Unknown reference to",show n]
-             Just v -> mapM_ deps (mapMaybe getRef . refs toList $ v)
+-- |Direct and indirect references from an adt to other adts
+-- recDeps = recursively getHRef
 
-      err e = modify (second (e:))
 
-      present n = (n `elem`) <$> gets fst
-
-      add n = modify (first (n:))
-
----------- Duplicated values
-u = redup $ undup [3,5,6,3,8,5]
-
-undup :: (Eq a, Traversable t) => t a -> t (LocalRef a)
-undup t = evalState (mapM sub t) []
-  where sub a = do
-          env <- get
-          case elemIndex a env of
-            Nothing -> do
-              put (a:env)
-              return $ LocalDef a -- (length env) a
-            --Just n -> return $ LocalRef (fromIntegral $ length env - fromIntegral (n+1))
-            Just n -> return $ LocalRef (fromIntegral n)
-
-redup :: Traversable t => t (LocalRef b) -> t b
-redup t = evalState (mapM sub t) []
-  where sub l = do
-          env <- get
-          case l of
-            LocalDef a -> do
-              put (a:env)
-              return a
-            LocalRef r -> return $ env !! fromIntegral r
-
------------ Utils
-runEnv op = runState op M.empty
-execEnv op = execState op M.empty
-
-solve :: (Ord k, Show k) => k -> M.Map k a -> a
-solve k e = case M.lookup k e of
-     Nothing -> error $ unwords ["Unknown reference to",show k]
-     Just v -> v
-
-solveF :: (Functor f, Show k, Ord k) => M.Map k b -> f k -> f b
-solveF env f = (\r -> solve r env) <$> f
-
--- solveR env f = (\r -> solve (solveR r env) env) <$> f
-
---exp :: AbsoluteType -> 
--- explicit absType = solveF (canonicalEnv absType) (canonicalType absType)
