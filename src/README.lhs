@@ -26,11 +26,15 @@ Import the library:
 
 > import Data.Typed
 
-We use `absoluteType` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
+We will need this too, for the examples.
+
+> import Data.Word
+
+We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 > prt = pPrint . CompactPretty
 
-> b2 = prt $ absoluteType (Proxy :: Proxy (Maybe Bool))
+> b2 = prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
@@ -38,15 +42,15 @@ Contrary to Haskell, `typed` has no 'magic' built-in types so even something as 
 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
-> b344 = prt $ absoluteType (Proxy :: Proxy Word7)
+> b344 = prt $ absTypeModel (Proxy :: Proxy Word7)
 
-A `Word32` can then be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
+A `Word32` can be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
-> b34 = prt $ absoluteType (Proxy :: Proxy Word32)
+> b34 = prt $ absTypeModel (Proxy :: Proxy Word32)
 
 And finally a `Char` can be defined as a tagged `Word32`:
 
-> b3 = prt $ absoluteType (Proxy :: Proxy Char)
+> b3 = prt $ absTypeModel (Proxy :: Proxy Char)
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
@@ -99,7 +103,7 @@ One more time:
 
 Oops, that's not quite right.
 
-We got our types crossed, `Center` was read back as `Corniglia`, a Direction was interpreted as one of the CinqueTerre.
+We got our types crossed, `Center` was read back as `Corniglia`, a `Direction` was interpreted as one of the `CinqueTerre`.
 
 To fix this, we convert the value to a `TypedValue`, a value combined with its canonical type:
 
@@ -115,7 +119,7 @@ And just as before, we can get things wrong:
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
-> b33 = pPrint $ absoluteType (Proxy :: Proxy CinqueTerre)
+> b33 = pPrint $ absTypeModel (Proxy :: Proxy CinqueTerre)
 
 We can automate this check, with `untypedValue`:
 
@@ -179,17 +183,20 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 
 ````
 - location:
-    git: https://github.com/tittoassini/typed
-    commit: 00b39b1e94dc2a047e6371a1622c8ee411882efe
+   git: https://github.com/tittoassini/model
+   commit: 02babc602daa342ed42827a9cfe24dbe5ce6bec2
   extra-dep: true
+
 - location:
    git: https://github.com/tittoassini/flat
-   commit: 3771f5946dd506c6f199aa4047186d5b57bdce5f
+   commit: 314c185ba9be0ebcf08978625b45a6da42e0f675
   extra-dep: true
+
 - location:
-   git: https://github.com/tittoassini/model
-   commit: b05a56a993213271e3b13d28a5e8bb90c9d8576f
+   git: https://github.com/tittoassini/typed
+   commit: 3db551a5bb9e5f572202c65935ee8cd9c8494196 
   extra-dep: true
+
 ````
 
  ### Compatibility
@@ -212,5 +219,5 @@ Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
 * The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
-* Messy source code
+
 
