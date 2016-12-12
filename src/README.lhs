@@ -205,7 +205,7 @@ Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
  ### Acknowledgements
  Contains the following JavaScript library:
-``
+
  js-sha3 v0.5.1
  https://github.com/emn178/js-sha3
 
@@ -213,7 +213,7 @@ Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1.
 
  Licensed under the MIT license:
  http://www.opensource.org/licenses/MIT
-``
+
 
  ### Known Bugs and Infelicities
 
