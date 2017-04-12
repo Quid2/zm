@@ -1,13 +1,9 @@
 packages:
 - '.'
 
-# - location: ../flat
-#   extra-dep: true
-
-resolver: lts-6.30
+resolver: lts-8.5
 extra-deps:
 - model-0.2.4
 - flat-0.2
-#- timeit-1.0.0.0
 - mono-traversable-1.0.2
 - cryptonite-0.22
