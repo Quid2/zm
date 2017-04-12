@@ -298,7 +298,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 ````
 - location:
    git: https://github.com/tittoassini/typed
-   commit: 
+   commit:3b29a60db62d318ba2f491aa5d1bce7223d8504c 
   extra-dep: true
 
 ````

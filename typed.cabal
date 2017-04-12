@@ -1,5 +1,5 @@
 name:                typed
-version:             0.1.2
+version:             0.1.3
 synopsis:            Language independent, reproducible, absolute types
 description:         See the <http://github.com/tittoassini/typed online tutorial>
 homepage:            http://github.com/tittoassini/typed
@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   js-sources: jsbits/sha3.js
   exposed-modules:     Data.BLOB,Data.Digest.SHA3,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Class,Data.Typed.Defs,Data.Typed.Defs2,Data.Typed.Dynamic,Data.Typed.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Timeless,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Value
-  build-depends: ListLike, base >= 4.7 && < 5, bytestring, containers, deepseq, directory, filepath, flat, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers
+  build-depends: ListLike, base >= 4.7 && < 5, bytestring, containers, deepseq, directory, filepath, flat>=0.2, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers
 
   if impl(ghcjs)
     build-depends:     ghcjs-base        >= 0.2 && < 0.3
