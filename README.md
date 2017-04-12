@@ -1,4 +1,6 @@
 
+[![Build Status](https://travis-ci.org/tittoassini/typed.svg?branch=master)](https://travis-ci.org/tittoassini/typed) [![Hackage version](https://img.shields.io/hackage/v/typed.svg)](http://hackage.haskell.org/package/typed)
+
 Haskell implementation of canonical, language independent data types.
 
 ### How To Use It For Fun and Profit
@@ -17,9 +19,7 @@ For a data type to have a canonical representation, it has to implement the `Mod
 
 Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
 
-Let's see some code.
-
-We need a couple of GHC extensions:
+Let's see some code, we need a couple of GHC extensions:
 
 ```haskell
 {-# LANGUAGE DeriveGeneric, DeriveAnyClass, NoMonomorphismRestriction #-}
@@ -283,7 +283,6 @@ instance (Flat a , Flat b) => Flat (CoupleB a b)
 t = ed False >> ed Tre >> ed (Couple (CoupleB True Uno One) Three)
 ed = pp . unflatDynamically . flat . typedValue
 
-
 We can now use it to define a hard-wired decoder
 
 Or use a dynamic decder to directly show the value.
@@ -298,7 +297,7 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 ````
 - location:
    git: https://github.com/tittoassini/typed
-   commit:3b29a60db62d318ba2f491aa5d1bce7223d8504c 
+   commit: 
   extra-dep: true
 
 ````
