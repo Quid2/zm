@@ -169,7 +169,6 @@ instance (Flat a , Flat b) => Flat (CoupleB a b)
 t = ed False >> ed Tre >> ed (Couple (CoupleB True Uno One) Three)
 ed = pp . unflatDynamically . flat . typedValue
 
-
 We can now use it to define a hard-wired decoder
 
 Or use a dynamic decder to directly show the value.
