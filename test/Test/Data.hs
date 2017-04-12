@@ -75,7 +75,13 @@ data Ints = Ints Int8 Int16 Int32 Int64
             deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 -- non-recursive data type
-data Various = V1 (Maybe Bool) | V2 Bool (Either Bool (Maybe Bool))
+data Various = V1 (Maybe Bool)
+             -- | V2 Bool (Either Bool (Maybe Bool)) (N,N,N)
+             | V2 Bool (Either Bool (Maybe Bool))
+             | VF Float Double Double
+             | VW Word Word8 Word16 Word32 Word64
+             | VI Int Int8 Int16 Int32 Int64
+             | VII Integer Integer Integer
               deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 -- Phantom type
@@ -161,7 +167,7 @@ data Stream a = Stream a (Stream a)
             deriving (Eq, Ord, Read, Show, Typeable, Data, Generic,Functor,Foldable,Traversable)
 
 data Tree a = Node (Tree a) (Tree a) | Leaf a
-            deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+            deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Foldable)
 
 -- Example schema from: http://mechanical-sympathy.blogspot.co.uk/2014/05/simple-binary-encoding.html
 data Car = Car {

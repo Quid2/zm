@@ -3,54 +3,55 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-module Data.Typed.BLOB(typedBLOB
-                      ,typedBLOB_
-                      ,untypedBLOB
-                      ,typedValue,untypedValue
-                      ,typeErr
-                      ) where
+module Data.Typed.BLOB (
+    typedBLOB,
+    typedBLOB_,
+    untypedBLOB,
+    typedValue,
+    untypedValue,
+    typeErr,
+    module Data.BLOB,
+    ) where
 
+import           Data.BLOB
 import           Data.Flat
 import           Data.Model
 import           Data.Typed.Class
 import           Data.Typed.Pretty ()
 import           Data.Typed.Types
 import           Data.Typed.Util
+import qualified Data.ByteString as B
 
 -- WARN: adds additional end alignment byte
 typedBLOB :: forall a . (Typed a,Flat a) => a -> TypedBLOB
 typedBLOB = typedBLOB_ (absType (Proxy :: Proxy a))
 
-typedBLOB_ t v = TypedBLOB t (blob FlatEncoding . flat $ v)
+typedBLOB_ :: Flat r => AbsType -> r -> TypedBLOB
+typedBLOB_ t v = TypedBLOB t (blob FlatEncoding . flatStrict $ v)
 
 typedValue :: forall a . Typed a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
 
 
-untypedBLOB ::  forall a.  (Flat a, Model a) => Either DeserializeFailure TypedBLOB -> Either DeserializeFailure a
+untypedBLOB ::  forall a.  (Flat a, Model a) => Decoded TypedBLOB -> TypedDecoded a
 untypedBLOB ea = case ea of
-                    Left e -> Left e
+                    Left e -> Left . DecodeError $ e
                     Right (TypedBLOB typ' bs) ->
                       let typ = absType (Proxy :: Proxy a)
                       in if (typ' /= typ)
                          then typeErr typ typ'
-                         else unflat . unblob $ bs
+                         else errMap DecodeError . unflat $ (unblob bs :: B.ByteString)
 
-untypedValue ::  (Flat a, Model a) => Either DeserializeFailure (TypedValue a) -> Either DeserializeFailure a
+untypedValue ::  (Flat a, Model a) => Decoded (TypedValue a) -> TypedDecoded a
 untypedValue ea = case ea of
-                    Left e -> Left e
+                    Left e -> Left . DecodeError $ e
                     Right (TypedValue typ' a) ->
                       let typ = absType (proxyOf a)
                       in if (typ' /= typ)
                          then typeErr typ typ'
                          else Right a
 
-typeErr typ typ' =
-  let rt  = prettyShow typ
-      rt' = prettyShow typ'
-      msg = unwords $ ["Was expecting type:\n",rt,"\n\nBut the data has type:\n",rt']
-      -- putStrLn msg
-  in Left msg
+typeErr typ typ' = Left $  WrongType typ typ'
 
 -- Decode a TypedValue without previous knowledge of its type
 -- decodeTypedBLOB :: Encoded TypedBLOB -> Decoded Val

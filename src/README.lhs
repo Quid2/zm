@@ -20,7 +20,7 @@ Let's see some code.
 
 We need a couple of GHC extensions:
 
-> {-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+> {-# LANGUAGE DeriveGeneric, DeriveAnyClass, NoMonomorphismRestriction #-}
 
 Import the library:
 
@@ -58,7 +58,7 @@ There are however a couple of restrictions: data types definitions cannot be mut
 
 So for example, these won't work:
 
-````haskell
+```haskell
 -- BAD: f has higher kind
 data Free = Impure (f (Free f a)) | Pure a
 
@@ -83,11 +83,11 @@ The traditional Chinese directions:
 
 Though their meaning is obviously different they share the same syntactical structure (simple enumerations of 5 values) and most binary serialisation libraries won't be able to distinguish between the two.
 
-To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration.
+To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration using the `flat` library.
 
-> e1 = flat Center
+> e1 = pPrint $ flatStrict Center
 
-> e4 = flat Corniglia
+> e4 = pPrint $ flatStrict Corniglia
 
 As you can see they have the same binary representation.
 
@@ -95,11 +95,13 @@ We have used the `flat` binary serialisation as it is already a dependency of `t
 
 Let's go full circle, using `unflat` to decode the value :
 
-> d1 = unflat (flat Center) :: Decoded Direction
+> decoded = unflat . flatStrict
+
+> d1 = decoded Center :: Decoded Direction
 
 One more time:
 
-> d2 = unflat (flat Center) :: Decoded CinqueTerre
+> d2 = decoded Center :: Decoded CinqueTerre
 
 Oops, that's not quite right.
 
@@ -111,11 +113,11 @@ To fix this, we convert the value to a `TypedValue`, a value combined with its c
 
 TypedValues can be serialised as any other value:
 
-> t4 = pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue Direction))
+> t4 = pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue Direction))
 
 And just as before, we can get things wrong:
 
-> t5 = pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue CinqueTerre))
+> t5 = pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue CinqueTerre))
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
@@ -125,15 +127,16 @@ We can automate this check, with `untypedValue`:
 
 This is ok:
 
-> t6 = untypedValue . unflat . flat . typedValue $ Center :: Decoded Direction
+> t6 = untypedValue . decoded . typedValue $ Center :: TypedDecoded Direction
 
 And this is wrong:
 
-> t7 = untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
+> t7 = untypedValue . decoded . typedValue $ Center :: TypedDecoded CinqueTerre
 
  ### Data Exchange
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
+
 <!--
  ### Long Term Data Preservation
 
@@ -147,8 +150,6 @@ Two ways:
 -- save the full canonical definition of the data with the data itself or
 -- save the def in the cloud so that it can be shared
 
-When we save
-
 Better save them for posterity:
 
 sv = saveTypeIn theCloud (Couple One Tre)
@@ -161,7 +162,6 @@ in the knowledge that when we are presented with a binary of unknown type
 we can always recover the full definition of our data.
 
 PUT BACK dt = e2 >>= recoverTypeFrom theCloud
-
 What if we have no idea of what is the type
 
 instance (Flat a , Flat b) => Flat (CoupleB a b)
@@ -183,18 +183,8 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 
 ````
 - location:
-   git: https://github.com/tittoassini/model
-   commit: 02babc602daa342ed42827a9cfe24dbe5ce6bec2
-  extra-dep: true
-
-- location:
-   git: https://github.com/tittoassini/flat
-   commit: 314c185ba9be0ebcf08978625b45a6da42e0f675
-  extra-dep: true
-
-- location:
    git: https://github.com/tittoassini/typed
-   commit: 3db551a5bb9e5f572202c65935ee8cd9c8494196 
+   commit: 
   extra-dep: true
 
 ````

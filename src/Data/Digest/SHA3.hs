@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
@@ -5,7 +6,7 @@
 {-# LANGUAGE PackageImports           #-}
 -- |Crypto algorithms (with support for GHCJS)
 module Data.Digest.SHA3(
-  sha3_256
+  sha3_256,shake_128
   ) where
 
 import qualified Data.ByteString         as B
@@ -16,15 +17,17 @@ import           GHCJS.Types
 import           System.IO.Unsafe
 #else
 import qualified "cryptonite" Crypto.Hash             as S
+-- import Crypto.Hash.SHAKE
 import qualified Data.ByteArray          as S
-import qualified Data.ByteArray.Encoding as S
+-- import qualified Data.ByteArray.Encoding as S
 #endif
+import GHC.TypeLits
 
 -- keccak256_6 = shake128 6
 
--- shake128 :: Int -> B.ByteString -> B.ByteString
--- shake128 numBytes bs | numBytes <=0 || numBytes > 32 = error "shake128: Invalid number of bytes"
---                      | otherwise = shake128_ numBytes bs
+shake_128 :: Int -> B.ByteString -> B.ByteString
+shake_128 numBytes bs | numBytes <=0 || numBytes > 32 = error "shake128: Invalid number of bytes"
+                      | otherwise = shake_128_ numBytes bs
 
 sha3_256 :: Int -> B.ByteString -> B.ByteString
 sha3_256 numBytes bs | numBytes <=0 || numBytes > 32 = error "sha3_256: Invalid number of bytes"
@@ -33,8 +36,8 @@ sha3_256 numBytes bs | numBytes <=0 || numBytes > 32 = error "sha3_256: Invalid 
 #ifdef ghcjs_HOST_OS
 
 -- CHECK: is it necessary to pack/unpack the ByteStrings?
--- shake128_ :: Int -> B.ByteString -> B.ByteString
--- shake128_ = stat js_keccak256
+shake_128_ :: Int -> B.ByteString -> B.ByteString
+shake_128_ = stat (js_shake128 256)
 
 sha3_256_ :: Int -> B.ByteString -> B.ByteString
 sha3_256_ = stat js_sha3_256
@@ -58,13 +61,15 @@ foreign import javascript unsafe "keccak_256.array($1)" js_keccak256 :: JSVal ->
 
 #else
 
--- fake implementation
--- shake128_ :: Int -> B.ByteString -> B.ByteString
--- shake128_ = stat S.Keccak_256
+shake_128_ :: Int -> B.ByteString -> B.ByteString
+shake_128_ = stat (S.SHAKE128 :: S.SHAKE128 256)
 
 sha3_256_ :: Int -> B.ByteString -> B.ByteString
 sha3_256_ = stat S.SHA3_256
 
+stat
+  :: (S.ByteArrayAccess ba, S.HashAlgorithm alg) =>
+     alg -> Int -> ba -> B.ByteString
 stat f numBytes = B.take numBytes . S.convert . S.hashWith f
 
 #endif

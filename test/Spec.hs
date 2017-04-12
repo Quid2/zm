@@ -1,38 +1,39 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TupleSections             #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
 
 module Main where
 
-import           Control.Applicative
 import           Control.Exception
-import           Data.Bifunctor
-import qualified Data.ByteString                as B
-import qualified Data.ByteString.Lazy           as L
+import qualified Data.ByteString       as B
+import qualified Data.ByteString.Lazy  as L
+import qualified Data.ByteString.Short as SBS
 import           Data.Digest.SHA3
 import           Data.Either
 import           Data.Foldable
 import           Data.Int
 import           Data.List
-import qualified Data.Map                       as M
+import qualified Data.Map              as M
 import           Data.Maybe
 import           Data.Model
-import qualified Data.Text                      as T
+import qualified Data.Sequence         as S
+import qualified Data.Text             as T
 import           Data.Typed
 import           Data.Word
 import           Debug.Trace
 import           Info
--- import           Prettier
-import           System.Exit                    (exitFailure)
+import           System.Exit           (exitFailure)
 import           System.TimeIt
-import           Test.Data                      hiding (Unit)
-import           Test.Data.Flat                 hiding (Unit)
+import           Test.Data             hiding (Unit)
+import           Test.Data.Flat        hiding (Unit)
 import           Test.Data.Model
-import qualified Test.Data2                     as Data2
-import qualified Test.Data3                     as Data3
+import qualified Test.Data2            as Data2
+import qualified Test.Data3            as Data3
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck          as QC
+import           Test.Tasty.QuickCheck as QC
 import           Text.PrettyPrint
 
 main = mainTest
@@ -73,18 +74,25 @@ mainShow = do
 mainTest = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [
-  digestTests
-  ,codesTests
-  ,consistentModelTests
-  ,mutuallyRecursiveTests
-  ,customEncodingTests,encodingTests]
+tests = testGroup "Tests"
+          [ sha3DigestTests
+          , shakeDigestTests
+          , codesTests
+          , consistentModelTests
+          , mutuallyRecursiveTests
+          , customEncodingTests
+          , encodingTests
+          ]
 
-digestTests = testGroup "SHA3 Digest Tests" [
-  tst [] [0xa7,0xff,0xc6]
-  ,tst [48,49,50,51] [0x33,0xbc,0xc2]
-  ] where
-    tst inp out = testCase (unwords ["SHA3",show inp]) $ B.pack out @?= sha3_256 3 (B.pack inp)
+sha3DigestTests = testGroup "SHA3 Digest Tests"
+                [tst [] [0xa7, 0xff, 0xc6], tst [48, 49, 50, 51] [0x33, 0xbc, 0xc2]]
+  where
+    tst inp out = testCase (unwords ["SHA3", show inp]) $ B.pack out @?= sha3_256 3 (B.pack inp)
+
+shakeDigestTests = testGroup "Shake Digest Tests"
+                [tst [] [0x7f, 0x9c, 0x2b], tst [48, 49, 50, 51] [0x30, 0xc5, 0x1c]]
+  where
+    tst inp out = testCase (unwords ["Shake128", show inp]) $ shake_128 3 (B.pack inp) @?= B.pack out
 
 codesTests = testGroup "Absolute Types Codes Tests" (map tst $ zip models codes)
   where
@@ -104,7 +112,7 @@ internalConsistency at =
 subsetOf a b = a \\ b == []
 
 extRef (Ext ref) = Just ref
-extRef _ = Nothing
+extRef _         = Nothing
 
 -- |Check external consistency of absolute environment
 -- the key of every ADT in the env is correct (same as calculated directly on the ADT)
@@ -127,21 +135,28 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e (Just True)
   ,e (Left True::Either Bool Char)
   ,e (Right ()::Either Bool ())
+  ,e (M.fromList [(False,'g')])
+  ,e (M.fromList [(33::Int,"abc")])
+  ,e (M.fromList [(33::Int,57::Word8),(44,77)])
   ,e $ B.pack []
   ,e $ B.pack [11,22]
   ,e $ L.pack []
   ,e $ L.pack (replicate 11 77)
+  ,e $ SBS.pack []
+  ,e $ SBS.pack [11,22]
   ,e an
   ,e aw
   ,e ab
-  ,e $ Array an
-  ,e $ Array ab
-  ,e $ Array aw
-  ,e $ Array ac
+  ,e $ seq an
+  ,e $ seq ab
+  ,e $ seq aw
+  ,e $ seq ac
   ,e 'k'
   ,e ac
-  ,e (T.pack "abc")
-  --,e $ blob UTF8Encoding (L.pack [97,98,99])
+  --,e $ blob NoEncoding [11::Word8,22,33]
+  ,e $ blob UTF8Encoding [97::Word8,98,99]
+  ,e $ blob UTF16LEEncoding ([0x24,0x00,0xAC,0x20,0x01,0xD8,0x37,0xDC]::[Word8]) -- $€𐐷
+  ,e (T.pack "abc$€𐐷")
   ,e (False,True)
   ,e (False,True,44::Word8)
   ,e (False,True,44::Word8,True)
@@ -170,10 +185,11 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e (44323232123::Integer)
   ,e (-4323232123::Integer)
   -- TODO: floats
-  -- ,e (12.123::Float)
+  --,e (12.123::Float)
   ]
 
   where
+    seq = S.fromList
     an = []::[()]
     aw = [0,128,127,255::Word8]
     ab = [False,True,False]
@@ -182,7 +198,7 @@ customEncodingTests = testGroup "Typed Unit Tests" [
     -- e :: forall a. (Prettier a, Flat a, Show a, Model a) => a -> TestTree
     -- e x = testCase (unwords ["Encoding",show x]) $ dynamicShow x @?= prettierShow x
     e :: forall a. (Pretty a, Flat a, Show a, Model a) => a -> TestTree
-    e x = testCase (unwords ["Encoding",show x]) $ dynamicShow x @?= prettyShow x
+    e x = testCase (unwords ["Encoding",show x,prettyShow x]) $ dynamicShow x @?= prettyShow x
 
 -- As previous test but using Arbitrary values
 encodingTests = testGroup "Encoding Tests"

@@ -15,9 +15,11 @@ import           Data.Foldable             (toList)
 import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
-import           Data.Model.Util
+import           Data.Model.Util(dependencies)
 import           Data.Typed.Types
 import           Data.Typed.Util
+-- -- import Data.BLOB
+-- import Data.Flat
 
 -- typeDefinition :: AbsTypeModel -> Either String [AbsADT]
 -- typeDefinition (TypeModel t env) = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
@@ -49,7 +51,7 @@ adtDefinition :: AbsEnv -> AbsRef -> Either String [AbsADT]
 adtDefinition env t = mapSolve env <$> absRecDeps env t
 
 absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
-absRecDeps env ref = either (Left . unlines) Right $ recursively getADTRef env ref
+absRecDeps env ref = either (Left . unlines) Right $ dependencies getADTRef env ref
 
 mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
 mapSolve env = map (flip solve env)
@@ -113,6 +115,6 @@ references = nub . toList
 
 
 -- |Direct and indirect references from an adt to other adts
--- recDeps = recursively getHRef
+-- recDeps = dependencies getHRef
 
 

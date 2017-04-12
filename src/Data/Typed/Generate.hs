@@ -2,10 +2,11 @@
 -- |Generate some large constructor trees for primitive types
 module Data.Typed.Generate(arrayCT,word8CT,word7CT) where
 
-import Data.Typed.Types
+import Data.Model.Types
 
 -- |Constructor Tree for:
 -- data Array a = A0 | A1 a (Array a) .. | A255 a .. a (Array a)
+arrayCT :: Maybe (ConTree String (TypeRef QualName))
 arrayCT = Just (asACT $ mkCons 256)
 
 asACT :: Cons -> ConTree String (TypeRef QualName)
@@ -36,7 +37,9 @@ data Cons = L Int | P Cons Cons deriving (Show)
 -- |Generate a right heavier binary tree whose leaves are marked
 -- with the position (starting with 0) of the corresponding constructor
 -- in the list of constructors
+mkCons :: Int -> Cons
 mkCons = mkT_ 0
+
 mkT_ :: Int -> Int -> Cons
 mkT_ p 1 = L p
 mkT_ p n = let (d,m) = n `divMod` 2

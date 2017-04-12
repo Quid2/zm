@@ -40,38 +40,38 @@ data Timeless = Timeless { timelessMeta :: TypedBLOB, timelessValue :: BLOB Flat
 -- ex: True :: TypeCon () :: Type AbsRef
 -- ex: True :: BoolType :: SimpleType
 timelessAbs :: forall a . (Model a, Flat a) => a -> Timeless
-timelessAbs a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+timelessAbs a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flatStrict $ a)
 
 timelessExplicit :: forall a . (Model a, Flat a) => a -> Timeless
-timelessExplicit a = Timeless (typedBLOB (absTypeModel (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
+timelessExplicit a = Timeless (typedBLOB (absTypeModel (Proxy :: Proxy a))) (blob FlatEncoding . flatStrict $ a)
 
 timelessSimple :: Bool -> Timeless
-timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flat $ a)
+timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flatStrict $ a)
 
-untimelessDynamic_ :: Timeless -> Decoded (L.ByteString,AbsType, AbsType)
+untimelessDynamic_ :: Timeless -> TypedDecoded (L.ByteString,AbsType, AbsType)
 untimelessDynamic_ (Timeless (TypedBLOB meta tbs) bs) =
   if meta == metaAbsType
-  then (unblob bs,,meta) <$> (unflat . unblob $ tbs :: Decoded AbsType)
-  else Left "unknown meta model"
+    then (unblob bs,,meta) <$> (errMap DecodeError . unflatStrict . unblob $ tbs :: TypedDecoded AbsType)
+    else Left $ UnknownMetaModel meta
 
-untimeless ::  forall a.  (Flat a, Model a) => Decoded Timeless -> Decoded a
+untimeless ::  forall a.  (Flat a, Model a) => TypedDecoded Timeless -> TypedDecoded a
 untimeless dt = dt >>= untimeless_
 
-untimeless_ ::  forall a.  (Flat a, Model a) => Timeless -> Decoded a
+untimeless_ ::  forall a.  (Flat a, Model a) => Timeless -> TypedDecoded a
 untimeless_ (Timeless (TypedBLOB meta tbs) bs) =
   let expectedType = absType (Proxy :: Proxy a)
   in if meta == metaAbsType
-     then let Right (actualType :: AbsType) = unflat . unblob $ tbs
+     then let Right (actualType :: AbsType) = unflatStrict . unblob $ tbs
           in if expectedType == actualType
-             then unflat . unblob $ bs
+             then errMap DecodeError . unflatStrict . unblob $ bs
              else typeErr expectedType actualType
      else if meta == metaSimpleType
-          then let Right (simpleType :: SimpleType) = unflat . unblob $ tbs
+          then let Right (simpleType :: SimpleType) = unflatStrict . unblob $ tbs
                    actualType = if simpleType == BoolType then metaBool else metaChar
                in if expectedType == actualType
-                  then unflat . unblob $ bs
+                  then errMap DecodeError . unflatStrict . unblob $ bs
                   else typeErr expectedType actualType -- Left "SimpleType can only be a Boolean or a Char"
-          else Left "unknown meta model"
+          else Left $ UnknownMetaModel meta 
 
 -- Fake type system
 data SimpleType = BoolType | CharType deriving (Eq, Ord, Show, Generic,Flat,Model)

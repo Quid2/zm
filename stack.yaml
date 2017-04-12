@@ -1,21 +1,16 @@
-#resolver: lts-6.26
-resolver: lts-7.11
+resolver: lts-6.30
+#resolver: lts-7.20
+#resolver: lts-8.5
 
 packages:
 - '.'
-#- ../model
-#- ../flat
-- location:
-   git: https://github.com/tittoassini/model
-   commit: 02babc602daa342ed42827a9cfe24dbe5ce6bec2
+
+- location: ../flat
   extra-dep: true
 
-- location:
-   git: https://github.com/tittoassini/flat
-   commit: 314c185ba9be0ebcf08978625b45a6da42e0f675
-  extra-dep: true
-
-# Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
-# - model-0.2.1
+- model-0.2.4
 - timeit-1.0.0.0 
+- mono-traversable-1.0.2
+#- binary-0.8.5.1
+- cryptonite-0.22

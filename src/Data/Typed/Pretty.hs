@@ -12,9 +12,10 @@ module Data.Typed.Pretty(
   ,prettyTuple
   ) where
 
+import           Data.BLOB
 import qualified Data.ByteString                as B
 import qualified Data.ByteString.Lazy           as L
-import           Data.Flat.Instances            (Array (..))
+import qualified Data.ByteString.Short          as SBS
 import           Data.Foldable                  (toList)
 import           Data.Int
 import           Data.List
@@ -22,7 +23,9 @@ import qualified Data.ListLike.String           as L
 import qualified Data.Map                       as M
 import           Data.Model.Pretty
 import           Data.Ord
+import qualified Data.Sequence                  as S
 import qualified Data.Text                      as T
+import qualified Data.Text.Encoding             as T
 import           Data.Typed.Model               ()
 import           Data.Typed.Transform
 import           Data.Typed.Types
@@ -31,6 +34,13 @@ import           Numeric                        (readHex)
 import           Text.ParserCombinators.ReadP   hiding (char)
 import           Text.PrettyPrint.HughesPJClass
 import           Text.Printf
+
+instance Pretty TypedDecodeException where
+  pPrint (UnknownMetaModel m) = text "Unknown meta model" <> pPrint m
+  pPrint (WrongType e a) = let et  = prettyShow e
+                               at = prettyShow a
+                           in text . unwords $ ["Was expecting type:\n",et,"\n\nBut the data has type:\n",at]
+  pPrint (DecodeError e) = pPrint (show e)
 
 -- |Compact representation: a value enveloped in CompactPretty will have only its first lines displayed
 data CompactPretty a = CompactPretty a
@@ -87,10 +97,10 @@ readCode bs s  = let (h,t) = splitAt 2 s
                   in readCode (rdHex h : bs) t
 
 rdHex :: String -> Word8
-rdHex s = let [(b,"")] = readP_to_S ((readS_to_P readHex)) s in b
-
+rdHex s = let [(b,"")] = readP_to_S (readS_to_P readHex) s in b
 -- instance Pretty a => Pretty (Array a) where pPrint (Array vs) = text "Array" <+> pPrint vs
-instance Pretty a => Pretty (Array a) where pPrint (Array vs) = pPrint vs
+-- instance Pretty a => Pretty (Array a) where pPrint (Array vs) = pPrint vs
+instance Pretty a => Pretty (S.Seq a) where pPrint = pPrint . toList
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
 
@@ -102,6 +112,12 @@ instance (Pretty a,Pretty l) => Pretty (Label a l) where
 
 -- Instances for standard types
 instance Pretty T.Text where pPrint = text . T.unpack
+
+instance {-# OVERLAPPABLE #-} Show enc => Pretty (BLOB enc) where pPrint = text . show
+
+instance {-# OVERLAPS #-} Pretty (BLOB UTF8Encoding) where pPrint = pPrint . T.decodeUtf8 . unblob
+
+instance {-# OVERLAPS #-} Pretty (BLOB UTF16LEEncoding) where pPrint = pPrint . T.decodeUtf16LE . unblob
 
 instance Pretty Word where pPrint = text . show
 instance Pretty Word8 where pPrint = text . show
@@ -115,7 +131,9 @@ instance Pretty Int64 where pPrint = text . show
 
 instance Pretty B.ByteString where pPrint = pPrint . B.unpack
 instance Pretty L.ByteString where pPrint = pPrint . L.unpack
+instance Pretty SBS.ShortByteString where pPrint = pPrint . SBS.unpack
 
+instance (Pretty a,Pretty b) => Pretty (M.Map a b) where pPrint m = text "Map" <+> pPrint (M.assocs m)
 
 instance (Pretty a, Pretty b, Pretty c, Pretty d, Pretty e, Pretty f, Pretty g, Pretty h, Pretty i) => Pretty (a, b, c, d, e, f, g, h, i) where
   pPrintPrec l _ (a, b, c, d, e, f, g, h, i) =

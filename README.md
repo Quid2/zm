@@ -22,7 +22,7 @@ Let's see some code.
 We need a couple of GHC extensions:
 
 ```haskell
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass, NoMonomorphismRestriction #-}
 ```
 
 Import the library:
@@ -45,16 +45,15 @@ prt = pPrint . CompactPretty
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
-S793d1387f115 S81d428306f1d -> Maybe Bool
+-> S793d1387f115 S81d428306f1d -> Maybe Bool
+-> 
+-> Data Types:
+-> S793d1387f115 ->  Maybe a ≡   Nothing
+->                             | Just a
+-> S81d428306f1d ->  Bool ≡   False
+->                          | True
 ```
 
-```haskell
-Data Types:
-S793d1387f115 ->  Maybe a ≡   Nothing
-                            | Just a
-S81d428306f1d ->  Bool ≡   False
-                         | True
-```
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
@@ -64,19 +63,17 @@ For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an e
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Word7)
-Sb1f0655240ab -> Word7
-```
-
-```haskell
-Data Types:
-Sb1f0655240ab ->  Word7 ≡   V0
-                          | V1
-...
-                          | V123
-                          | V124
-                          | V125
-                          | V126
-                          | V127
+-> Sb1f0655240ab -> Word7
+-> 
+-> Data Types:
+-> Sb1f0655240ab ->  Word7 ≡   V0
+->                           | V1
+-> ...
+->                           | V123
+->                           | V124
+->                           | V125
+->                           | V126
+->                           | V127
 ```
 
 
@@ -84,19 +81,17 @@ A `Word32` can be defined as a `NonEmptyList` list of `Word7`s (a definition equ
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Word32)
-S37c45c448792 -> Word32
-```
-
-```haskell
-Data Types:
-S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
-S37c45c448792 ->  Word32 ≡ Word32 Word
-...
-                          | V123
-                          | V124
-                          | V125
-                          | V126
-                          | V127
+-> S37c45c448792 -> Word32
+-> 
+-> Data Types:
+-> S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> S37c45c448792 ->  Word32 ≡ Word32 Word
+-> ...
+->                           | V123
+->                           | V124
+->                           | V125
+->                           | V126
+->                           | V127
 ```
 
 
@@ -104,19 +99,17 @@ And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Char)
-S07755d0e181d -> Char
-```
-
-```haskell
-Data Types:
-S07755d0e181d ->  Char ≡ Char Word32
-S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
-...
-                          | V123
-                          | V124
-                          | V125
-                          | V126
-                          | V127
+-> S07755d0e181d -> Char
+-> 
+-> Data Types:
+-> S07755d0e181d ->  Char ≡ Char Word32
+-> S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> ...
+->                           | V123
+->                           | V124
+->                           | V125
+->                           | V126
+->                           | V127
 ```
 
 
@@ -126,7 +119,7 @@ There are however a couple of restrictions: data types definitions cannot be mut
 
 So for example, these won't work:
 
-````haskell
+```haskell
 -- BAD: f has higher kind
 data Free = Impure (f (Free f a)) | Pure a
 
@@ -155,17 +148,19 @@ data Direction = North | South | Center | East | West deriving (Show,Generic,Fla
 
 Though their meaning is obviously different they share the same syntactical structure (simple enumerations of 5 values) and most binary serialisation libraries won't be able to distinguish between the two.
 
-To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration.
+To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration using the `flat` library.
 
 ```haskell
-flat Center
-"\129"
+pPrint $ flatStrict Center
+-> [129]
 ```
 
+
 ```haskell
-flat Corniglia
-"\129"
+pPrint $ flatStrict Corniglia
+-> [129]
 ```
+
 
 As you can see they have the same binary representation.
 
@@ -174,16 +169,22 @@ We have used the `flat` binary serialisation as it is already a dependency of `t
 Let's go full circle, using `unflat` to decode the value :
 
 ```haskell
-unflat (flat Center) :: Decoded Direction
-Right Center
+decoded = unflat . flatStrict
 ```
+
+```haskell
+decoded Center :: Decoded Direction
+-> Right Center
+```
+
 
 One more time:
 
 ```haskell
-unflat (flat Center) :: Decoded CinqueTerre
-Right Corniglia
+decoded Center :: Decoded CinqueTerre
+-> Right Corniglia
 ```
+
 
 Oops, that's not quite right.
 
@@ -193,58 +194,63 @@ To fix this, we convert the value to a `TypedValue`, a value combined with its c
 
 ```haskell
 pPrint $ typedValue Center
-Center :: Sc27a1135e194
+-> Center :: Sc27a1135e194
 ```
+
 
 TypedValues can be serialised as any other value:
 
 ```haskell
-pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue Direction))
-Right Center :: Sc27a1135e194
+pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue Direction))
+-> Right Center :: Sc27a1135e194
 ```
+
 
 And just as before, we can get things wrong:
 
 ```haskell
-pPrint <$> (unflat $ flat $ typedValue Center :: Decoded (TypedValue CinqueTerre))
-Right Corniglia :: Sc27a1135e194
+pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue CinqueTerre))
+-> Right Corniglia :: Sc27a1135e194
 ```
+
 
 However this time is obvious that the value is inconsistent with its type, as the `CinqueTerre` data type has a different unique code:
 
 ```haskell
 pPrint $ absTypeModel (Proxy :: Proxy CinqueTerre)
-Sabe8a4afc323 -> CinqueTerre
+-> Sabe8a4afc323 -> CinqueTerre
+-> 
+-> Data Types:
+-> Sabe8a4afc323 ->  CinqueTerre ≡   Monterosso
+->                                 | Vernazza
+->                                 | Corniglia
+->                                 | Manarola
+->                                 | RioMaggiore
 ```
 
-```haskell
-Data Types:
-Sabe8a4afc323 ->  CinqueTerre ≡   Monterosso
-                                | Vernazza
-                                | Corniglia
-                                | Manarola
-                                | RioMaggiore
-```
 
 We can automate this check, with `untypedValue`:
 
 This is ok:
 
 ```haskell
-untypedValue . unflat . flat . typedValue $ Center :: Decoded Direction
-Right Center
+untypedValue . decoded . typedValue $ Center :: TypedDecoded Direction
+-> Right Center
 ```
+
 
 And this is wrong:
 
 ```haskell
-untypedValue . unflat . flat . typedValue $ Center :: Decoded CinqueTerre
-Left "Was expecting type:\n Sabe8a4afc323 \n\nBut the data has type:\n Sc27a1135e194"
+untypedValue . decoded . typedValue $ Center :: TypedDecoded CinqueTerre
+-> Left (WrongType {expectedType = TypeCon (AbsRef (SHA3_256_6 171 232 164 175 195 35)), actualType = TypeCon (AbsRef (SHA3_256_6 194 122 17 53 225 148))})
 ```
+
 
 ### Data Exchange
 
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
+
 <!--
 ### Long Term Data Preservation
 
@@ -258,8 +264,6 @@ Two ways:
 -- save the full canonical definition of the data with the data itself or
 -- save the def in the cloud so that it can be shared
 
-When we save
-
 Better save them for posterity:
 
 sv = saveTypeIn theCloud (Couple One Tre)
@@ -272,7 +276,6 @@ in the knowledge that when we are presented with a binary of unknown type
 we can always recover the full definition of our data.
 
 PUT BACK dt = e2 >>= recoverTypeFrom theCloud
-
 What if we have no idea of what is the type
 
 instance (Flat a , Flat b) => Flat (CoupleB a b)
@@ -294,18 +297,8 @@ It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in y
 
 ````
 - location:
-   git: https://github.com/tittoassini/model
-   commit: 02babc602daa342ed42827a9cfe24dbe5ce6bec2
-  extra-dep: true
-
-- location:
-   git: https://github.com/tittoassini/flat
-   commit: 314c185ba9be0ebcf08978625b45a6da42e0f675
-  extra-dep: true
-
-- location:
    git: https://github.com/tittoassini/typed
-   commit: 3db551a5bb9e5f572202c65935ee8cd9c8494196 
+   commit: 
   extra-dep: true
 
 ````

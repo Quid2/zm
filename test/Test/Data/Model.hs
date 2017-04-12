@@ -37,7 +37,7 @@ instance Model C0
 instance Model D0
 instance Model E0
 
-instance Model Various
+--instance Model Various
 instance Model a => Model (Phantom a)
 instance Model a => Model (Data2.List a)
 instance Model a => Model (Data3.List a)

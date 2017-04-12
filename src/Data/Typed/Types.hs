@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveFoldable      #-}
 {-# LANGUAGE DeriveFunctor       #-}
@@ -7,45 +8,47 @@
 module Data.Typed.Types (
     -- *Model
     module Data.Model.Types,
+    --module Data.Typed.BLOB,
+    TypedDecoded,
+    TypedDecodeException(..),
+    errMap,
     TypedValue(..),
     TypedBLOB(..),
     AbsTypeModel,
     --ADTEnv,
     AbsType,
-    AbsRef(..),absRef,
+    AbsRef(..),
+    absRef,
     AbsADT,
     AbsEnv,
-    ADTRef(..),getADTRef,
+    ADTRef(..),
+    getADTRef,
     Identifier(..),
     UnicodeLetter(..),
     UnicodeLetterOrNumberOrLine(..),
     UnicodeSymbol(..),
     SHA3_256_6(..),
     --,SHA3_256(..)
-    NonEmptyList(..),nonEmptyList,
-    ZigZag(..),LeastSignificantFirst(..),MostSignificantFirst(..),
+    NonEmptyList(..),
+    nonEmptyList,
+    ZigZag(..),
+    LeastSignificantFirst(..),
+    MostSignificantFirst(..),
     -- Transform
-    Label(..),label,
+    Label(..),
+    label,
     -- LocalRef(..),
     --
     Word7,
-    -- Word8,
-    -- Word16,
-    -- Word32,
-    -- Word64,
-    -- Int8,
-    -- Int16,
-    -- Int32,
-    -- Int64,
-    --LocalName(..)
-
-    -- *Re-exports
-    NFData(),Flat
-    -- Array,
-    -- Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
+    -- Word8, Word16, Word32, Word64, Int8, Int16, Int32, Int64, LocalName(..) *Re-exports
+    NFData(),
+    Flat-- Array,
+        -- Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
+    ,
     ) where
 
 import           Control.DeepSeq
+import           Control.Exception
 import           Data.Flat
 import qualified Data.Map         as M
 import           Data.Model.Types hiding (Name)
@@ -57,6 +60,20 @@ import qualified Data.ByteString.Lazy as L
 import           Data.Digest.SHA3
 import qualified Data.ByteString      as B
 import qualified Data.List.NonEmpty as NE
+import           Data.Typed.Defs
+import Data.BLOB
+
+type TypedDecoded a = Either TypedDecodeException a
+
+data TypedDecodeException = UnknownMetaModel AbsType
+                            | WrongType {expectedType::AbsType,actualType::AbsType}
+                            | DecodeError DecodeException deriving (Show,Eq,Ord)
+
+instance Exception TypedDecodeException
+
+errMap f e = case e of
+               Left l -> Left (f l)
+               Right r -> Right r
 
 -- |A typed value, a flat encoded value plus its absolute type
 data TypedBLOB = TypedBLOB AbsType (BLOB FlatEncoding)
@@ -109,6 +126,8 @@ data Identifier = Name UnicodeLetter [UnicodeLetterOrNumberOrLine]
 --                | Symbol (NE.NonEmpty UnicodeSymbol)
                 | Symbol (NonEmptyList UnicodeSymbol)
                 deriving (Eq, Ord, Show, NFData, Generic, Flat)
+
+instance Flat [UnicodeLetterOrNumberOrLine]
 
 instance L.StringLike Identifier where
   fromString = identifier
@@ -171,22 +190,6 @@ asLetterOrNumber c | isLetter c || isNumber c || isAlsoOK c = UnicodeLetterOrNum
 isAlsoOK '_' = True
 isAlsoOK _ = False
 
--- |A 7 bits word
-data Word7 = Word7 Word8 deriving (Eq, Ord, Show, Generic, Flat)
-
--- |ZigZag encoding, map signed integers to unsigned integers
--- Positive integers are mapped to even unsigned values, negative integers to odd values:
--- 0 -> 0, -1 -> 1, 1 -> 2, -2 -> 3, 2 -> 4 ...
-data ZigZag a = ZigZag a
-  deriving (Eq, Ord, Show, Generic, Flat)
-
-data LeastSignificantFirst a = LeastSignificantFirst a
-  deriving (Eq, Ord, Show, Generic)
-
-data MostSignificantFirst a = MostSignificantFirst a
-  deriving (Eq, Ord, Show, Generic)
-
-
 -- A parsed value
 -- data ParsedVal = ParsedVal [Bool] [ParsedVal]
 
@@ -204,6 +207,8 @@ label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
 instance (Flat adtName, Flat consName, Flat inRef, Flat exRef,Ord exRef) => Flat (TypeModel adtName consName inRef exRef)
 instance (Flat a,Flat b,Flat c) => Flat (ADT a b c)
 instance (Flat a,Flat b) => Flat (ConTree a b)
+instance (Flat a,Flat b) => Flat [(a,Type b)]
+instance Flat a => Flat [Type a]
 instance Flat a => Flat (Type a)
 instance Flat a => Flat (TypeRef a)
 

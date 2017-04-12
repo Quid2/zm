@@ -9,6 +9,7 @@ import           Test.Data.Flat  hiding (Unit)
 import           Test.Data.Model
 import qualified Test.Data2      as Data2
 import qualified Test.Data3      as Data3
+import qualified Data.Sequence         as S
 
 models = [
      typ (Proxy :: Proxy AbsADT)
@@ -31,7 +32,7 @@ models = [
     ,typ (Proxy :: Proxy Int32)
     ,typ (Proxy :: Proxy Int64)
     ,typ (Proxy :: Proxy Integer)
-    ,typ (Proxy :: Proxy (Array Bool))
+    ,typ (Proxy :: Proxy (S.Seq Bool))
     ,typ (Proxy :: Proxy (List Bool))
     ,typ (Proxy:: Proxy D2)
     ,typ (Proxy :: Proxy D4)

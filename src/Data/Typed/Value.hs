@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass     ,NoMonomorphismRestriction #-}
@@ -7,27 +8,34 @@ module Data.Typed.Value(
 
 import           Data.Char                      (chr)
 import           Data.Flat
-import qualified Data.Flat.Instances            as P
 import           Data.Int
-import           Data.List
 import           Data.Maybe
 import           Data.Model.Class
 import           Data.Model.Pretty
 import           Data.Typed.Class
-import           Data.Typed.Model               ()
+import           Data.Typed.Model               (Bytes)
 import           Data.Typed.Types
 import           Data.Word
 import           Data.ZigZag
 import           Text.PrettyPrint.HughesPJClass
 import           Data.Typed.Pretty
+import           Data.BLOB
+import qualified Data.Text    as T
+import qualified Data.Text.Encoding    as T
+import qualified Data.Sequence         as S
+import qualified Data.ByteString       as B
+import Debug.Trace
 
 -- Generic value (used for dynamic decoding)
 data Value = Value {valType::AbsType -- Type
-               ,valName::String   -- Constructor name (duplicate info if we have abstype)
-               ,valBits::[Bool] -- Bit encoding/constructor id
-                 -- TODO: add field names (same info present in abstype)
-               ,valFields::[Value]  -- Values to which the constructor is applied, if any
-               } deriving  (Eq,Ord,Show,NFData, Generic, Flat)
+                   ,valName::String   -- Constructor name (duplicate info if we have abstype)
+                   ,valBits::[Bool] -- Bit encoding/constructor id
+                   -- TODO: add field names (same info present in abstype)
+                   ,valFields::[Value]  -- Values to which the constructor is applied, if any
+                   } deriving  (Eq,Ord,Show,NFData, Generic, Flat)
+
+instance Flat [Bool]
+instance Flat [Value]
 
 {-
 Pretty print Value as it would be the corresponding Haskell value
@@ -100,10 +108,14 @@ instance Pretty Value where
            --,(absType (Proxy::Proxy ([Char])),\v -> (False,char '"' <> (text . map ch . valList $ v) <> char '"'))
            ,(absType (Proxy::Proxy [Any]),\v -> (False,ar (valList v)))
            ,(absType (Proxy::Proxy (NonEmptyList Any)),\v -> (False,ar (neList v)))
-           ,(absType (Proxy::Proxy (P.Array Char)),\v -> (False,pPrint . map ch . arrList $ v))
-           --,(absType (Proxy::Proxy (P.Array Any)),\v -> (True,arr (arrList v)))
-           ,(absType (Proxy::Proxy (P.Array Any)),\v -> (False,arr (arrList v)))
-           ,(absType (Proxy::Proxy (BLOB UTF8Encoding)),\(Value _ _ _ [_,Value _ _ _ [_,vs]]) -> (False,text . map (chr . wrd_) . arrList $ vs))
+           ,(absType (Proxy::Proxy (S.Seq Char)),\v -> (False,pPrint . map ch . arrList $ v))
+           ,(absType (Proxy::Proxy (S.Seq Any)),\v -> (False,arr (arrList v)))
+           --,(absType (Proxy::Proxy (P.Array Char)),\v -> (False,pPrint . map ch . arrList $ v))
+           ----,(absType (Proxy::Proxy (P.Array Any)),\v -> (True,arr (arrList v)))
+           --,(absType (Proxy::Proxy (P.Array Any)),\v -> (False,arr (arrList v)))
+           ,(absType (Proxy::Proxy Bytes),\v -> (False,pPrint . bytes $ v))
+           ,(absType (Proxy::Proxy (BLOB UTF8Encoding)),utf8Text)
+           ,(absType (Proxy::Proxy (BLOB UTF16LEEncoding)),utf16Text)
            ,(absType (Proxy::Proxy (Any,Any)),tuple)
            ,(absType (Proxy::Proxy (Any,Any,Any)),tuple)
            ,(absType (Proxy::Proxy (Any,Any,Any,Any)),tuple)
@@ -113,6 +125,14 @@ instance Pretty Value where
            ,(absType (Proxy::Proxy (Any,Any,Any,Any,Any,Any,Any,Any)),tuple)
            ,(absType (Proxy::Proxy (Any,Any,Any,Any,Any,Any,Any,Any,Any)),tuple)
            ]
+             where
+               utf16Text bl = (False,pPrint . blob UTF16LEEncoding . blobBytes $ bl)
+               utf8Text bl = (False,pPrint . blob UTF8Encoding . blobBytes $ bl)
+               --utf8Text blob = (False,decText T.decodeUtf8 blob)
+               -- decText dec = text . T.unpack . dec . blobBytes
+               blobBytes b =let [_,bs] = valFields b in bytes bs
+               bytes bs = let [_,vs] = valFields . head . valFields $ bs
+                          in B.pack . map (fromIntegral . wrd_) . arrList $ vs
 
 -- Used to match any type
 data Any deriving (Generic,Model)
