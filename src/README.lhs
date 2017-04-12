@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tittoassini/typed.svg?branch=master)](https://travis-ci.org/tittoassini/typed) [![Hackage version](https://img.shields.io/hackage/v/typed.svg)](http://hackage.haskell.org/package/typed)
+
 Haskell implementation of canonical, language independent data types.
 
  ### How To Use It For Fun and Profit
@@ -16,9 +18,7 @@ For a data type to have a canonical representation, it has to implement the `Mod
 
 Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
 
-Let's see some code.
-
-We need a couple of GHC extensions:
+Let's see some code, we need a couple of GHC extensions:
 
 > {-# LANGUAGE DeriveGeneric, DeriveAnyClass, NoMonomorphismRestriction #-}
 
