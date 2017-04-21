@@ -16,7 +16,7 @@ extra-source-files: stack.yaml
 library
   hs-source-dirs:      src
   js-sources: jsbits/sha3.js
-  exposed-modules:     Data.BLOB,Data.Digest.SHA3,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Class,Data.Typed.Defs,Data.Typed.Defs2,Data.Typed.Dynamic,Data.Typed.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Timeless,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Value
+  exposed-modules:     Data.BLOB,Data.Digest.SHA3,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Class,Data.Typed.Defs,Data.Typed.Defs2,Data.Typed.Dynamic,Data.Typed.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Value,Data.Timeless
   build-depends: ListLike, base >= 4.7 && < 5, bytestring, containers, deepseq, directory, filepath, flat>=0.2, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers
 
   if impl(ghcjs)

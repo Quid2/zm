@@ -53,10 +53,10 @@ instance Pretty Value where
          ch (Value _ _ _ [w]) = chr $ wl_ w
          ch v = error (show v)
 
-         wrd_ (Value _ ('V':n) _ _) = read n :: Int
-         wrd_ v                              = error (unwords ["wrd_",show v])
-
          wrd = int . wrd_
+
+         wrd_ (Value _ ('V':n) _ _) = read n :: Int -- Word64?
+         wrd_ v                              = error (unwords ["wrd_",show v])
 
          wrd2_ (Value _ _ _ [Value _ ('V':n) _ _]) = read n :: Int
          wrd2_ v = error (unwords ["wrd2_",show v])
@@ -64,9 +64,10 @@ instance Pretty Value where
          -- i :: forall a . Proxy a -> (AbsType, Value -> (Bool, Doc))
          -- i p = (absType p,\v -> (False,int . (zzDecode::(Bits a,Integral a) => Word64 -> a) . wl_ . p0 . p0 $ v))
 
-         wl = int . wl_
+         wl = text . show . (wl_::Value -> Word64)
 
          wl_ (Value _ _ _ [Value _ _ _ [Value _ _ _ [vl]]]) = fromIntegral . fst . foldl (\(t,e) n -> (t+n*2^e,e+7)) (0,0) . map wrd2_ . neList $ vl
+
          wl_ v = error (unwords ["wl_",show v])
 
          valList (Value _ "Cons" _ [h,t]) = h:valList t
@@ -102,9 +103,12 @@ instance Pretty Value where
            ,(absType (Proxy::Proxy Int64),\v -> (False,int . fromIntegral . zzDecode64 . wl_ . p0 . p0 $ v))
            ,(absType (Proxy::Proxy Int),\v -> (False,int . fromIntegral . zzDecode64 . wl_ . p0 . p0 $ v))
            ,(absType (Proxy::Proxy Integer),\v -> (False,int . fromIntegral . zzDecodeInteger . wl_ . p0 $ v))
+           --,(absType (Proxy::Proxy Natural),\v -> (False,int . fromIntegral . zzDecodeInteger . wl_ . p0 $ v))
+           ,(absType (Proxy::Proxy Float),\v -> (False,float $ floatVal v)) -- (False,int . fromIntegral . zzDecodeInteger . wl_ . p0 $ v))
            --,(absType (Proxy::Proxy Char),\v -> (False,text ['\'',ch v,'\'']))
            ,(absType (Proxy::Proxy Char),\v -> (False,pPrint (ch v)))
-           ,(absType (Proxy::Proxy [Char]),\v -> (False,pPrint . map ch . valList $ v))
+           --,(absType (Proxy::Proxy [Char]),\v -> (False,pPrint . map ch . valList $ v))
+           ,(absType (Proxy::Proxy [Char]),\v -> (False,doubleQuotes . text . map ch . valList $ v))
            --,(absType (Proxy::Proxy ([Char])),\v -> (False,char '"' <> (text . map ch . valList $ v) <> char '"'))
            ,(absType (Proxy::Proxy [Any]),\v -> (False,ar (valList v)))
            ,(absType (Proxy::Proxy (NonEmptyList Any)),\v -> (False,ar (neList v)))
@@ -134,6 +138,24 @@ instance Pretty Value where
                bytes bs = let [_,vs] = valFields . head . valFields $ bs
                           in B.pack . map (fromIntegral . wrd_) . arrList $ vs
 
+               bits8 (Value {valName = "Bits8", valFields = bs}) = bits bs
+               bits7 (Value {valName = "Bits7", valFields = bs}) = bits bs
+               bits = map bit
+               bit v = let [b] = valBits v in b
+               floatVal (Value {valName = "IEEE_754_binary32",valFields = [Value {valBits = [signVal]},Value {valName = "MostSignificantFirst", valFields = [expVal]},Value {valName = "MostSignificantFirst", valFields = [Value {valName = "Bits23", valFields = [frac1,frac2,frac3]}]}]}) =
+                 let sign = fromIntegral $ fromEnum signVal -- then (-1::Int) else 1
+                     exp = fromIntegral $ bitsVal $ bits8 expVal
+                     fracBits = concat [[True],bits7 frac1,bits8 frac2,bits8 frac3]
+                     frac = bitsVal fracBits
+                     val = ((-1)**sign)*(fromIntegral frac / (2 ^ (length fracBits -1)))*(2**(exp-127))
+                 in val --in error $ show (sign,exp,frac,val)
+
+-- MSF bitsVal
+-- bitsVal [True,False,True,False]
+-- > 10
+bitsVal :: [Bool] -> Int
+bitsVal = fst . foldl (\(t,e) n -> (t+fromEnum n *2^e,e+1)) (0,0) . reverse
+
 -- Used to match any type
 data Any deriving (Generic,Model)
 tAny = absType (Proxy:: Proxy Any)
@@ -143,10 +165,16 @@ match t1 t2 | t2 == tAny = True
             | otherwise = t1 == t2
 
 -- arr_ f elems = hsep $ text "Array" : [prettyList f elems]
-arr_ f elems = hsep $ [prettyList_ f elems]
+--arr_ :: Pretty b => (a -> b) -> [a] -> Doc
+--arr_ f elems = hsep [prettyList_ f elems]
+arr_ = prettyList_
 
-prettyList_ f vs = pPrint $ map f vs
+-- prettyList_ :: Pretty b => (a -> b) -> [a] -> Doc
+-- prettyList_ f vs = pPrint $ map f vs
+prettyList_ :: (a -> Doc) -> [a] -> Doc
+prettyList_ f vs = prettyList $ map f vs
 
+prettyTuple_ :: (a -> Doc) -> [a] -> Doc
 prettyTuple_ f vs = prettyTuple $ map f vs
 
 -- prettyTuple_ = prettyList

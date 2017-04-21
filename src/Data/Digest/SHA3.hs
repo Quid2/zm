@@ -1,13 +1,10 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE CPP                      #-}
-{-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI            #-}
 {-# LANGUAGE PackageImports           #-}
--- |Crypto algorithms (with support for GHCJS)
-module Data.Digest.SHA3(
-  sha3_256,shake_128
-  ) where
+-- |Crypto algorithms of the SHA3 family (with support for GHCJS)
+module Data.Digest.SHA3 (sha3_256, shake_128) where
 
 import qualified Data.ByteString         as B
 
@@ -15,20 +12,19 @@ import qualified Data.ByteString         as B
 import           GHCJS.Marshal
 import           GHCJS.Types
 import           System.IO.Unsafe
+
 #else
+
 import qualified "cryptonite" Crypto.Hash             as S
--- import Crypto.Hash.SHAKE
 import qualified Data.ByteArray          as S
--- import qualified Data.ByteArray.Encoding as S
 #endif
-import GHC.TypeLits
 
--- keccak256_6 = shake128 6
-
+-- |Return the specified number of bytes of the SHAKE-128 hash of the provided byte string
 shake_128 :: Int -> B.ByteString -> B.ByteString
 shake_128 numBytes bs | numBytes <=0 || numBytes > 32 = error "shake128: Invalid number of bytes"
                       | otherwise = shake_128_ numBytes bs
 
+-- |Return the specified number of bytes of the SHA-3 hash of the provided byte string
 sha3_256 :: Int -> B.ByteString -> B.ByteString
 sha3_256 numBytes bs | numBytes <=0 || numBytes > 32 = error "sha3_256: Invalid number of bytes"
                      | otherwise = sha3_256_ numBytes bs

@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveFoldable      #-}
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE DeriveTraversable   #-}
+{-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.Typed.Types (
     -- *Model
@@ -44,24 +44,22 @@ module Data.Typed.Types (
     NFData(),
     Flat-- Array,
         -- Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
-    ,
     ) where
 
 import           Control.DeepSeq
 import           Control.Exception
-import           Data.Flat
-import qualified Data.Map         as M
-import           Data.Model.Types hiding (Name)
-import           Data.Word
-import           Data.Char
-import qualified Data.ListLike.String as L
-import           Data.Foldable (toList)
-import qualified Data.ByteString.Lazy as L
-import           Data.Digest.SHA3
+import           Data.BLOB
 import qualified Data.ByteString      as B
-import qualified Data.List.NonEmpty as NE
+import qualified Data.ByteString.Lazy as L
+import           Data.Char
+import           Data.Digest.SHA3
+import           Data.Flat
+import           Data.Foldable        (toList)
+import qualified Data.ListLike.String as L
+import qualified Data.Map             as M
+import           Data.Model.Types     hiding (Name)
 import           Data.Typed.Defs
-import Data.BLOB
+import           Data.Word
 
 type TypedDecoded a = Either TypedDecodeException a
 
@@ -71,8 +69,9 @@ data TypedDecodeException = UnknownMetaModel AbsType
 
 instance Exception TypedDecodeException
 
+errMap :: (t -> a) -> Either t b -> Either a b
 errMap f e = case e of
-               Left l -> Left (f l)
+               Left l  -> Left (f l)
                Right r -> Right r
 
 -- |A typed value, a flat encoded value plus its absolute type
@@ -89,8 +88,9 @@ type AbsType = Type AbsRef
 data AbsRef = AbsRef (SHA3_256_6 AbsADT)
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
+-- |Return the absolute reference of the given value
 absRef :: Flat r => r -> AbsRef
-absRef a = let ([w1,w2,w3,w4,w5,w6]) = B.unpack . sha3_256 6 . L.toStrict . flat $ a
+absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . sha3_256 6 . L.toStrict . flat $ a
            in AbsRef $ SHA3_256_6 w1 w2 w3 w4 w5 w6
 
 -- |A hash of a value, the first 6 bytes of the value's SHA3-256 hash
@@ -117,6 +117,7 @@ data ADTRef r = Var Word8 -- ^Variable
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
 -- WHAT ABOUT REC?
+getADTRef :: ADTRef a -> Maybe a
 getADTRef (Ext r) = Just r
 getADTRef _       = Nothing
 
@@ -187,8 +188,9 @@ asLetterOrNumber c | isLetter c || isNumber c || isAlsoOK c = UnicodeLetterOrNum
 
 
 -- CHECK IF NEEDED
+isAlsoOK :: Char -> Bool
 isAlsoOK '_' = True
-isAlsoOK _ = False
+isAlsoOK _   = False
 
 -- A parsed value
 -- data ParsedVal = ParsedVal [Bool] [ParsedVal]
@@ -219,7 +221,7 @@ data NonEmptyList a = Elem a
 
 -- |Convert a list to a `NonEmptyList`, returns an error if the list is empty
 nonEmptyList :: [a] -> NonEmptyList a
-nonEmptyList [] = error "Cannot convert an empty list to NonEmptyList"
-nonEmptyList (h:[]) = Elem h
+nonEmptyList []    = error "Cannot convert an empty list to NonEmptyList"
+nonEmptyList [h]   = Elem h
 nonEmptyList (h:t) = Cons h (nonEmptyList t)
 

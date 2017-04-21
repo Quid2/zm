@@ -1,7 +1,16 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Data.BLOB (BLOB(..),BLOBLike(..),FlatEncoding(..),UTF8Encoding(..),UTF16LEEncoding(..),NoEncoding(..))where
+-- Binary Large OBjects (BLOBs)
+module Data.BLOB (
+    BLOB(..),
+    BLOBLike(..),
+    -- *Encodings
+    FlatEncoding(..),
+    UTF8Encoding(..),
+    UTF16LEEncoding(..),
+    NoEncoding(..)
+    ) where
 
 import           Control.DeepSeq
 import qualified Data.ByteString     as B
@@ -10,19 +19,25 @@ import           Data.Flat.Class
 import           Data.Flat.Instances ()
 import           Data.Word
 
+-- UTF-8 Little Endian Encoding
 data UTF8Encoding = UTF8Encoding
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
+-- UTF-16 Little Endian Encoding
 data UTF16LEEncoding = UTF16LEEncoding
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
-data NoEncoding = NoEncoding deriving (Eq, Ord, Show, NFData, Generic, Flat)
-
+-- <http://quid2.org/ Flat> encoding
 data FlatEncoding = FlatEncoding deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
--- The encoding is embedded as a value in order to support encodings that might have multiple values/variations.
+-- Unspecified encoding
+data NoEncoding = NoEncoding deriving (Eq, Ord, Show, NFData, Generic, Flat)
+
+-- A BLOB is composed by a binary encoding and an encoded binary value
 data BLOB encoding = BLOB encoding B.ByteString
-  deriving (Eq, Ord, Show, NFData, Generic, Flat)
+  deriving (Eq, Ord, NFData, Generic, Flat, Show)
+
+-- instance Show encoding => Show (BLOB encoding) where show (BLOB enc bs) = unwords ["BLOB",show enc,show $ B.unpack bs]
 
 -- blob :: encoding -> B.ByteString -> BLOB encoding
 --blob enc = BLOB enc . preAligned
@@ -35,6 +50,7 @@ data BLOB encoding = BLOB encoding B.ByteString
 -- unblob (BLOB _ pa) = preValue pa
 -- unblob (BLOB _ pa) = pa
 
+-- Utility class used to construct/deconstruct BLOBs from/to different representations of binary data
 class BLOBLike bs where
   blob :: encoding -> bs -> BLOB encoding
   unblob :: BLOB encoding -> bs

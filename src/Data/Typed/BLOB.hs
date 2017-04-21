@@ -23,15 +23,14 @@ import           Data.Typed.Util
 import qualified Data.ByteString as B
 
 -- WARN: adds additional end alignment byte
-typedBLOB :: forall a . (Typed a,Flat a) => a -> TypedBLOB
+typedBLOB :: forall a . (Model a,Flat a) => a -> TypedBLOB
 typedBLOB = typedBLOB_ (absType (Proxy :: Proxy a))
 
 typedBLOB_ :: Flat r => AbsType -> r -> TypedBLOB
 typedBLOB_ t v = TypedBLOB t (blob FlatEncoding . flatStrict $ v)
 
-typedValue :: forall a . Typed a => a -> TypedValue a
+typedValue :: forall a . Model a => a -> TypedValue a
 typedValue = TypedValue (absType (Proxy :: Proxy a))
-
 
 untypedBLOB ::  forall a.  (Flat a, Model a) => Decoded TypedBLOB -> TypedDecoded a
 untypedBLOB ea = case ea of
@@ -47,11 +46,11 @@ untypedValue ea = case ea of
                     Left e -> Left . DecodeError $ e
                     Right (TypedValue typ' a) ->
                       let typ = absType (proxyOf a)
-                      in if (typ' /= typ)
+                      in if typ' /= typ
                          then typeErr typ typ'
                          else Right a
 
-typeErr typ typ' = Left $  WrongType typ typ'
+typeErr typ typ' = Left $ WrongType typ typ'
 
 -- Decode a TypedValue without previous knowledge of its type
 -- decodeTypedBLOB :: Encoded TypedBLOB -> Decoded Val

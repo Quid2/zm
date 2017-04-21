@@ -1,11 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- |Decoding serialised values with a known type model
+-- |Dynamical decoding of serialised values
 module Data.Typed.Dynamic(
-  MapTypeDecoder
+  decodeAbsTypeModel
   ,typeDecoder
+  ,MapTypeDecoder
   ,typeDecoderMap
-  ,decodeAbsTypeModel
   ) where
 
 import qualified Data.ByteString.Lazy      as L
@@ -21,11 +21,14 @@ import           Data.Typed.Value
 decodeAbsTypeModel :: AbsTypeModel -> L.ByteString -> Decoded Value
 decodeAbsTypeModel = unflatWith . postAlignedDecoder . typeDecoder
 
+-- |Returns decoder for the given model
 typeDecoder :: AbsTypeModel -> Get Value
 typeDecoder tm = solve (typeName tm) (typeDecoderMap tm)
 
+-- |A mapping between references to absolute types and the corresponding decoder
 type MapTypeDecoder = M.Map (Type AbsRef) (Get Value)
 
+-- |Returns decoders mapping for the given model
 typeDecoderMap :: AbsTypeModel -> MapTypeDecoder
 typeDecoderMap tm =
   let denv = M.mapWithKey (\t ct -> conDecoder denv t [] ct) (typeTree tm)

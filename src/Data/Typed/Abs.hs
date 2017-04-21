@@ -5,9 +5,7 @@
 {-# LANGUAGE PackageImports            #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 -- |Derive absolute type models
-module Data.Typed.Abs(
-  absTypeModel,absTypeModelMaybe
-  ) where
+module Data.Typed.Abs (absTypeModel, absTypeModelMaybe) where
 
 import           "mtl" Control.Monad.Reader
 import qualified Data.ListLike.String as L
@@ -15,6 +13,7 @@ import qualified Data.Map             as M
 import           Data.Model
 import           Data.Typed.Types
 
+-- |Derive an absolute type model for a type, or throw an error if derivation is impossible
 absTypeModel :: Model a => Proxy a -> AbsTypeModel
 absTypeModel = either error id . absTypeModelMaybe
 
@@ -24,7 +23,6 @@ absTypeModel = either error id . absTypeModelMaybe
 -- ** has higher kind variables
 -- ** is mutually recursive with other data types
 absTypeModelMaybe :: Model a => Proxy a -> Either String AbsTypeModel
-
 absTypeModelMaybe a =
   let (TypeModel t henv) = typeModel a
       names = M.keys henv

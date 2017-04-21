@@ -8,7 +8,7 @@ module Data.Typed.Pretty(
   module Data.Model.Pretty
   ,CompactPretty(..)
   ,hex,unPrettyRef
-  -- ,prettyList,
+  ,prettyList
   ,prettyTuple
   ) where
 
@@ -104,7 +104,14 @@ instance Pretty a => Pretty (S.Seq a) where pPrint = pPrint . toList
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
 
+prettyTuple :: [Doc] -> Doc
 prettyTuple = parens . fsep . punctuate comma
+
+-- prettyList (map pPrint [11,22,33::Word8])
+-- > [11, 22, 33]
+prettyList :: [Doc] -> Doc
+--prettyList = brackets . hcat . punctuate comma
+prettyList = brackets . fsep . punctuate comma
 
 instance (Pretty a,Pretty l) => Pretty (Label a l) where
    pPrint (Label a Nothing)  = pPrint a
@@ -113,7 +120,11 @@ instance (Pretty a,Pretty l) => Pretty (Label a l) where
 -- Instances for standard types
 instance Pretty T.Text where pPrint = text . T.unpack
 
-instance {-# OVERLAPPABLE #-} Show enc => Pretty (BLOB enc) where pPrint = text . show
+-- instance {-# OVERLAPPABLE #-} Show enc => Pretty (BLOB enc) where pPrint = text . show
+
+instance Pretty NoEncoding where pPrint = text . show
+
+instance Pretty encoding => Pretty (BLOB encoding) where pPrint (BLOB enc bs) = text "BLOB" <+> pPrint enc <+> pPrint bs
 
 instance {-# OVERLAPS #-} Pretty (BLOB UTF8Encoding) where pPrint = pPrint . T.decodeUtf8 . unblob
 
@@ -132,6 +143,7 @@ instance Pretty Int64 where pPrint = text . show
 instance Pretty B.ByteString where pPrint = pPrint . B.unpack
 instance Pretty L.ByteString where pPrint = pPrint . L.unpack
 instance Pretty SBS.ShortByteString where pPrint = pPrint . SBS.unpack
+
 
 instance (Pretty a,Pretty b) => Pretty (M.Map a b) where pPrint m = text "Map" <+> pPrint (M.assocs m)
 

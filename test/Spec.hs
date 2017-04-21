@@ -35,9 +35,12 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 import           Text.PrettyPrint
+import Data.Timeless
 
 main = mainTest
 -- main = mainMakeTests
+-- main = mainPerformance
+-- main = mainShow
 
 mainMakeTests = do
   let code = concat ["codes = [",intercalate "\n," $ map (show . typeName) models,"]"]
@@ -63,6 +66,9 @@ mainShow = do
   -- print $ tstDec (Proxy::Proxy L.ByteString) [2,11,22,0,1]
   -- print $ tstDec (Proxy::Proxy (Bool,Bool,Bool)) [128+32]
   -- print $ tstDec (Proxy::Proxy (List Bool)) [72]
+  print . B.length . flat . timelessSimple $ True
+  print . B.length . flat . timelessHash $ True
+  print . B.length . flat . timelessExplicit $ True
   print "OK"
   -- prt $ tst (Proxy :: Proxy (List (Data2.List (Bool))))
   exitFailure
@@ -82,6 +88,7 @@ tests = testGroup "Tests"
           , mutuallyRecursiveTests
           , customEncodingTests
           , encodingTests
+          , timelessTests
           ]
 
 sha3DigestTests = testGroup "SHA3 Digest Tests"
@@ -153,7 +160,7 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e $ seq ac
   ,e 'k'
   ,e ac
-  --,e $ blob NoEncoding [11::Word8,22,33]
+  ,e $ blob NoEncoding [11::Word8,22,33]
   ,e $ blob UTF8Encoding [97::Word8,98,99]
   ,e $ blob UTF16LEEncoding ([0x24,0x00,0xAC,0x20,0x01,0xD8,0x37,0xDC]::[Word8]) -- $€𐐷
   ,e (T.pack "abc$€𐐷")
@@ -168,24 +175,32 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   -- FAILs because of limits in model:Data.Analyse
   -- ,e (False,True,44::Word8,True,False,False,44::Word8,(),Just False,'d')
   ,e (33::Word)
+  ,e (0::Word8)
   ,e (33::Word8)
+  ,e (255::Word8)
   ,e (3333::Word16)
   ,e (333333::Word32)
   ,e (33333333::Word64)
+  ,e (maxBound::Word64)
+  ,e (-11111111::Int)
+  ,e (11111111::Int)
   ,e (88::Int8)
   ,e (1616::Int16)
   ,e (32323232::Int32)
   ,e (6464646464::Int64)
+  ,e (minBound::Int32)
+  ,e (maxBound::Int32)
+  ,e (minBound::Int64)
+  ,e (maxBound::Int64)
   ,e (-88::Int8)
   ,e (-1616::Int16)
   ,e (-32323232::Int32)
   ,e (-6464646464::Int64)
-  ,e (-11111111::Int)
-  ,e (11111111::Int)
   ,e (44323232123::Integer)
   ,e (-4323232123::Integer)
-  -- TODO: floats
-  --,e (12.123::Float)
+  -- TODO: doubles
+  ,e (12.123::Float)
+  ,e (-57.238E-11::Float)
   ]
 
   where
@@ -198,7 +213,7 @@ customEncodingTests = testGroup "Typed Unit Tests" [
     -- e :: forall a. (Prettier a, Flat a, Show a, Model a) => a -> TestTree
     -- e x = testCase (unwords ["Encoding",show x]) $ dynamicShow x @?= prettierShow x
     e :: forall a. (Pretty a, Flat a, Show a, Model a) => a -> TestTree
-    e x = testCase (unwords ["Encoding",show x,prettyShow x]) $ dynamicShow x @?= prettyShow x
+    e x = testCase (unwords ["Encoding",show x,prettyShow x,dynamicShow x]) $ dynamicShow x @?= prettyShow x
 
 -- As previous test but using Arbitrary values
 encodingTests = testGroup "Encoding Tests"
@@ -221,6 +236,14 @@ encodingTests = testGroup "Encoding Tests"
                   ]
   where
     ce n = QC.testProperty (unwords ["Encoding", n])
+
+timelessTests = t True
+  where
+    t n = testGroup (unwords ["Timeless",show n]) [
+      testCase "simple" (untimeless (timelessSimple n) @?= Right n)
+      ,testCase "hash" (untimeless (timelessHash n) @?= Right n)
+      ,testCase "explicit" (untimeless (timelessExplicit n) @?= Right n)
+      ]
 
 -- prop_encoding :: forall a. (Prettier a,Flat a, Show a, Model a) => RT a
 -- prop_encoding x = dynamicShow x == prettierShow x

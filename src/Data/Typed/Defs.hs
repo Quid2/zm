@@ -101,3 +101,6 @@ data Word7 = Word7 Word8 deriving (Eq, Ord, Show, Generic, Flat)
 instance Model Word8 where envType = useCT word8CT
 
 instance Model Word7 where envType = useCT word7CT
+
+data SomeStuff
+

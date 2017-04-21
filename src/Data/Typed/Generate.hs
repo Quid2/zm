@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
--- |Generate some large constructor trees for primitive types
-module Data.Typed.Generate(arrayCT,word8CT,word7CT) where
+-- |Generate the large constructor trees of some primitive types (Array,Word8,Word7)
+module Data.Typed.Generate(makeTree,arrayCT,word8CT,word7CT) where
 
 import Data.Model.Types
 
@@ -38,9 +38,9 @@ data Cons = L Int | P Cons Cons deriving (Show)
 -- with the position (starting with 0) of the corresponding constructor
 -- in the list of constructors
 mkCons :: Int -> Cons
-mkCons = mkT_ 0
+mkCons = makeTree 0
 
-mkT_ :: Int -> Int -> Cons
-mkT_ p 1 = L p
-mkT_ p n = let (d,m) = n `divMod` 2
-           in  P (mkT_ p d) (mkT_ (p+d) (d+m))
+makeTree :: Int -> Int -> Cons
+makeTree p 1 = L p
+makeTree p n = let (d,m) = n `divMod` 2
+           in  P (makeTree p d) (makeTree (p+d) (d+m))

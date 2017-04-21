@@ -54,7 +54,7 @@ absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
 absRecDeps env ref = either (Left . unlines) Right $ dependencies getADTRef env ref
 
 mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
-mapSolve env = map (flip solve env)
+mapSolve env = map (`solve` env)
 
 -- stringADT :: AbsEnv -> AbsADT -> ADT LocalName Identifier (TypeRef LocalName)
 -- stringADT env adt =
@@ -106,7 +106,6 @@ saturate2 ref vs t = subs ref vs <$> t
 -- fromList [("a",["b"]),("b",["a"]),("c",[])]
 -- mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
 -- mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
-
 
 innerReferences = nub . catMaybes . map getADTRef . references
 

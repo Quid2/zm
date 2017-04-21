@@ -20,9 +20,13 @@ matrix:
     addons: {apt: {packages: [cabal-install-1.24,happy-1.19.5,ghc-8.0.2], sources: [hvr-ghc]}}
  
   #- env: BUILD=stack ARGS="--resolver lts-6"
-  - env: BUILD=stack ARGS=""
+  - env: BUILD=stack ARGS="--stack-yaml stack710.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+
+  - env: BUILD=stack ARGS="--stack-yaml stack801.yaml"
+    compiler: ": #stack 8.0.1"
+    addons: {apt: {packages: [ghc-8.0.1], sources: [hvr-ghc]}}
 
   # - env: BUILD=stack ARGS="--resolver lts-8"
   - env: BUILD=stack ARGS="--stack-yaml stack802.yaml"

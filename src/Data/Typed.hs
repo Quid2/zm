@@ -12,7 +12,6 @@ import           Data.Typed.Class     as X
 import           Data.Typed.Dynamic   as X
 import           Data.Typed.Model     ()
 import           Data.Typed.Pretty    as X
-import           Data.Typed.Timeless  as X
 import           Data.Typed.Transform as X
 import           Data.Typed.Types     as X
 import           Data.Typed.Value     as X
