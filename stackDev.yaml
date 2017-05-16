@@ -15,6 +15,6 @@ packages:
 extra-deps:
 # - model-0.3
 #- flat-0.3
-- mono-traversable-1.0.2
+# - mono-traversable-1.0.2
 - cryptonite-0.22
 #- cryptonite-0.23

@@ -1,8 +1,8 @@
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TupleSections             #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
 
 module Main where
 
@@ -10,14 +10,15 @@ import           Control.Exception
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Short as SBS
-import           Data.Digest.SHA3
+import           Data.Digest.Keccak
 import           Data.Either
 import           Data.Foldable
 import           Data.Int
 import           Data.List
+import qualified Data.ListLike.String  as L
 import qualified Data.Map              as M
 import           Data.Maybe
-import           Data.Model
+import           Data.Model            hiding (Name)
 import qualified Data.Sequence         as S
 import qualified Data.Text             as T
 import           Data.Typed
@@ -26,8 +27,8 @@ import           Debug.Trace
 import           Info
 import           System.Exit           (exitFailure)
 import           System.TimeIt
-import           Test.Data             hiding (Unit)
-import           Test.Data.Flat        hiding (Unit)
+import           Test.Data             hiding (Cons, Unit)
+import           Test.Data.Flat        hiding (Cons, Unit)
 import           Test.Data.Model
 import qualified Test.Data2            as Data2
 import qualified Test.Data3            as Data3
@@ -35,7 +36,8 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 import           Text.PrettyPrint
-import Data.Timeless
+
+-- import Data.Timeless
 
 main = mainTest
 -- main = mainMakeTests
@@ -66,10 +68,10 @@ mainShow = do
   -- print $ tstDec (Proxy::Proxy L.ByteString) [2,11,22,0,1]
   -- print $ tstDec (Proxy::Proxy (Bool,Bool,Bool)) [128+32]
   -- print $ tstDec (Proxy::Proxy (List Bool)) [72]
-  print . B.length . flat . timelessSimple $ True
-  print . B.length . flat . timelessHash $ True
-  print . B.length . flat . timelessExplicit $ True
-  print "OK"
+  -- print . B.length . flat . timelessSimple $ True
+  -- print . B.length . flat . timelessHash $ True
+  -- print . B.length . flat . timelessExplicit $ True
+  -- print "OK"
   -- prt $ tst (Proxy :: Proxy (List (Data2.List (Bool))))
   exitFailure
 
@@ -88,7 +90,9 @@ tests = testGroup "Tests"
           , mutuallyRecursiveTests
           , customEncodingTests
           , encodingTests
-          , timelessTests
+          , transformTests
+          , identifiersTests
+          --, timelessTests
           ]
 
 sha3DigestTests = testGroup "SHA3 Digest Tests"
@@ -137,11 +141,17 @@ mutuallyRecursiveTests = testGroup "Mutually Recursion Detection Tests" $ [
 
 -- |Test all custom flat instances for conformity to their model
 customEncodingTests = testGroup "Typed Unit Tests" [
-  e ()
+  em (Proxy :: Proxy T.Text) (Proxy :: Proxy (BLOB UTF8Encoding))
+  ,em (Proxy :: Proxy UTF8Text) (Proxy :: Proxy (BLOB UTF8Encoding))
+  ,em (Proxy :: Proxy UTF16Text) (Proxy :: Proxy (BLOB UTF16LEEncoding))
+  ,e ()
   ,e False
   ,e (Just True)
   ,e (Left True::Either Bool Char)
   ,e (Right ()::Either Bool ())
+  ,e (False,'g')
+  ,e [(False,'g')]
+  ,e (M.fromList ([]::[(Bool,Bool)]))
   ,e (M.fromList [(False,'g')])
   ,e (M.fromList [(33::Int,"abc")])
   ,e (M.fromList [(33::Int,57::Word8),(44,77)])
@@ -158,12 +168,17 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e $ seq ab
   ,e $ seq aw
   ,e $ seq ac
+  ,e 'a'
   ,e 'k'
+  -- ,e "\n"
+  ,e "ab\ncd"
   ,e ac
   ,e $ blob NoEncoding [11::Word8,22,33]
   ,e $ blob UTF8Encoding [97::Word8,98,99]
   ,e $ blob UTF16LEEncoding ([0x24,0x00,0xAC,0x20,0x01,0xD8,0x37,0xDC]::[Word8]) -- $€𐐷
   ,e (T.pack "abc$€𐐷")
+  ,e (UTF8Text $ T.pack "abc$€𐐷")
+  ,e (UTF16Text $ T.pack "abc$€𐐷")
   ,e (False,True)
   ,e (False,True,44::Word8)
   ,e (False,True,44::Word8,True)
@@ -172,8 +187,6 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e (False,True,44::Word8,True,False,False,44::Word8)
   ,e (False,True,44::Word8,True,False,False,44::Word8,())
   ,e (False,True,44::Word8,True,False,False,44::Word8,(),'a')
-  -- FAILs because of limits in model:Data.Analyse
-  -- ,e (False,True,44::Word8,True,False,False,44::Word8,(),Just False,'d')
   ,e (33::Word)
   ,e (0::Word8)
   ,e (33::Word8)
@@ -198,9 +211,10 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e (-6464646464::Int64)
   ,e (44323232123::Integer)
   ,e (-4323232123::Integer)
-  -- TODO: doubles
   ,e (12.123::Float)
   ,e (-57.238E-11::Float)
+  ,e (12.123::Double)
+  ,e (-57.238E-11::Double)
   ]
 
   where
@@ -214,6 +228,7 @@ customEncodingTests = testGroup "Typed Unit Tests" [
     -- e x = testCase (unwords ["Encoding",show x]) $ dynamicShow x @?= prettierShow x
     e :: forall a. (Pretty a, Flat a, Show a, Model a) => a -> TestTree
     e x = testCase (unwords ["Encoding",show x,prettyShow x,dynamicShow x]) $ dynamicShow x @?= prettyShow x
+    em p1 p2 = testCase (unwords ["Model Mapping"]) $ absType p1 @?= absType p2
 
 -- As previous test but using Arbitrary values
 encodingTests = testGroup "Encoding Tests"
@@ -232,23 +247,32 @@ encodingTests = testGroup "Encoding Tests"
                   , ce "Int64" (prop_encoding :: RT Int64)
                   , ce "Integer" (prop_encoding :: RT Integer)
                   , ce "Char" (prop_encoding :: RT Char)
+                  , ce "String" (prop_encoding :: RT String) -- too slow
                   , ce "[Maybe (Bool,Char)]" (prop_encoding :: RT ([Maybe (Bool,Char)]))
                   ]
   where
     ce n = QC.testProperty (unwords ["Encoding", n])
 
-timelessTests = t True
-  where
-    t n = testGroup (unwords ["Timeless",show n]) [
-      testCase "simple" (untimeless (timelessSimple n) @?= Right n)
-      ,testCase "hash" (untimeless (timelessHash n) @?= Right n)
-      ,testCase "explicit" (untimeless (timelessExplicit n) @?= Right n)
-      ]
+identifiersTests = testGroup "Identifier Tests" $ concat [
+  testId "Tuple2" $ Name (UnicodeLetter 'T') [UnicodeLetterOrNumberOrLine 'u',UnicodeLetterOrNumberOrLine 'p',UnicodeLetterOrNumberOrLine 'l',UnicodeLetterOrNumberOrLine 'e',UnicodeLetterOrNumberOrLine '2']
+  ,testId "abc" $ Name (UnicodeLetter 'a') [UnicodeLetterOrNumberOrLine 'b',UnicodeLetterOrNumberOrLine 'c']
+  ,testId "<>" $ Symbol (Cons (UnicodeSymbol '<') (Elem (UnicodeSymbol '>')))
+  ]
+   where
+    testId s i = [testCase (unwords ["identifier parse",s]) $ L.fromString s @?= i
+                 ,testCase (unwords ["identifier roundtrip",s]) $ L.toString (L.fromString s::Identifier) @?= s]
 
--- prop_encoding :: forall a. (Prettier a,Flat a, Show a, Model a) => RT a
+transformTests = testGroup "Transform Tests" [
+  testRecDeps (Proxy :: Proxy Bool) 1
+  ,testRecDeps (Proxy :: Proxy (Bool,[Bool])) 3
+  ]
+  where
+    testRecDeps proxy len =
+      let tm = absTypeModel proxy
+      in let Right deps = typeDefinition (typeEnv tm) (typeName tm) -- $ length (typeDefinition (typeEnv tm) (typeName tm)) @?= len
+         in testCase (unwords ["recursiveDependencies",prettyShow $ typeName tm]) $ length deps @?= len
+
 -- prop_encoding x = dynamicShow x == prettierShow x
--- dynamicShow :: forall a. (Prettier a,Flat a, Show a, Model a) => a -> String
--- dynamicShow a = prettyShow (let Right v = decodeAbsTypeModel (absTypeModel (Proxy::Proxy a)) (flat a) in v)
 
 prop_encoding :: forall a. (Pretty a,Flat a, Model a) => RT a
 prop_encoding x = dynamicShow x == prettyShow x
@@ -257,6 +281,14 @@ dynamicShow :: forall a. (Flat a, Model a) => a -> String
 dynamicShow a = prettyShow (let Right v = decodeAbsTypeModel (absTypeModel (Proxy::Proxy a)) (flat a) in v)
 
 type RT a = a -> Bool
+
+-- timelessTests = t True
+--   where
+--     t n = testGroup (unwords ["Timeless",show n]) [
+--       testCase "simple" (untimeless (timelessSimple n) @?= Right n)
+--       ,testCase "hash" (untimeless (timelessHash n) @?= Right n)
+--       ,testCase "explicit" (untimeless (timelessExplicit n) @?= Right n)
+--       ]
 
 
 

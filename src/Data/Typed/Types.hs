@@ -6,125 +6,104 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.Typed.Types (
-    -- *Model
+    -- * Model
     module Data.Model.Types,
-    --module Data.Typed.BLOB,
-    TypedDecoded,
-    TypedDecodeException(..),
-    errMap,
-    TypedValue(..),
-    TypedBLOB(..),
     AbsTypeModel,
-    --ADTEnv,
     AbsType,
     AbsRef(..),
     absRef,
     AbsADT,
     AbsEnv,
     ADTRef(..),
-    getADTRef,
     Identifier(..),
     UnicodeLetter(..),
     UnicodeLetterOrNumberOrLine(..),
     UnicodeSymbol(..),
     SHA3_256_6(..),
-    --,SHA3_256(..)
+    SHAKE128_48(..),
     NonEmptyList(..),
     nonEmptyList,
+    Word7,
+    -- * Encodings
+    FlatEncoding(..), UTF8Encoding(..), UTF16LEEncoding(..), NoEncoding(..)
+    -- * Exceptions
+    ,TypedDecoded,
+    TypedDecodeException(..),
+    -- *Other Re-exports
+    NFData(),
+    Flat,
     ZigZag(..),
     LeastSignificantFirst(..),
     MostSignificantFirst(..),
-    -- Transform
+    Value(..),
     Label(..),
     label,
-    -- LocalRef(..),
-    --
-    Word7,
-    -- Word8, Word16, Word32, Word64, Int8, Int16, Int32, Int64, LocalName(..) *Re-exports
-    NFData(),
-    Flat-- Array,
-        -- Tuple2(..),Tuple3(..),Tuple4(..),Tuple5(..),Tuple6(..),Tuple7(..),Tuple8(..),Tuple9(..)
     ) where
 
 import           Control.DeepSeq
 import           Control.Exception
-import           Data.BLOB
-import qualified Data.ByteString      as B
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString              as B
 import           Data.Char
-import           Data.Digest.SHA3
+import           Data.Digest.Keccak
 import           Data.Flat
-import           Data.Foldable        (toList)
-import qualified Data.ListLike.String as L
-import qualified Data.Map             as M
-import           Data.Model.Types     hiding (Name)
-import           Data.Typed.Defs
+import           Data.Foldable                (toList)
+import qualified Data.ListLike.String         as L
+import qualified Data.Map                     as M
+import           Data.Model hiding (Name)
+import Data.Model.Types  hiding (Name)
+import Data.Typed.Model()
+import           Data.Typed.Type.BLOB
+import           Data.Typed.Type.NonEmptyList
+import           Data.Typed.Type.Words        (LeastSignificantFirst (..),
+                                               MostSignificantFirst (..), Word7,
+                                               ZigZag (..))
 import           Data.Word
-
-type TypedDecoded a = Either TypedDecodeException a
-
-data TypedDecodeException = UnknownMetaModel AbsType
-                            | WrongType {expectedType::AbsType,actualType::AbsType}
-                            | DecodeError DecodeException deriving (Show,Eq,Ord)
-
-instance Exception TypedDecodeException
-
-errMap :: (t -> a) -> Either t b -> Either a b
-errMap f e = case e of
-               Left l  -> Left (f l)
-               Right r -> Right r
-
--- |A typed value, a flat encoded value plus its absolute type
-data TypedBLOB = TypedBLOB AbsType (BLOB FlatEncoding)
-  deriving (Eq, Ord, Show, NFData, Generic, Flat)
-
--- |A typed value, a value plus its absolute type
-data TypedValue a = TypedValue AbsType a deriving (Eq, Ord, Show, Functor,NFData,  Generic, Flat)
 
 -- |An absolute type, a type identifier that depends only on the definition of the type
 type AbsType = Type AbsRef
 
 -- |A reference to an absolute data type definition, in the form of a hash of the data type definition itself
-data AbsRef = AbsRef (SHA3_256_6 AbsADT)
-  deriving (Eq, Ord, Show, NFData, Generic, Flat)
+data AbsRef = AbsRef (SHA3_256_6 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
+
+-- data AbsRef = AbsRef (SHAKE128_48 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
 -- |Return the absolute reference of the given value
 absRef :: Flat r => r -> AbsRef
-absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . sha3_256 6 . L.toStrict . flat $ a
+-- absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . shake_128 6 . L.toStrict . flat $ a
+--            in AbsRef $ SHAKE128_48 w1 w2 w3 w4 w5 w6
+
+absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . sha3_256 6 . flat $ a
            in AbsRef $ SHA3_256_6 w1 w2 w3 w4 w5 w6
 
 -- |A hash of a value, the first 6 bytes of the value's SHA3-256 hash
 data SHA3_256_6 a = SHA3_256_6 Word8 Word8 Word8 Word8 Word8 Word8
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
--- |An absolute data type definition, a definition that refers only to other absolute definitions
+-- |A hash of a value, the first 48 bits (6 bytes) of the value's SHAKE128 hash
+data SHAKE128_48 a = SHAKE128_48 Word8 Word8 Word8 Word8 Word8 Word8
+  deriving (Eq, Ord, Show, NFData, Generic, Flat)
+
 -- CHECK: Same syntax for adt and constructor names
+-- |An absolute data type definition, a definition that refers only to other absolute definitions
 type AbsADT = ADT Identifier Identifier (ADTRef AbsRef)
 
+-- |An absolute type model, an absolute type and its associated environment
 type AbsTypeModel = TypeModel Identifier Identifier (ADTRef AbsRef) AbsRef
 
+-- |An environments of absolute types
 type AbsEnv = TypeEnv Identifier Identifier (ADTRef AbsRef) AbsRef
 
 -- type ADTEnv = M.Map AbsRef AbsADT
 
--- |An internal reference to a , a reference into an ADT to another ADT
--- PROF: as we do not support higher kinds, a variable can only point to a Type, not an ADT
--- NOTE: why not using TypeRef ?
-data ADTRef r = Var Word8 -- ^Variable
-              | Rec       -- ^Recursive reference to the ADT
+-- |A reference inside an ADT to another ADT
+data ADTRef r = Var Word8 -- ^Variable, standing for a type
+              | Rec       -- ^Recursive reference to the ADT itself
               | Ext r     -- ^Reference to another ADT
-  -- | Ext AbsRef  -- Pointer to an external adt
-  deriving (Eq, Ord, Show, NFData, Generic, Flat)
+  deriving (Eq, Ord, Show, NFData, Generic, Functor, Foldable, Traversable ,Flat)
 
--- WHAT ABOUT REC?
-getADTRef :: ADTRef a -> Maybe a
-getADTRef (Ext r) = Just r
-getADTRef _       = Nothing
-
+-- CHECK: Is it necessary to specify a syntax for identifiers?
 -- |An Identifier, the name of an ADT
--- Is it necessary to specify a syntax for identifiers?
 data Identifier = Name UnicodeLetter [UnicodeLetterOrNumberOrLine]
---                | Symbol (NE.NonEmpty UnicodeSymbol)
                 | Symbol (NonEmptyList UnicodeSymbol)
                 deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
@@ -165,8 +144,7 @@ OtherSymbol
 -}
 data UnicodeSymbol = UnicodeSymbol Char deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
-i = map identifier ["Tuple2","abc","<>"]
-
+-- |Convert a string to corresponding Identifier or throw an error
 identifier :: String -> Identifier
 identifier [] = error "identifier cannot be empty"
 identifier s@(h:t) = if isLetter h
@@ -187,21 +165,33 @@ asLetterOrNumber c | isLetter c || isNumber c || isAlsoOK c = UnicodeLetterOrNum
                    | otherwise = error . unwords $ [show c,"is not an Unicode Letter or Number"]
 
 
--- CHECK IF NEEDED
+-- CHECK: IS '_' REALLY NEEDED?
 isAlsoOK :: Char -> Bool
 isAlsoOK '_' = True
 isAlsoOK _   = False
 
--- A parsed value
--- data ParsedVal = ParsedVal [Bool] [ParsedVal]
+-- |A generic value (used for dynamic decoding)
+data Value = Value {valType::AbsType -- Type
+                   ,valName::String  -- Constructor name (duplicate info if we have abstype)
+                   ,valBits::[Bool]  -- Bit encoding/constructor id
+                   -- TODO: add field names (same info present in abstype)
+                   ,valFields::[Value]  -- Values to which the constructor is applied, if any
+                   } deriving  (Eq,Ord,Show,NFData, Generic, Flat)
 
--- type Value = TypedValue ParsedVal
-
--- An optionally labelled value
-data Label a l = Label a (Maybe l) deriving (Eq, Ord, Show, NFData, Generic, Flat)
+-- |An optionally labeled value
+data Label a label = Label a (Maybe label) deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
 label :: (Functor f, Ord k) => M.Map k a -> (a -> l) -> f k -> f (Label k l)
 label env f o = (\ref -> Label ref (f <$> M.lookup ref env)) <$> o
+
+type TypedDecoded a = Either TypedDecodeException a
+
+-- |An exception thrown if the decoding of a type value fails
+data TypedDecodeException = UnknownMetaModel AbsType
+                            | WrongType {expectedType::AbsType,actualType::AbsType}
+                            | DecodeError DecodeException deriving (Show,Eq,Ord)
+
+instance Exception TypedDecodeException
 
 -- newtype LocalName = LocalName Identifier deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
@@ -214,14 +204,19 @@ instance Flat a => Flat [Type a]
 instance Flat a => Flat (Type a)
 instance Flat a => Flat (TypeRef a)
 
--- |A list that contains at least one element
-data NonEmptyList a = Elem a
-                    | Cons a (NonEmptyList a)
-  deriving (Eq, Ord, Show, NFData, Generic, Functor, Foldable, Traversable, Flat)
-
--- |Convert a list to a `NonEmptyList`, returns an error if the list is empty
-nonEmptyList :: [a] -> NonEmptyList a
-nonEmptyList []    = error "Cannot convert an empty list to NonEmptyList"
-nonEmptyList [h]   = Elem h
-nonEmptyList (h:t) = Cons h (nonEmptyList t)
+-- Model instances
+instance (Model a,Model b,Model c) => Model (ADT a b c)
+instance (Model a,Model b) => Model (ConTree a b)
+instance Model a => Model (ADTRef a)
+instance Model a => Model (Type a)
+instance Model a => Model (TypeRef a)
+instance (Model adtName, Model consName, Model inRef, Model exRef) => Model (TypeModel adtName consName inRef exRef)
+instance Model Identifier
+instance Model UnicodeLetter
+instance Model UnicodeLetterOrNumberOrLine
+instance Model UnicodeSymbol
+instance Model a => Model (SHA3_256_6 a)
+instance Model a => Model (SHAKE128_48 a)
+instance Model AbsRef
+instance Model a => Model (PostAligned a)
 

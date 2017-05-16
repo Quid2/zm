@@ -13,20 +13,19 @@ module Data.Timeless (
     untimeless,
     ) where
 
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString  as B
 import           Data.Flat
 import           Data.Model
 import           Data.Typed.Abs
 import           Data.Typed.BLOB
-import           Data.Typed.Class
--- import           Data.Typed.Pretty    ()
+
 import           Data.Typed.Types
 
 {-
 Dynamically recover a value, discover metamodel of a data type, its type
 
 instance Pretty Timeless where
-  pPrint (Timeless 
+  pPrint (Timeless
 -}
 
 -- import           Debug.Trace
@@ -39,18 +38,18 @@ data Timeless = Timeless { timelessMeta :: TypedBLOB, timelessValue :: BLOB Flat
 -- ex: True :: TypeCon .. :: Type AbsRef
 -- ex: True :: BoolType :: SimpleType
 timelessHash :: forall a . (Model a, Flat a) => a -> Timeless
-timelessHash a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flatStrict $ a)
+timelessHash a = Timeless (typedBLOB (absType (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 timelessExplicit :: forall a . (Model a, Flat a) => a -> Timeless
-timelessExplicit a = Timeless (typedBLOB (absTypeModel (Proxy :: Proxy a))) (blob FlatEncoding . flatStrict $ a)
+timelessExplicit a = Timeless (typedBLOB (absTypeModel (Proxy :: Proxy a))) (blob FlatEncoding . flat $ a)
 
 timelessSimple :: Bool -> Timeless
-timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flatStrict $ a)
+timelessSimple a = Timeless (typedBLOB BoolType) (blob FlatEncoding . flat $ a)
 
-untimelessDynamic_ :: Timeless -> TypedDecoded (L.ByteString,AbsType, AbsType)
+untimelessDynamic_ :: Timeless -> TypedDecoded (B.ByteString,AbsType, AbsType)
 untimelessDynamic_ (Timeless (TypedBLOB meta tbs) bs) =
   if meta == metaAbsType
-    then (unblob bs,,meta) <$> (errMap DecodeError . unflatStrict . unblob $ tbs :: TypedDecoded AbsType)
+    then (unblob bs,,meta) <$> (errMap DecodeError . unflat . unblob $ tbs :: TypedDecoded AbsType)
     else Left $ UnknownMetaModel meta
 
 --untimeless ::  forall a.  (Flat a, Model a) => TypedDecoded Timeless -> TypedDecoded a
@@ -60,21 +59,21 @@ untimeless ::  forall a.  (Flat a, Model a) => Timeless -> TypedDecoded a
 untimeless (Timeless (TypedBLOB meta tbs) bs) =
   let expectedType = absType (Proxy :: Proxy a)
   in if meta == metaAbsType
-     then let Right (actualType :: AbsType) = unflatStrict . unblob $ tbs
+     then let Right (actualType :: AbsType) = unflat . unblob $ tbs
           in if expectedType == actualType
-             then errMap DecodeError . unflatStrict . unblob $ bs
+             then errMap DecodeError . unflat . unblob $ bs
              else typeErr expectedType actualType
      else if meta == metaExplicitType
-          then let Right (actualTypeModel :: AbsTypeModel) = unflatStrict . unblob $ tbs
+          then let Right (actualTypeModel :: AbsTypeModel) = unflat . unblob $ tbs
                    actualType = typeName actualTypeModel
                in if expectedType == actualType
-                  then errMap DecodeError . unflatStrict . unblob $ bs
+                  then errMap DecodeError . unflat . unblob $ bs
                   else typeErr expectedType actualType
           else if meta == metaSimpleType
-               then let Right (simpleType :: SimpleType) = unflatStrict . unblob $ tbs
+               then let Right (simpleType :: SimpleType) = unflat . unblob $ tbs
                         actualType = if simpleType == BoolType then metaBool else metaChar
                     in if expectedType == actualType
-                       then errMap DecodeError . unflatStrict . unblob $ bs
+                       then errMap DecodeError . unflat . unblob $ bs
                        else typeErr expectedType actualType -- Left "SimpleType can only be a Boolean or a Char"
                else Left $ UnknownMetaModel meta
 

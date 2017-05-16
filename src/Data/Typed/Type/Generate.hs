@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |Generate the large constructor trees of some primitive types (Array,Word8,Word7)
-module Data.Typed.Generate(makeTree,arrayCT,word8CT,word7CT) where
+module Data.Typed.Type.Generate (arrayCT, word8CT, word7CT) where
 
 import Data.Model.Types
 
@@ -29,7 +29,7 @@ word7CT = Just (asWCT $ mkCons 128)
 
 asWCT :: Cons -> ConTree String ref
 asWCT (P t1 t2) = ConTree (asWCT t1) (asWCT t2)
-asWCT (L n) = Con (concat ["V",show n]) (Left [])
+asWCT (L n) = Con ("V"++show n) (Left [])
 
 -- |A binary tree with integer leaves, used to represent constructor trees
 data Cons = L Int | P Cons Cons deriving (Show)

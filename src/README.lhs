@@ -1,10 +1,10 @@
 [![Build Status](https://travis-ci.org/tittoassini/typed.svg?branch=master)](https://travis-ci.org/tittoassini/typed) [![Hackage version](https://img.shields.io/hackage/v/typed.svg)](http://hackage.haskell.org/package/typed)
 
-Haskell implementation of canonical, language independent data types.
+Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf).
 
  ### How To Use It For Fun and Profit
 
-With `typed` you can derive and manipulate canonical description of (a subset) of Haskell data types.
+With `zm` you can derive and manipulate canonical and language-independent definitions and unique identifiers of (a subset) of Haskell data types.
 
 This can be used, for example:
 
@@ -16,7 +16,7 @@ This can be used, for example:
 
 For a data type to have a canonical representation, it has to implement the `Model` type class.
 
-Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
+Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined and there is `Generics` based support to automatically derive additional instances.
 
 Let's see some code, we need a couple of GHC extensions:
 
@@ -25,10 +25,7 @@ Let's see some code, we need a couple of GHC extensions:
 Import the library:
 
 > import Data.Typed
-
-We will need this too, for the examples.
-
-> import Data.Word
+>> import Data.Word
 
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
@@ -38,7 +35,7 @@ We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to 
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
-Contrary to Haskell, `typed` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
+Contrary to Haskell, `ZhengMing` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
@@ -60,7 +57,7 @@ So for example, these won't work:
 
 ```haskell
 -- BAD: f has higher kind
-data Free = Impure (f (Free f a)) | Pure a
+data Free f a = Impure (f (Free f a)) | Pure a
 
 -- BAD: mutually recursive
 data Forest a = Nil | Cons (Tree a) (Forest a)
@@ -85,17 +82,17 @@ Though their meaning is obviously different they share the same syntactical stru
 
 To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration using the `flat` library.
 
-> e1 = pPrint $ flatStrict Center
+> e1 = pPrint $ flat Center
 
-> e4 = pPrint $ flatStrict Corniglia
+> e4 = pPrint $ flat Corniglia
 
 As you can see they have the same binary representation.
 
-We have used the `flat` binary serialisation as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
+We have used the `flat` binary serialisation as it is already a dependency of `zm` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
 
 Let's go full circle, using `unflat` to decode the value :
 
-> decoded = unflat . flatStrict
+> decoded = unflat . flat
 
 > d1 = decoded Center :: Decoded Direction
 
@@ -176,21 +173,15 @@ Or use a dynamic decder to directly show the value.
 The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 -->
 
+ ### Haskell Compatibility
+
+Tested with:
+  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.1 and 8.0.2 (x64)
+  * [ghcjs](https://github.com/ghcjs/ghcjs)
+
  ### Installation
 
-It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding in the `stack.yaml` file, under the `packages` section:
-
-````
-- location:
-   git: https://github.com/tittoassini/typed
-   commit: 
-  extra-dep: true
-
-````
-
- ### Compatibility
-
-Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1 and [ghcjs](https://github.com/ghcjs/ghcjs).
+ Get the latest stable version from [hackage](https://hackage.haskell.org/package/zm).
 
  ### Acknowledgements
  Contains the following JavaScript library:
@@ -205,5 +196,3 @@ Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1 and [ghcjs](htt
 
 * The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
-
-

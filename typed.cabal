@@ -1,7 +1,7 @@
 name:                typed
 version:             0.1.3
 synopsis:            Language independent, reproducible, absolute types
-description:         See the <http://github.com/tittoassini/typed online tutorial>
+description:         See the <http://github.com/tittoassini/typed online tutorial>.
 homepage:            http://github.com/tittoassini/typed
 license:             BSD3
 license-file:        LICENSE
@@ -16,21 +16,23 @@ extra-source-files: stack.yaml
 library
   hs-source-dirs:      src
   js-sources: jsbits/sha3.js
-  exposed-modules:     Data.BLOB,Data.Digest.SHA3,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Class,Data.Typed.Defs,Data.Typed.Defs2,Data.Typed.Dynamic,Data.Typed.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Value,Data.Timeless
-  build-depends: ListLike, base >= 4.7 && < 5, bytestring, containers, deepseq, directory, filepath, flat>=0.2, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers
+  default-language:    Haskell2010
+  exposed-modules:     Data.Digest.Keccak,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Type.Array,Data.Typed.Type.BLOB,Data.Typed.Type.Bit,Data.Typed.Type.Bits8,Data.Typed.Type.Bits11,Data.Typed.Type.Bits23,Data.Typed.Type.Bits52,Data.Typed.Type.Char,Data.Typed.Type.Float32,Data.Typed.Type.Float64,Data.Typed.Type.List,Data.Typed.Type.NonEmptyList,Data.Typed.Type.Map,Data.Typed.Type.Tuples,Data.Typed.Type.Unit,Data.Typed.Type.Words,Data.Typed.Dynamic,Data.Typed.Type.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Pretty.Value
+
+  build-depends: ListLike, base >= 4.8 && < 5, bytestring, containers, deepseq, directory, filepath, flat>=0.2, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers, pretty-show
+  ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
 
   if impl(ghcjs)
     build-depends:     ghcjs-base        >= 0.2 && < 0.3
   else
     build-depends: cryptonite>=0.22, memory
-  default-language:    Haskell2010
 
 test-suite typed-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules: Info,Test.Data,Test.Data.Flat,Test.Data.Model,Test.Data2,Test.Data2.Flat,Test.Data3,Test.Data3.Flat
-  build-depends:       base,containers,bytestring,text,tasty,tasty-hunit,tasty-quickcheck,pretty
+  build-depends:       base,containers,bytestring,text,tasty,tasty-hunit,tasty-quickcheck,pretty,ListLike
                        , flat, model, typed, timeit
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

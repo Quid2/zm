@@ -1,32 +1,33 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 -- |Utilities to operate on the absolute type model
-module Data.Typed.Transform(
-  typeDefinition,adtDefinition
-  ,MapTypeTree,typeTree
-  -- |*State utilities
-  -- ,recDeps
-  ,stringADT
-  ,solvedADT
-  ,innerReferences,references
-  ) where
+module Data.Typed.Transform (
+    -- * Saturated ADTs
+    MapTypeTree,
+    typeTree,
+    solvedADT,
+    -- * Presentation
+    stringADT,
+    -- * Dependencies
+    typeDefinition,
+    adtDefinition,
+    innerReferences,
+    references,
+    getADTRef
+    ) where
 
 import           Control.Monad.Trans.State
 import           Data.Foldable             (toList)
 import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
-import           Data.Model.Util(dependencies)
+import           Data.Model.Util           (transitiveClosure)
 import           Data.Typed.Types
 import           Data.Typed.Util
--- -- import Data.BLOB
--- import Data.Flat
 
--- typeDefinition :: AbsTypeModel -> Either String [AbsADT]
--- typeDefinition (TypeModel t env) = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
-
--- |A map of saturated types to the corresponding saturated constructor tree
+-- |A map of fully applied types to the corresponding saturated constructor tree
 type MapTypeTree = M.Map (Type AbsRef) (ConTree Identifier AbsRef)
 
+-- |Return the map of types to saturated constructor trees corresponding to the type model
 typeTree :: AbsTypeModel -> MapTypeTree
 typeTree tm = execEnv (addType (typeEnv tm) (typeName tm))
  where
@@ -44,14 +45,30 @@ typeTree tm = execEnv (addType (typeEnv tm) (typeName tm))
            Nothing -> return ()
        Just _ -> return ()
 
+-- | Return all the ADTs referred, directly or indirectly, by the provided type, and defined in the provided environment
 typeDefinition :: AbsEnv -> AbsType -> Either String [AbsADT]
 typeDefinition env t = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
 
+-- | Return all the ADTs referred, directly or indirectly, by the ADT identified by the provided reference, and defined in the provided environment
 adtDefinition :: AbsEnv -> AbsRef -> Either String [AbsADT]
 adtDefinition env t = mapSolve env <$> absRecDeps env t
 
+-- |Return the list of references found in the ADT definition
+innerReferences :: AbsADT -> [AbsRef]
+innerReferences = nub . mapMaybe getADTRef . nub . toList
+
+-- |Return the list of references found in the absolute type
+references :: AbsType  -> [AbsRef]
+references = nub . toList
+
 absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
-absRecDeps env ref = either (Left . unlines) Right $ dependencies getADTRef env ref
+absRecDeps env ref = either (Left . unlines) Right $ transitiveClosure getADTRef env ref
+
+-- WHAT ABOUT REC?
+-- |Return an external reference, if present
+getADTRef :: ADTRef a -> Maybe a
+getADTRef (Ext r) = Just r
+getADTRef _       = Nothing
 
 mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
 mapSolve env = map (`solve` env)
@@ -64,6 +81,7 @@ mapSolve env = map (`solve` env)
 --          solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
 --          solveS name Rec  = TypRef $ LocalName name
 
+-- |Convert references in an absolute definition to their textual form (useful for display)
 stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
 stringADT env adt =
   let name = declName adt
@@ -72,11 +90,8 @@ stringADT env adt =
          solveS _ (Ext k) = TypRef . declName . solve k $ env
          solveS name Rec  = TypRef name
 
--- |Solve ADT by substituting variables and recursive refs
-solvedADT
-  :: (Ord ref, Show ref) =>
-     M.Map ref (ADT name consName (ADTRef ref))
-     -> Type ref -> ADT name consName ref
+-- |Convert a type to an equivalent concrete ADT whose variables have been substituted by the type parameters (e.g. Maybe Bool -> Maybe = Nothing | Just Bool)
+solvedADT :: (Ord ref, Show ref) => M.Map ref (ADT name consName (ADTRef ref)) -> Type ref -> ADT name consName ref
 solvedADT env at =
    let
      TypeN t ts = typeN at
@@ -84,36 +99,21 @@ solvedADT env at =
      adt = solve t env
      name = declName adt
    in ADT name 0 (conTreeTypeMap (saturate t as) <$> declCons adt)
---      where -- PROB!
 
--- |Substitute variables in type with the
+-- |Substitute variables in a type with the provided types
 saturate :: ref -> [Type ref] -> Type (ADTRef ref) -> Type ref
 saturate ref vs (TypeApp a b) = TypeApp (saturate ref vs a) (saturate ref vs b)
 saturate _   vs (TypeCon (Var n)) = vs !! fromIntegral n -- Different!
 saturate _    _  (TypeCon (Ext r)) = TypeCon r
 saturate selfRef _  (TypeCon Rec) = TypeCon selfRef
 
-saturate2 :: ref -> [ref] -> Type (ADTRef ref) -> Type ref
-saturate2 ref vs t = subs ref vs <$> t
-  where
-    subs _       vs (Var n) = vs !! fromIntegral n
-    subs selfRef vs Rec     = selfRef
-    subs _       _  (Ext r) = r
-
----------- ADT dependencies
--- |Mutual dependencies, for every entry the list of mutual dependencies
--- >>>mutualDeps (M.fromList [("a",["b","c"]),("b",["a","c"]),("c",[])])
--- fromList [("a",["b"]),("b",["a"]),("c",[])]
--- mutualDeps :: (Ord a, Show a) => M.Map a [a] -> M.Map a [a]
--- mutualDeps deps = M.mapWithKey (\n ds -> filter (\o -> n `elem` (solve o deps)) ds) deps
-
-innerReferences = nub . catMaybes . map getADTRef . references
-
-references = nub . toList
+-- saturate2 :: ref -> [ref] -> Type (ADTRef ref) -> Type ref
+-- saturate2 ref vs t = subs ref vs <$> t
+--   where
+--     subs _       vars (Var n) = vars !! fromIntegral n
+--     subs selfRef _    Rec     = selfRef
+--     subs _       _    (Ext r) = r
 
 
-
--- |Direct and indirect references from an adt to other adts
--- recDeps = dependencies getHRef
 
 
