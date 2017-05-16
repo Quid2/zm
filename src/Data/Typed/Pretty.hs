@@ -37,10 +37,11 @@ import           Text.PrettyPrint.HughesPJClass
 import           Text.Printf
 
 -- |Convert the textual representation of a hash code to its equivalent value
-unPrettyRef :: String -> SHA3_256_6 a
-unPrettyRef ('S':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
+unPrettyRef :: String -> SHAKE128_48 a
+unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHAKE128_48 k1 k2 k3 k4 k5 k6
+--unPrettyRef :: String -> SHA3_256_6 a
+--unPrettyRef ('S':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
 unPrettyRef code = error $ "unPrettyRef: unknown code " ++ show code
--- unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHAKE128_48 k1 k2 k3 k4 k5 k6
 
 -- |Display a Word in hexadecimal format
 hex :: Word8 -> String

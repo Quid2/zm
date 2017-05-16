@@ -1,42 +1,112 @@
-name:                typed
-version:             0.1.3
-synopsis:            Language independent, reproducible, absolute types
-description:         See the <http://github.com/tittoassini/typed online tutorial>.
-homepage:            http://github.com/tittoassini/typed
+name: typed
+version: 0.1.5
+synopsis: Language independent, reproducible, absolute types
+description:
+    See the <http://github.com/tittoassini/typed online tutorial>.
+homepage: http://github.com/tittoassini/typed
+category: Data,Reflection
 license:             BSD3
 license-file:        LICENSE
 author:              Pasqualino `Titto` Assini
 maintainer:          tittoassini@gmail.com
 copyright:           Copyright: (c) 2016 Pasqualino `Titto` Assini
-category:            Data,Reflection
-build-type:          Simple
-cabal-version:       >=1.10
-extra-source-files: stack.yaml
-
-library
-  hs-source-dirs:      src
-  js-sources: jsbits/sha3.js
-  default-language:    Haskell2010
-  exposed-modules:     Data.Digest.Keccak,Data.Typed,Data.Typed.Abs,Data.Typed.BLOB,Data.Typed.Type.Array,Data.Typed.Type.BLOB,Data.Typed.Type.Bit,Data.Typed.Type.Bits8,Data.Typed.Type.Bits11,Data.Typed.Type.Bits23,Data.Typed.Type.Bits52,Data.Typed.Type.Char,Data.Typed.Type.Float32,Data.Typed.Type.Float64,Data.Typed.Type.List,Data.Typed.Type.NonEmptyList,Data.Typed.Type.Map,Data.Typed.Type.Tuples,Data.Typed.Type.Unit,Data.Typed.Type.Words,Data.Typed.Dynamic,Data.Typed.Type.Generate,Data.Typed.Pretty,Data.Typed.Model,Data.Typed.Transform,Data.Typed.Types,Data.Typed.Util,Data.Typed.Pretty.Value
-
-  build-depends: ListLike, base >= 4.8 && < 5, bytestring, containers, deepseq, directory, filepath, flat>=0.2, model, mtl, pretty, semigroups >= 0.18, syb >= 0.6, template-haskell, text, transformers, pretty-show
-  ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
-
-  if impl(ghcjs)
-    build-depends:     ghcjs-base        >= 0.2 && < 0.3
-  else
-    build-depends: cryptonite>=0.22, memory
-
-test-suite typed-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  other-modules: Info,Test.Data,Test.Data.Flat,Test.Data.Model,Test.Data2,Test.Data2.Flat,Test.Data3,Test.Data3.Flat
-  build-depends:       base,containers,bytestring,text,tasty,tasty-hunit,tasty-quickcheck,pretty,ListLike
-                       , flat, model, typed, timeit
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
+cabal-version: >=1.10
+build-type: Simple
+Tested-With: GHC == 7.10.3 GHC == 8.0.1 GHC == 8.0.2
+extra-source-files:
+    stack.yaml
+    stack710.yaml
+    stack801.yaml
+    stack802.yaml
+    README.md
 
 source-repository head
-  type:     git
-  location: https://github.com/tittoassini/typed
+    type: git
+    location: https://github.com/tittoassini/typed
+
+library
+    
+    if impl(ghcjs -any)
+        build-depends:
+            ghcjs-base >=0.2 && <0.3
+    else
+        build-depends:
+            cryptonite >=0.22,
+            memory >=0.13
+    exposed-modules:
+        Data.Digest.Keccak
+        Data.Typed
+        Data.Typed.Abs
+        Data.Typed.BLOB
+        Data.Typed.Type.Array
+        Data.Typed.Type.BLOB
+        Data.Typed.Type.Bit
+        Data.Typed.Type.Bits8
+        Data.Typed.Type.Bits11
+        Data.Typed.Type.Bits23
+        Data.Typed.Type.Bits52
+        Data.Typed.Type.Char
+        Data.Typed.Type.Float32
+        Data.Typed.Type.Float64
+        Data.Typed.Type.List
+        Data.Typed.Type.NonEmptyList
+        Data.Typed.Type.Map
+        Data.Typed.Type.Tuples
+        Data.Typed.Type.Unit
+        Data.Typed.Type.Words
+        Data.Typed.Dynamic
+        Data.Typed.Type.Generate
+        Data.Typed.Pretty
+        Data.Typed.Model
+        Data.Typed.Transform
+        Data.Typed.Types
+        Data.Typed.Util
+        Data.Typed.Pretty.Value
+    build-depends:
+        ListLike >=4.2.1,
+        base >=4.8 && <5,
+        bytestring >=0.10.6.0,
+        containers >=0.5.6.2,
+        deepseq >=1.4.1.1,
+        flat >=0.3,
+        model >=0.3,
+        mtl >=2.2.1,
+        pretty >=1.1.2.0,
+        semigroups >=0.18,
+        text >=1.2.2.1,
+        transformers >=0.4.2.0
+    js-sources:
+        jsbits/sha3.js
+    default-language: Haskell2010
+    hs-source-dirs: src
+    ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
+
+test-suite typed-test
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    build-depends:
+        base >=4.8.2.0,
+        containers >=0.5.6.2,
+        bytestring >=0.10.6.0,
+        text >=1.2.2.1,
+        tasty >=0.11.2,
+        tasty-hunit >=0.9.2,
+        tasty-quickcheck >=0.8.4,
+        pretty >=1.1.2.0,
+        ListLike >=4.2.1,
+        flat >=0.3,
+        model >=0.3,
+        typed >=0.1.3,
+        timeit >=1.0.0.0
+    default-language: Haskell2010
+    hs-source-dirs: test
+    other-modules:
+        Info
+        Test.Data
+        Test.Data.Flat
+        Test.Data.Model
+        Test.Data2
+        Test.Data2.Flat
+        Test.Data3
+        Test.Data3.Flat
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N

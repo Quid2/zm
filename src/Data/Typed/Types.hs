@@ -63,17 +63,16 @@ import           Data.Word
 type AbsType = Type AbsRef
 
 -- |A reference to an absolute data type definition, in the form of a hash of the data type definition itself
-data AbsRef = AbsRef (SHA3_256_6 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
-
--- data AbsRef = AbsRef (SHAKE128_48 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
+-- data AbsRef = AbsRef (SHA3_256_6 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
+data AbsRef = AbsRef (SHAKE128_48 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
 -- |Return the absolute reference of the given value
 absRef :: Flat r => r -> AbsRef
--- absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . shake_128 6 . L.toStrict . flat $ a
---            in AbsRef $ SHAKE128_48 w1 w2 w3 w4 w5 w6
+absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . shake_128 6 . flat $ a
+           in AbsRef $ SHAKE128_48 w1 w2 w3 w4 w5 w6
 
-absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . sha3_256 6 . flat $ a
-           in AbsRef $ SHA3_256_6 w1 w2 w3 w4 w5 w6
+-- absRef a = let [w1,w2,w3,w4,w5,w6] = B.unpack . sha3_256 6 . flat $ a
+--            in AbsRef $ SHA3_256_6 w1 w2 w3 w4 w5 w6
 
 -- |A hash of a value, the first 6 bytes of the value's SHA3-256 hash
 data SHA3_256_6 a = SHA3_256_6 Word8 Word8 Word8 Word8 Word8 Word8
