@@ -1,6 +1,5 @@
-pvp-bounds: lower
-
-resolver: lts-6.31
+#resolver: lts-6.31
+resolver: lts-7.21
 
 extra-deps:
 - model-0.3
