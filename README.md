@@ -1,8 +1,7 @@
 
-
 [![Build Status](https://travis-ci.org/tittoassini/zm.svg?branch=master)](https://travis-ci.org/tittoassini/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
 
-
+Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf).
 
 ### How To Use It For Fun and Profit
 
