@@ -1,6 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 -- |Utilities to operate on the absolute type model
-module Data.Typed.Transform (
+module ZM.Transform (
     -- * Saturated ADTs
     MapTypeTree,
     typeTree,
@@ -21,8 +21,8 @@ import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Model.Util           (transitiveClosure)
-import           Data.Typed.Types
-import           Data.Typed.Util
+import           ZM.Types
+import           ZM.Util
 
 -- |A map of fully applied types to the corresponding saturated constructor tree
 type MapTypeTree = M.Map (Type AbsRef) (ConTree Identifier AbsRef)

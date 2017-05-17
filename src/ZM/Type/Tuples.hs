@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
-module Data.Typed.Type.Tuples (
+module ZM.Type.Tuples (
     Tuple2(..),
     Tuple3(..),
     Tuple4(..),

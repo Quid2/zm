@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Map(Map) where
+module ZM.Type.Map(Map) where
 import           Data.Model
-import           Data.Typed.Type.List
-import           Data.Typed.Type.Tuples
+import           ZM.Type.List
+import           ZM.Type.Tuples
 
 -- |A Map is represented as a list of key and value couples
 data Map a b = Map (List (Tuple2 a b)) deriving Generic

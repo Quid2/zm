@@ -6,13 +6,13 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 
 -- |Derive absolute/canonical data type models
-module Data.Typed.Abs (absType,absTypeModel,absTypeModelMaybe) where
+module ZM.Abs (absType,absTypeModel,absTypeModelMaybe) where
 
 import           "mtl" Control.Monad.Reader
 import qualified Data.ListLike.String as L
 import qualified Data.Map             as M
 import           Data.Model
-import           Data.Typed.Types
+import           ZM.Types
 
 -- |Derive an absolute type for a type, or throw an error if derivation is impossible
 absType :: Model a => Proxy a -> AbsType

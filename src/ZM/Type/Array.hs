@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Array(Array,Bytes) where
+module ZM.Type.Array(Array,Bytes) where
 import           Data.Flat.Filler
 import           Data.Model
-import           Data.Typed.Type.Generate
-import qualified Data.Typed.Type.Words    as Z
+import           ZM.Type.Generate
+import qualified ZM.Type.Words    as Z
 
 {-|An Array.
 

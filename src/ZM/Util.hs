@@ -1,4 +1,4 @@
-module Data.Typed.Util(
+module ZM.Util(
   proxyOf
   -- *State Monad utilities
   ,runEnv

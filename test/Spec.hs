@@ -21,7 +21,7 @@ import           Data.Maybe
 import           Data.Model            hiding (Name)
 import qualified Data.Sequence         as S
 import qualified Data.Text             as T
-import           Data.Typed
+import           ZM
 import           Data.Word
 import           Debug.Trace
 import           Info

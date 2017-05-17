@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Words (
+module ZM.Type.Words (
     Sign(..),
     Word7(..),
     Word(..),
@@ -21,8 +21,8 @@ module Data.Typed.Type.Words (
 import Prelude hiding (Word,Int)
 import           Data.Flat
 import           Data.Model
-import           Data.Typed.Type.NonEmptyList
-import           Data.Typed.Type.Generate
+import           ZM.Type.NonEmptyList
+import           ZM.Type.Generate
 import qualified Data.Word             as H
 
 {- |

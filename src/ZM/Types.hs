@@ -5,7 +5,7 @@
 {-# LANGUAGE DeriveTraversable   #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Data.Typed.Types (
+module ZM.Types (
     -- * Model
     module Data.Model.Types,
     AbsTypeModel,
@@ -51,10 +51,10 @@ import qualified Data.ListLike.String         as L
 import qualified Data.Map                     as M
 import           Data.Model hiding (Name)
 import Data.Model.Types  hiding (Name)
-import Data.Typed.Model()
-import           Data.Typed.Type.BLOB
-import           Data.Typed.Type.NonEmptyList
-import           Data.Typed.Type.Words        (LeastSignificantFirst (..),
+import ZM.Model()
+import           ZM.Type.BLOB
+import           ZM.Type.NonEmptyList
+import           ZM.Type.Words        (LeastSignificantFirst (..),
                                                MostSignificantFirst (..), Word7,
                                                ZigZag (..))
 import           Data.Word

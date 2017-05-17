@@ -1,11 +1,11 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Float32(IEEE_754_binary32(..)) where
+module ZM.Type.Float32(IEEE_754_binary32(..)) where
 
 import           Data.Model
-import           Data.Typed.Type.Bits8
-import           Data.Typed.Type.Bits23
-import           Data.Typed.Type.Words
+import           ZM.Type.Bits8
+import           ZM.Type.Bits23
+import           ZM.Type.Words
 
 -- |An IEEE-754 Big Endian 32 bits Float
 data IEEE_754_binary32 =

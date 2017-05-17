@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |Generate the large constructor trees of some primitive types (Array,Word8,Word7)
-module Data.Typed.Type.Generate (arrayCT, word8CT, word7CT) where
+module ZM.Type.Generate (arrayCT, word8CT, word7CT) where
 
 import Data.Model.Types
 

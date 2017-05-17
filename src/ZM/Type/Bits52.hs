@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Bits52 where
-import Data.Typed.Type.Bit
+module ZM.Type.Bits52 where
+import ZM.Type.Bit
 import Data.Flat
 import Data.Model
 

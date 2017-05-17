@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 -- |Binary Large OBjects (BLOBs)
-module Data.Typed.Type.BLOB (
+module ZM.Type.BLOB (
     BLOB(..),
     UTF8Encoding(..),
     UTF16LEEncoding(..),
@@ -12,7 +12,7 @@ module Data.Typed.Type.BLOB (
 import           Control.DeepSeq
 import           Data.Flat
 import           Data.Model
-import           Data.Typed.Type.Array
+import           ZM.Type.Array
 
 -- |A BLOB is binary value encoded according to a specified encoding (e.g. UTF8)
 data BLOB encoding = BLOB {encoding::encoding,content::Bytes} deriving Generic

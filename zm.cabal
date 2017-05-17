@@ -1,9 +1,9 @@
-name: typed
+name: zm
 version: 0.1.5
 synopsis: Language independent, reproducible, absolute types
 description:
-    See the <http://github.com/tittoassini/typed online tutorial>.
-homepage: http://github.com/tittoassini/typed
+    See the <http://github.com/tittoassini/zm online tutorial>.
+homepage: http://github.com/tittoassini/zm
 category: Data,Reflection
 license:             BSD3
 license-file:        LICENSE
@@ -22,7 +22,7 @@ extra-source-files:
 
 source-repository head
     type: git
-    location: https://github.com/tittoassini/typed
+    location: https://github.com/tittoassini/zm
 
 library
     
@@ -35,33 +35,33 @@ library
             memory >=0.13
     exposed-modules:
         Data.Digest.Keccak
-        Data.Typed
-        Data.Typed.Abs
-        Data.Typed.BLOB
-        Data.Typed.Type.Array
-        Data.Typed.Type.BLOB
-        Data.Typed.Type.Bit
-        Data.Typed.Type.Bits8
-        Data.Typed.Type.Bits11
-        Data.Typed.Type.Bits23
-        Data.Typed.Type.Bits52
-        Data.Typed.Type.Char
-        Data.Typed.Type.Float32
-        Data.Typed.Type.Float64
-        Data.Typed.Type.List
-        Data.Typed.Type.NonEmptyList
-        Data.Typed.Type.Map
-        Data.Typed.Type.Tuples
-        Data.Typed.Type.Unit
-        Data.Typed.Type.Words
-        Data.Typed.Dynamic
-        Data.Typed.Type.Generate
-        Data.Typed.Pretty
-        Data.Typed.Model
-        Data.Typed.Transform
-        Data.Typed.Types
-        Data.Typed.Util
-        Data.Typed.Pretty.Value
+        ZM
+        ZM.Abs
+        ZM.BLOB
+        ZM.Type.Array
+        ZM.Type.BLOB
+        ZM.Type.Bit
+        ZM.Type.Bits8
+        ZM.Type.Bits11
+        ZM.Type.Bits23
+        ZM.Type.Bits52
+        ZM.Type.Char
+        ZM.Type.Float32
+        ZM.Type.Float64
+        ZM.Type.List
+        ZM.Type.NonEmptyList
+        ZM.Type.Map
+        ZM.Type.Tuples
+        ZM.Type.Unit
+        ZM.Type.Words
+        ZM.Dynamic
+        ZM.Type.Generate
+        ZM.Pretty
+        ZM.Model
+        ZM.Transform
+        ZM.Types
+        ZM.Util
+        ZM.Pretty.Value
     build-depends:
         ListLike >=4.2.1,
         base >=4.8 && <5,
@@ -81,7 +81,7 @@ library
     hs-source-dirs: src
     ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
 
-test-suite typed-test
+test-suite zm-test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     build-depends:
@@ -96,7 +96,7 @@ test-suite typed-test
         ListLike >=4.2.1,
         flat >=0.3,
         model >=0.3,
-        typed >=0.1.3,
+        zm >=0.1.3,
         timeit >=1.0.0.0
     default-language: Haskell2010
     hs-source-dirs: test

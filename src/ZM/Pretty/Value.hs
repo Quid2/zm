@@ -6,7 +6,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 -- |Pretty Instance for Value (displays a Value as the corresponding Haskell value)
-module Data.Typed.Pretty.Value () where
+module ZM.Pretty.Value () where
 
 import qualified Data.ByteString                as B
 import           Data.Char                      (chr)
@@ -15,11 +15,11 @@ import           Data.Int
 import           Data.Maybe
 import           Data.Model
 import qualified Data.Sequence                  as S
-import           Data.Typed.Abs
-import           Data.Typed.BLOB
-import           Data.Typed.Pretty
-import           Data.Typed.Type.Array          (Bytes)
-import           Data.Typed.Types
+import           ZM.Abs
+import           ZM.BLOB
+import           ZM.Pretty
+import           ZM.Type.Array          (Bytes)
+import           ZM.Types
 import           Data.Word
 import           Data.ZigZag
 import           Text.PrettyPrint.HughesPJClass

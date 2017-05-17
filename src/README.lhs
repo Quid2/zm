@@ -24,7 +24,7 @@ Let's see some code, we need a couple of GHC extensions:
 
 Import the library:
 
-> import Data.Typed
+> import ZM
 >> import Data.Word
 
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
@@ -88,7 +88,7 @@ To demonstrate this, let's serialise `Center` and `Corniglia`, the third value o
 
 As you can see they have the same binary representation.
 
-We have used the `flat` binary serialisation as it is already a dependency of `zm` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
+We have used the `flat` binary serialisation as it is already a dependency of `zm` (and automatically imported by `ZM`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
 
 Let's go full circle, using `unflat` to decode the value :
 

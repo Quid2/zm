@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
-module Data.Typed.Type.List(List(..)) where
+module ZM.Type.List(List(..)) where
 
 import           Control.DeepSeq
 import           Data.Flat

@@ -2,11 +2,11 @@
 module Info where
 
 import           Data.Int
-import           Data.Typed
+import           ZM
 import           Data.Word
 import           Test.Data       hiding (Unit)
-import           Test.Data.Flat  hiding (Unit)
-import           Test.Data.Model
+-- import           Test.Data.Flat  hiding (Unit)
+import           Test.Data.Model()
 import qualified Test.Data2      as Data2
 import qualified Test.Data3      as Data3
 import qualified Data.Sequence         as S

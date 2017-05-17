@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-module Data.Typed.BLOB (
+module ZM.BLOB (
     BLOB(..),
     blob,
     unblob,
@@ -24,11 +24,11 @@ import qualified Data.ByteString         as B
 import           Data.ByteString.Convert
 import           Data.Flat
 import           Data.Model
-import           Data.Typed.Abs
-import           Data.Typed.Model        ()
-import qualified Data.Typed.Type.BLOB    as Z
-import           Data.Typed.Types
-import           Data.Typed.Util
+import           ZM.Abs
+import           ZM.Model        ()
+import qualified ZM.Type.BLOB    as Z
+import           ZM.Types
+import           ZM.Util
 
 -- |A BLOB is binary value encoded according to a specified encoding (e.g. UTF8)
 data BLOB encoding = BLOB {encoding::encoding,content::B.ByteString}

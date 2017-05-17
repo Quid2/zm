@@ -3,7 +3,7 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
-module Data.Typed.Type.NonEmptyList(NonEmptyList(..),nonEmptyList) where
+module ZM.Type.NonEmptyList(NonEmptyList(..),nonEmptyList) where
 
 import           Control.DeepSeq
 import           Data.Flat

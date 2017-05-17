@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |Dynamical decoding of serialised typed values
-module Data.Typed.Dynamic(
+module ZM.Dynamic(
   decodeAbsTypeModel
   ,typeDecoder
   ,typeDecoderMap
@@ -13,8 +13,8 @@ import           Data.Flat
 import qualified Data.ListLike.String as S
 import qualified Data.Map             as M
 import           Data.Model
-import           Data.Typed.Transform
-import           Data.Typed.Types
+import           ZM.Transform
+import           ZM.Types
 
 -- | Decode a Flat encoded value with a known type model to the corresponding Value
 decodeAbsTypeModel :: AbsTypeModel -> B.ByteString -> Decoded Value

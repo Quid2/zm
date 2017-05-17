@@ -1,6 +1,6 @@
 -- |Model for mutually recursive data 
 module Data.Timeless.Mutual where
-import Data.Typed.Types
+import ZM.Types
 import Data.Word
 
 -- Mutual recursive data types

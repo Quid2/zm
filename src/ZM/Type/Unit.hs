@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module Data.Typed.Type.Unit where
+module ZM.Type.Unit where
 import Data.Model
 
 -- |The Unit type

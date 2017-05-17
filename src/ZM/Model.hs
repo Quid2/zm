@@ -8,7 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |Mapping of basic Haskell types to equivalent ZhengMing types (Char, (), Words, Ints, Floats, Text, Tuples, List, Seq, Map)
-module Data.Typed.Model () where
+module ZM.Model () where
 
 import qualified Data.ByteString         as B
 import qualified Data.ByteString.Lazy    as L
@@ -19,16 +19,16 @@ import qualified Data.Map                as M
 import           Data.Model
 import qualified Data.Sequence           as S
 import           Data.Text               (Text)
-import           Data.Typed.Type.Array
-import qualified Data.Typed.Type.BLOB    as Z
-import qualified Data.Typed.Type.Char    as Z
-import           Data.Typed.Type.Float32
-import           Data.Typed.Type.Float64
-import           Data.Typed.Type.List
-import qualified Data.Typed.Type.Map     as Z
-import           Data.Typed.Type.Tuples
-import           Data.Typed.Type.Unit
-import qualified Data.Typed.Type.Words   as Z
+import           ZM.Type.Array
+import qualified ZM.Type.BLOB    as Z
+import qualified ZM.Type.Char    as Z
+import           ZM.Type.Float32
+import           ZM.Type.Float64
+import           ZM.Type.List
+import qualified ZM.Type.Map     as Z
+import           ZM.Type.Tuples
+import           ZM.Type.Unit
+import qualified ZM.Type.Words   as Z
 import qualified Data.Word               as H
 import qualified Prelude                 as H
 import           Type.Analyse

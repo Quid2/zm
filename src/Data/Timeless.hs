@@ -16,10 +16,10 @@ module Data.Timeless (
 import qualified Data.ByteString  as B
 import           Data.Flat
 import           Data.Model
-import           Data.Typed.Abs
-import           Data.Typed.BLOB
+import           ZM.Abs
+import           ZM.BLOB
 
-import           Data.Typed.Types
+import           ZM.Types
 
 {-
 Dynamically recover a value, discover metamodel of a data type, its type

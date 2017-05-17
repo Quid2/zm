@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 -- |Pretty instances for some basic Haskell types and for data type models
-module Data.Typed.Pretty (
+module ZM.Pretty (
     module Data.Model.Pretty,
     hex,
     unPrettyRef,
@@ -26,10 +26,10 @@ import           Data.Ord
 import qualified Data.Sequence                  as S
 import qualified Data.Text                      as T
 import qualified Data.Text.Encoding             as T
-import           Data.Typed.BLOB
-import           Data.Typed.Model               ()
-import           Data.Typed.Transform
-import           Data.Typed.Types
+import           ZM.BLOB
+import           ZM.Model               ()
+import           ZM.Transform
+import           ZM.Types
 import           Data.Word
 import           Numeric                        (readHex)
 import           Text.ParserCombinators.ReadP   hiding (char)
