@@ -34,7 +34,7 @@ import ZM
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 ```haskell
-prt = pPrint -- . CompactPretty
+prt = pPrint
 ```
 
 ```haskell
