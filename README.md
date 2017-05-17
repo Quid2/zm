@@ -1,11 +1,12 @@
 
-[![Build Status](https://travis-ci.org/tittoassini/typed.svg?branch=master)](https://travis-ci.org/tittoassini/typed) [![Hackage version](https://img.shields.io/hackage/v/typed.svg)](http://hackage.haskell.org/package/typed)
 
-Haskell implementation of canonical, language independent data types.
+[![Build Status](https://travis-ci.org/tittoassini/zm.svg?branch=master)](https://travis-ci.org/tittoassini/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
+
+
 
 ### How To Use It For Fun and Profit
 
-With `typed` you can derive and manipulate canonical description of (a subset) of Haskell data types.
+With `zm` you can derive and manipulate canonical and language-independent definitions and unique identifiers of (a subset) of Haskell data types.
 
 This can be used, for example:
 
@@ -17,7 +18,7 @@ This can be used, for example:
 
 For a data type to have a canonical representation, it has to implement the `Model` type class.
 
-Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined (in `Data.Typed.Instances`) and there is `Generics` based support to automatically derive additional instances.
+Instances for a few common data types (Bool, Maybe, Tuples, Lists, Ints, Words, String, Text ..) are already defined and there is `Generics` based support to automatically derive additional instances.
 
 Let's see some code, we need a couple of GHC extensions:
 
@@ -28,13 +29,7 @@ Let's see some code, we need a couple of GHC extensions:
 Import the library:
 
 ```haskell
-import Data.Typed
-```
-
-We will need this too, for the examples.
-
-```haskell
-import Data.Word
+import ZM
 ```
 
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
@@ -45,35 +40,39 @@ prt = pPrint . CompactPretty
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
--> S793d1387f115 S81d428306f1d -> Maybe Bool
+-> Type:
 -> 
--> Data Types:
--> S793d1387f115 ->  Maybe a ≡   Nothing
-->                             | Just a
--> S81d428306f1d ->  Bool ≡   False
-->                          | True
+-> Kda6836778fd4 K306f1981b41c:
+-> Maybe Bool
+-> 
+-> ...
+->         | True
+-> 
+-> Kda6836778fd4:
+->  Maybe a ≡   Nothing
+->            | Just a
 ```
 
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
-Contrary to Haskell, `typed` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
+Contrary to Haskell, `ZhengMing` has no 'magic' built-in types so even something as basic as a `Char` or a `Word` have to be defined explicitly.
 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Word7)
--> Sb1f0655240ab -> Word7
+-> Type:
 -> 
--> Data Types:
--> Sb1f0655240ab ->  Word7 ≡   V0
-->                           | V1
+-> Kf4c946334a7e:
+-> Word7
+-> 
 -> ...
-->                           | V123
-->                           | V124
-->                           | V125
-->                           | V126
-->                           | V127
+->          | V123
+->          | V124
+->          | V125
+->          | V126
+->          | V127
 ```
 
 
@@ -81,17 +80,17 @@ A `Word32` can be defined as a `NonEmptyList` list of `Word7`s (a definition equ
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Word32)
--> S37c45c448792 -> Word32
+-> Type:
 -> 
--> Data Types:
--> S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
--> S37c45c448792 ->  Word32 ≡ Word32 Word
+-> K2412799c99f1:
+-> Word32
+-> 
 -> ...
-->                           | V123
-->                           | V124
-->                           | V125
-->                           | V126
-->                           | V127
+->          | V123
+->          | V124
+->          | V125
+->          | V126
+->          | V127
 ```
 
 
@@ -99,17 +98,17 @@ And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
 prt $ absTypeModel (Proxy :: Proxy Char)
--> S07755d0e181d -> Char
+-> Type:
 -> 
--> Data Types:
--> S07755d0e181d ->  Char ≡ Char Word32
--> S081ae65ed81f ->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> K066db52af145:
+-> Char
+-> 
 -> ...
-->                           | V123
-->                           | V124
-->                           | V125
-->                           | V126
-->                           | V127
+->          | V123
+->          | V124
+->          | V125
+->          | V126
+->          | V127
 ```
 
 
@@ -121,7 +120,7 @@ So for example, these won't work:
 
 ```haskell
 -- BAD: f has higher kind
-data Free = Impure (f (Free f a)) | Pure a
+data Free f a = Impure (f (Free f a)) | Pure a
 
 -- BAD: mutually recursive
 data Forest a = Nil | Cons (Tree a) (Forest a)
@@ -151,25 +150,25 @@ Though their meaning is obviously different they share the same syntactical stru
 To demonstrate this, let's serialise `Center` and `Corniglia`, the third value of each enumeration using the `flat` library.
 
 ```haskell
-pPrint $ flatStrict Center
--> [129]
+pPrint $ flat Center
+-> [ 129 ]
 ```
 
 
 ```haskell
-pPrint $ flatStrict Corniglia
--> [129]
+pPrint $ flat Corniglia
+-> [ 129 ]
 ```
 
 
 As you can see they have the same binary representation.
 
-We have used the `flat` binary serialisation as it is already a dependency of `typed` (and automatically imported by `Data.Typed`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
+We have used the `flat` binary serialisation as it is already a dependency of `zm` (and automatically imported by `ZM`) but the same principle apply to other serialisation libraries (`binary`, `cereal` ..).
 
 Let's go full circle, using `unflat` to decode the value :
 
 ```haskell
-decoded = unflat . flatStrict
+decoded = unflat . flat
 ```
 
 ```haskell
@@ -194,7 +193,7 @@ To fix this, we convert the value to a `TypedValue`, a value combined with its c
 
 ```haskell
 pPrint $ typedValue Center
--> Center :: Sc27a1135e194
+-> Center :: K170d0e47bef6
 ```
 
 
@@ -202,7 +201,7 @@ TypedValues can be serialised as any other value:
 
 ```haskell
 pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue Direction))
--> Right Center :: Sc27a1135e194
+-> Right Center :: K170d0e47bef6
 ```
 
 
@@ -210,7 +209,7 @@ And just as before, we can get things wrong:
 
 ```haskell
 pPrint <$> (decoded $ typedValue Center :: Decoded (TypedValue CinqueTerre))
--> Right Corniglia :: Sc27a1135e194
+-> Right Corniglia :: K170d0e47bef6
 ```
 
 
@@ -218,14 +217,19 @@ However this time is obvious that the value is inconsistent with its type, as th
 
 ```haskell
 pPrint $ absTypeModel (Proxy :: Proxy CinqueTerre)
--> Sabe8a4afc323 -> CinqueTerre
+-> Type:
 -> 
--> Data Types:
--> Sabe8a4afc323 ->  CinqueTerre ≡   Monterosso
-->                                 | Vernazza
-->                                 | Corniglia
-->                                 | Manarola
-->                                 | RioMaggiore
+-> K747ebaa65778:
+-> CinqueTerre
+-> 
+-> Environment:
+-> 
+-> K747ebaa65778:
+->  CinqueTerre ≡   Monterosso
+->                | Vernazza
+->                | Corniglia
+->                | Manarola
+->                | RioMaggiore
 ```
 
 
@@ -243,7 +247,12 @@ And this is wrong:
 
 ```haskell
 untypedValue . decoded . typedValue $ Center :: TypedDecoded CinqueTerre
--> Left (WrongType {expectedType = TypeCon (AbsRef (SHA3_256_6 171 232 164 175 195 35)), actualType = TypeCon (AbsRef (SHA3_256_6 194 122 17 53 225 148))})
+-> Left
+->   WrongType
+->     { expectedType =
+->         TypeCon (AbsRef (SHAKE128_48 116 126 186 166 87 120))
+->     , actualType = TypeCon (AbsRef (SHAKE128_48 23 13 14 71 190 246))
+->     }
 ```
 
 
@@ -290,21 +299,15 @@ Or use a dynamic decder to directly show the value.
 The final system will also keep track of the documentation that comes with the types to give you a fully human understandable description of the data.
 -->
 
+### Haskell Compatibility
+
+Tested with:
+  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.1 and 8.0.2 (x64)
+  * [ghcjs](https://github.com/ghcjs/ghcjs)
+
 ### Installation
 
-It is not yet on [hackage](https://hackage.haskell.org/) but you can use it in your [stack](https://docs.haskellstack.org/en/stable/README/) projects by adding in the `stack.yaml` file, under the `packages` section:
-
-````
-- location:
-   git: https://github.com/tittoassini/typed
-   commit: 
-  extra-dep: true
-
-````
-
-### Compatibility
-
-Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1 and [ghcjs](https://github.com/ghcjs/ghcjs).
+ Get the latest stable version from [hackage](https://hackage.haskell.org/package/zm).
 
 ### Acknowledgements
  Contains the following JavaScript library:
@@ -319,4 +322,3 @@ Tested with [ghc](https://www.haskell.org/ghc/) 7.10.3 and 8.0.1 and [ghcjs](htt
 
 * The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
-

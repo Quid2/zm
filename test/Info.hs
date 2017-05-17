@@ -40,6 +40,8 @@ models = [
     ,typ (Proxy :: Proxy (Either Bool ()))
     ,typ (Proxy :: Proxy (Either Bool Bool))
     ,typ (Proxy :: Proxy (RR Un () N))
+    ,typ (Proxy :: Proxy (BLOB UTF8Encoding))
+    ,typ (Proxy :: Proxy (BLOB UTF16LEEncoding))
     ]
   where typ = absTypeModel
 
@@ -70,4 +72,7 @@ codes = [TypeApp (TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 62 130 87 37 92
         ,TypeApp (TypeCon (AbsRef (SHAKE128_48 204 16 207 144 173 119))) (TypeCon (AbsRef (SHAKE128_48 121 74 239 110 33 170)))
         ,TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 98 96 228 101 174 116))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))) (TypeCon (AbsRef (SHAKE128_48 121 74 239 110 33 170)))
         ,TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 98 96 228 101 174 116))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
-        ,TypeApp (TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 58 94 167 13 35 164))) (TypeCon (AbsRef (SHAKE128_48 116 153 36 195 148 43)))) (TypeCon (AbsRef (SHAKE128_48 121 74 239 110 33 170)))) (TypeCon (AbsRef (SHAKE128_48 182 24 14 79 250 138)))]
+        ,TypeApp (TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 58 94 167 13 35 164))) (TypeCon (AbsRef (SHAKE128_48 116 153 36 195 148 43)))) (TypeCon (AbsRef (SHAKE128_48 121 74 239 110 33 170)))) (TypeCon (AbsRef (SHAKE128_48 182 24 14 79 250 138)))
+        ,TypeApp (TypeCon (AbsRef (SHAKE128_48 241 57 212 117 31 218))) (TypeCon (AbsRef (SHAKE128_48 15 68 139 232 5 128)))
+        ,TypeApp (TypeCon (AbsRef (SHAKE128_48 241 57 212 117 31 218))) (TypeCon (AbsRef (SHAKE128_48 193 183 198 207 63 81)))
+        ]

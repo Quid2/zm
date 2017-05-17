@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/tittoassini/typed.svg?branch=master)](https://travis-ci.org/tittoassini/typed) [![Hackage version](https://img.shields.io/hackage/v/typed.svg)](http://hackage.haskell.org/package/typed)
+[![Build Status](https://travis-ci.org/tittoassini/zm.svg?branch=master)](https://travis-ci.org/tittoassini/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
 
 Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf).
 
