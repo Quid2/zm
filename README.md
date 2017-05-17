@@ -1,7 +1,7 @@
 
 [![Build Status](https://travis-ci.org/tittoassini/zm.svg?branch=master)](https://travis-ci.org/tittoassini/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
 
-Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf).
+Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf)).
 
 ### How To Use It For Fun and Profit
 
@@ -34,7 +34,7 @@ import ZM
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
 
 ```haskell
-prt = pPrint . CompactPretty
+prt = pPrint -- . CompactPretty
 ```
 
 ```haskell
@@ -44,7 +44,10 @@ prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
 -> Kda6836778fd4 K306f1981b41c:
 -> Maybe Bool
 -> 
--> ...
+-> Environment:
+-> 
+-> K306f1981b41c:
+->  Bool ≡   False
 ->         | True
 -> 
 -> Kda6836778fd4:
@@ -66,6 +69,14 @@ prt $ absTypeModel (Proxy :: Proxy Word7)
 -> Kf4c946334a7e:
 -> Word7
 -> 
+-> Environment:
+-> 
+-> Kf4c946334a7e:
+->  Word7 ≡   V0
+->          | V1
+->          | V2
+->          | V3
+->          | V4
 -> ...
 ->          | V123
 ->          | V124
@@ -84,6 +95,30 @@ prt $ absTypeModel (Proxy :: Proxy Word32)
 -> K2412799c99f1:
 -> Word32
 -> 
+-> Environment:
+-> 
+-> K20ffacc8f8c9:
+->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+-> 
+-> K74e2b3b89941:
+->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> 
+-> Kbf2d1c86eb20:
+->  NonEmptyList a ≡   Elem a
+->                   | Cons a (NonEmptyList a)
+-> 
+-> Kf92e8339908a:
+->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+-> 
+-> K2412799c99f1:
+->  Word32 ≡ Word32 Word
+-> 
+-> Kf4c946334a7e:
+->  Word7 ≡   V0
+->          | V1
+->          | V2
+->          | V3
+->          | V4
 -> ...
 ->          | V123
 ->          | V124
@@ -102,6 +137,33 @@ prt $ absTypeModel (Proxy :: Proxy Char)
 -> K066db52af145:
 -> Char
 -> 
+-> Environment:
+-> 
+-> K066db52af145:
+->  Char ≡ Char Word32
+-> 
+-> K20ffacc8f8c9:
+->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+-> 
+-> K74e2b3b89941:
+->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> 
+-> Kbf2d1c86eb20:
+->  NonEmptyList a ≡   Elem a
+->                   | Cons a (NonEmptyList a)
+-> 
+-> Kf92e8339908a:
+->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+-> 
+-> K2412799c99f1:
+->  Word32 ≡ Word32 Word
+-> 
+-> Kf4c946334a7e:
+->  Word7 ≡   V0
+->          | V1
+->          | V2
+->          | V3
+->          | V4
 -> ...
 ->          | V123
 ->          | V124
