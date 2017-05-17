@@ -1,5 +1,4 @@
-resolver: lts-8.11
-
+resolver: lts-6.31
 extra-deps:
 - model-0.3
 - flat-0.3
