@@ -27,7 +27,7 @@ Import the library:
 > import ZM
 >> import Data.Word
 
-We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print is nicely:
+We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print it nicely:
 
 > prt = pPrint -- . CompactPretty
 
@@ -135,11 +135,13 @@ And this is wrong:
 For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
 
 <!--
- ### Long Term Data Preservation
+
+### Long Term Data Preservation
 
 For an example of using canonical data types as a long term data preservation mechanism see [timeless](https://github.com/tittoassini/timeless).
 
 Inspect the data to figure out its type dynamically
+
 
 So far so good but what if we lose the definitions of our data types?
 

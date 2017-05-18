@@ -81,6 +81,7 @@ instance Pretty Value where
 
          tuple (Value _ _ _ vs) = (False,tup vs)
 
+         -- BUG: why is this occasionally failing?
          prettyPrinter t = listToMaybe . map snd . filter fst . map (\(t2,p) -> (match t t2,p)) $ [
             (absType (Proxy::Proxy ()),\_ -> (False,text "()"))
            ,(absType (Proxy::Proxy Word8),\v -> (False,wrd v))
