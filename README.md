@@ -34,11 +34,7 @@ import ZM
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print it nicely:
 
 ```haskell
-prt = pPrint -- . CompactPretty
-```
-
-```haskell
-prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
+pPrint $ absTypeModel (Proxy :: Proxy (Maybe Bool))
 -> Type:
 -> 
 -> Kda6836778fd4 K306f1981b41c:
@@ -63,7 +59,7 @@ Contrary to Haskell, `ZhengMing` has no 'magic' built-in types so even something
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
 ```haskell
-prt $ absTypeModel (Proxy :: Proxy Word7)
+pPrint $ absTypeModel (Proxy :: Proxy Word7)
 -> Type:
 -> 
 -> Kf4c946334a7e:
@@ -89,7 +85,7 @@ prt $ absTypeModel (Proxy :: Proxy Word7)
 A `Word32` can be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
 ```haskell
-prt $ absTypeModel (Proxy :: Proxy Word32)
+pPrint $ absTypeModel (Proxy :: Proxy Word32)
 -> Type:
 -> 
 -> K2412799c99f1:
@@ -131,7 +127,7 @@ prt $ absTypeModel (Proxy :: Proxy Word32)
 And finally a `Char` can be defined as a tagged `Word32`:
 
 ```haskell
-prt $ absTypeModel (Proxy :: Proxy Char)
+pPrint $ absTypeModel (Proxy :: Proxy Char)
 -> Type:
 -> 
 -> K066db52af145:

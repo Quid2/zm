@@ -29,9 +29,7 @@ Import the library:
 
 We use `absTypeModel` to get the canonical type of `Maybe Bool` and `pPrint` to print it nicely:
 
-> prt = pPrint -- . CompactPretty
-
-> b2 = prt $ absTypeModel (Proxy :: Proxy (Maybe Bool))
+> b2 = pPrint $ absTypeModel (Proxy :: Proxy (Maybe Bool))
 
 We can see how the data types `Maybe` and `Bool` have been assigned unique canonical identifiers and how the type `Maybe Bool` is accordingly represented.
 
@@ -39,15 +37,15 @@ Contrary to Haskell, `ZhengMing` has no 'magic' built-in types so even something
 
 For example, a `Word7` (an unsigned integer of 7 bits length) is defined as an explicit enumeration of all the 128 different values that can fit in 7 bits:
 
-> b344 = prt $ absTypeModel (Proxy :: Proxy Word7)
+> b344 = pPrint $ absTypeModel (Proxy :: Proxy Word7)
 
 A `Word32` can be defined as a `NonEmptyList` list of `Word7`s (a definition equivalent to the [Base 128 Varints encoding](https://developers.google.com/protocol-buffers/docs/encoding#varints)).
 
-> b34 = prt $ absTypeModel (Proxy :: Proxy Word32)
+> b34 = pPrint $ absTypeModel (Proxy :: Proxy Word32)
 
 And finally a `Char` can be defined as a tagged `Word32`:
 
-> b3 = prt $ absTypeModel (Proxy :: Proxy Char)
+> b3 = pPrint $ absTypeModel (Proxy :: Proxy Char)
 
 Most common haskell data types can be automatically mapped to the equivalent canonical data type.
 
@@ -154,7 +152,6 @@ Better save them for posterity:
 sv = saveTypeIn theCloud (Couple One Tre)
 
 The type has been saved, with all its dependencies.
-TypeApp (TypeApp (TypeCon (CRC16 91 93)) (TypeCon (CRC16 79 130))) (TypeCon (CRC16 65 167))
 
 Now that they are safe in the Cloud we can happily burn our code
 in the knowledge that when we are presented with a binary of unknown type

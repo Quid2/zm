@@ -3,7 +3,8 @@ extra-deps:
 - model-0.3
 - flat-0.3
 - mono-traversable-1.0.2
-#- cryptonite-0.22
-- cryptonite-0.23
-- foundation-0.0.9
-- memory-0.14.5
+- cryptonite-0.22
+
+#- cryptonite-0.23
+#- foundation-0.0.9
+#- memory-0.14.5
