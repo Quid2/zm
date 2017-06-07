@@ -1,5 +1,7 @@
 
-[![Build Status](https://travis-ci.org/tittoassini/zm.svg?branch=master)](https://travis-ci.org/tittoassini/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
+[![Build Status](https://travis-ci.org/Quid2/zm.svg?branch=master)](https://travis-ci.org/Quid2/zm) [![Hackage version](https://img.shields.io/hackage/v/zm.svg)](http://hackage.haskell.org/package/zm)
+[![Stackage Nightly](http://stackage.org/package/zm/badge/nightly)](http://stackage.org/nightly/package/zm)
+[![Stackage LTS](http://stackage.org/package/zm/badge/lts)](http://stackage.org/lts/package/zm)
 
 Haskell implementation of 正名 (read as: [Zhèng Míng](https://translate.google.com/#auto/en/%E6%AD%A3%E5%90%8D)) a minimalistic, expressive and language independent data modelling language ([specs](http://quid2.org/docs/ZhengMing.pdf)).
 
@@ -315,7 +317,7 @@ untypedValue . decoded . typedValue $ Center :: TypedDecoded CinqueTerre
 
 ### Data Exchange
 
-For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/tittoassini/top), the Type Oriented Protocol.
+For an example of using canonical data types as a data exchange mechanism see [top](https://github.com/Quid2/top), the Type Oriented Protocol.
 
 
 ### Haskell Compatibility
