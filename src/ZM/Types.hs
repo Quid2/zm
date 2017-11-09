@@ -1,10 +1,11 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveFoldable      #-}
-{-# LANGUAGE DeriveFunctor       #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DeriveTraversable   #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveFoldable        #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 module ZM.Types (
     -- * Model
     module Data.Model.Types,
@@ -15,6 +16,7 @@ module ZM.Types (
     AbsADT,
     AbsEnv,
     ADTRef(..),
+    asIdentifier,
     Identifier(..),
     UnicodeLetter(..),
     UnicodeLetterOrNumberOrLine(..),
@@ -42,22 +44,22 @@ module ZM.Types (
 
 import           Control.DeepSeq
 import           Control.Exception
-import qualified Data.ByteString              as B
+import qualified Data.ByteString        as B
 import           Data.Char
 import           Data.Digest.Keccak
+import           Data.Either.Validation
 import           Data.Flat
-import           Data.Foldable                (toList)
-import qualified Data.ListLike.String         as L
-import qualified Data.Map                     as M
-import           Data.Model hiding (Name)
-import Data.Model.Types  hiding (Name)
-import ZM.Model()
+import           Data.Foldable
+import qualified Data.Map               as M
+import           Data.Model             hiding (Name)
+import           Data.Model.Types       hiding (Name)
+import           Data.Word
+import           ZM.Model               ()
 import           ZM.Type.BLOB
 import           ZM.Type.NonEmptyList
-import           ZM.Type.Words        (LeastSignificantFirst (..),
-                                               MostSignificantFirst (..), Word7,
-                                               ZigZag (..))
-import           Data.Word
+import           ZM.Type.Words          (LeastSignificantFirst (..),
+                                         MostSignificantFirst (..), Word7,
+                                         ZigZag (..))
 
 -- |An absolute type, a type identifier that depends only on the definition of the type
 type AbsType = Type AbsRef
@@ -108,10 +110,36 @@ data Identifier = Name UnicodeLetter [UnicodeLetterOrNumberOrLine]
 
 instance Flat [UnicodeLetterOrNumberOrLine]
 
-instance L.StringLike Identifier where
-  fromString = identifier
-  toString (Name (UnicodeLetter h) t) = h : map (\(UnicodeLetterOrNumberOrLine s) -> s) t
-  toString (Symbol l) = map (\(UnicodeSymbol s) -> s) . toList $ l
+instance Convertible String Identifier where
+  -- safeConvert = errorsToConvertResult asIdentifier
+  safeConvert = errorsToConvertResult (validationToEither . asIdentifier)
+
+instance Convertible Identifier String where
+  safeConvert (Name (UnicodeLetter h) t) = Right $ h : map (\(UnicodeLetterOrNumberOrLine s) -> s) t
+  safeConvert (Symbol l) = Right $ map (\(UnicodeSymbol s) -> s) . toList $ l
+
+{-|Validate a string as an Identifier
+
+>>> asIdentifier ""
+Failure ["identifier cannot be empty"]
+
+>>> asIdentifier "Id_1"
+Success (Name (UnicodeLetter 'I') [UnicodeLetterOrNumberOrLine 'd',UnicodeLetterOrNumberOrLine '_',UnicodeLetterOrNumberOrLine '1'])
+
+>>> asIdentifier "a*^"
+Failure ["In a*^: '*' is not an Unicode Letter or Number or a _","In a*^: '^' is not an Unicode Letter or Number or a _"]
+
+>>> asIdentifier "<>"
+Success (Symbol (Cons (UnicodeSymbol '<') (Elem (UnicodeSymbol '>'))))
+
+-}
+asIdentifier :: String -> Validation Errors Identifier
+asIdentifier [] = err ["identifier cannot be empty"]
+
+asIdentifier i@(h:t) = errsInContext i $
+  if isLetter h
+  then Name <$> asLetter h <*> sequenceA (map asLetterOrNumber t)
+  else Symbol . nonEmptyList <$> sequenceA (map asSymbol i)
 
 -- |A character that is either a `UnicodeLetter`, a `UnicodeNumber` or the special character '_'
 data UnicodeLetterOrNumberOrLine = UnicodeLetterOrNumberOrLine Char deriving (Eq, Ord, Show, NFData, Generic, Flat)
@@ -143,26 +171,23 @@ OtherSymbol
 -}
 data UnicodeSymbol = UnicodeSymbol Char deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
--- |Convert a string to corresponding Identifier or throw an error
-identifier :: String -> Identifier
-identifier [] = error "identifier cannot be empty"
-identifier s@(h:t) = if isLetter h
-                     then Name (asLetter h) (map asLetterOrNumber t)
---                     else Symbol (NE.map asSymbol s)
-                       else Symbol (nonEmptyList $ map asSymbol s)
+asSymbol :: Char -> Validation Errors UnicodeSymbol
+asSymbol c | isSymbol c = ok $ UnicodeSymbol c
+           | otherwise = err [show c,"is not an Unicode Symbol"]
 
-asSymbol :: Char -> UnicodeSymbol
-asSymbol c | isSymbol c = UnicodeSymbol c
-           | otherwise = error . unwords $ [show c,"is not an Unicode Symbol"]
+asLetter :: Char -> Validation Errors UnicodeLetter
+asLetter c | isLetter c = ok $ UnicodeLetter c
+           | otherwise = err [show c,"is not an Unicode Letter"]
 
-asLetter :: Char -> UnicodeLetter
-asLetter c | isLetter c = UnicodeLetter c
-           | otherwise = error . unwords $ [show c,"is not an Unicode Letter"]
+asLetterOrNumber :: Char -> Validation Errors UnicodeLetterOrNumberOrLine
+asLetterOrNumber c | isLetter c || isNumber c || isAlsoOK c = ok $ UnicodeLetterOrNumberOrLine c
+                   | otherwise = err $ [show c,"is not an Unicode Letter or Number or a _"]
 
-asLetterOrNumber :: Char -> UnicodeLetterOrNumberOrLine
-asLetterOrNumber c | isLetter c || isNumber c || isAlsoOK c = UnicodeLetterOrNumberOrLine c
-                   | otherwise = error . unwords $ [show c,"is not an Unicode Letter or Number"]
+ok :: a -> Validation e a
+ok = Success
 
+err :: [String] -> Validation Errors a
+err = Failure . (:[]) . unwords
 
 -- CHECK: IS '_' REALLY NEEDED?
 isAlsoOK :: Char -> Bool
@@ -170,11 +195,11 @@ isAlsoOK '_' = True
 isAlsoOK _   = False
 
 -- |A generic value (used for dynamic decoding)
-data Value = Value {valType::AbsType -- Type
-                   ,valName::String  -- Constructor name (duplicate info if we have abstype)
-                   ,valBits::[Bool]  -- Bit encoding/constructor id
+data Value = Value {valType::AbsType -- ^Type
+                   ,valName::String  -- ^Constructor name (duplicate info if we have abstype)
+                   ,valBits::[Bool]    -- ^Bit encoding/constructor id
                    -- TODO: add field names (same info present in abstype)
-                   ,valFields::[Value]  -- Values to which the constructor is applied, if any
+                   ,valFields::[Value]  -- ^Values to which the constructor is applied, if any
                    } deriving  (Eq,Ord,Show,NFData, Generic, Flat)
 
 -- |An optionally labeled value
@@ -218,4 +243,3 @@ instance Model a => Model (SHA3_256_6 a)
 instance Model a => Model (SHAKE128_48 a)
 instance Model AbsRef
 instance Model a => Model (PostAligned a)
-

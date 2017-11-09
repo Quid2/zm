@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |Dynamical decoding of serialised typed values
@@ -10,7 +11,6 @@ module ZM.Dynamic(
 
 import qualified Data.ByteString      as B
 import           Data.Flat
-import qualified Data.ListLike.String as S
 import qualified Data.Map             as M
 import           Data.Model
 import           ZM.Transform
@@ -33,11 +33,11 @@ typeDecoderMap tm =
   let denv = M.mapWithKey (\t ct -> conDecoder denv t [] ct) (typeTree tm)
   in denv
 
-conDecoder :: (S.StringLike name) => MapTypeDecoder -> AbsType -> [Bool] -> ConTree name AbsRef -> Get Value
+conDecoder :: (Convertible name String) => MapTypeDecoder -> AbsType -> [Bool] -> ConTree name AbsRef -> Get Value
 conDecoder env t bs (ConTree l r) = do
   tag :: Bool <- decode
   conDecoder env t (tag:bs) (if tag then r else l)
 
-conDecoder env t bs (Con cn cs) = Value t (S.toString cn) (reverse bs) <$> mapM (`solve` env) (fieldsTypes cs)
+conDecoder env t bs (Con cn cs) = Value t (convert cn) (reverse bs) <$> mapM (`solve` env) (fieldsTypes cs)
 
 

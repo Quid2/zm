@@ -1,0 +1,4 @@
+resolver: nightly-2017-11-09
+
+extra-deps:
+- model-0.4.2

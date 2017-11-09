@@ -1,8 +1,8 @@
-module ZM.Util(
-  proxyOf
+module ZM.Util
+  ( proxyOf
   -- *State Monad utilities
-  ,runEnv
-  ,execEnv
+  , runEnv
+  , execEnv
   ) where
 
 import           Control.Monad.Trans.State
@@ -21,4 +21,3 @@ runEnv op = runState op M.empty
 -- |Exec a State monad with an empty map as environment
 execEnv :: State (M.Map k a1) a -> M.Map k a1
 execEnv op = execState op M.empty
-

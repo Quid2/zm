@@ -15,13 +15,11 @@ import           Data.Either
 import           Data.Foldable
 import           Data.Int
 import           Data.List
-import qualified Data.ListLike.String  as L
 import qualified Data.Map              as M
 import           Data.Maybe
 import           Data.Model            hiding (Name)
 import qualified Data.Sequence         as S
 import qualified Data.Text             as T
-import           ZM
 import           Data.Word
 import           Debug.Trace
 import           Info
@@ -36,8 +34,10 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck as QC
 import           Text.PrettyPrint
+import           ZM
 
 -- import Data.Timeless
+t = main
 
 main = mainTest
 -- main = mainMakeTests
@@ -107,23 +107,14 @@ shakeDigestTests = testGroup "Shake Digest Tests"
 
 codesTests = testGroup "Absolute Types Codes Tests" (map tst $ zip models codes)
   where
+    --tst (model,code) = testCase (unwords ["Code",prettyShow model]) $ code @?= typeName model
     tst (model,code) = testCase (unwords ["Code"]) $ code @?= typeName model
 
 consistentModelTests = testGroup "TypeModel Consistency Tests" $ map tst models
  where
   tst tm = testCase (unwords ["Consistency"]) $ internalConsistency tm && externalConsistency tm @?= True
 
--- |Check internal consistency of absolute environment
--- all internal references are to entries in the env
-internalConsistency at =
-  let innerRefs = nub . catMaybes . concatMap (map extRef. toList) . typeADTs $ at
-      envRefs = M.keys $ typeEnv at
-  in innerRefs `subsetOf` envRefs
-
-subsetOf a b = a \\ b == []
-
-extRef (Ext ref) = Just ref
-extRef _         = Nothing
+internalConsistency = noErrors . refErrors . typeEnv
 
 -- |Check external consistency of absolute environment
 -- the key of every ADT in the env is correct (same as calculated directly on the ADT)
@@ -137,7 +128,8 @@ mutuallyRecursiveTests = testGroup "Mutually Recursion Detection Tests" $ [
   tst :: forall a. (Model a) => Proxy a -> TestTree
   tst proxy =
     let r = absTypeModelMaybe proxy
-    in testCase (unwords ["Mutual Recursion",show r]) $ isLeft r && (let Left e = r in isInfixOf "mutually recursive" e) @?= True
+    in testCase (unwords ["Mutual Recursion",show r]) $
+       isLeft r && (let Left es = r in all (isInfixOf "mutually recursive") es) @?= True
 
 -- |Test all custom flat instances for conformity to their model
 customEncodingTests = testGroup "Typed Unit Tests" [
@@ -259,8 +251,8 @@ identifiersTests = testGroup "Identifier Tests" $ concat [
   ,testId "<>" $ Symbol (Cons (UnicodeSymbol '<') (Elem (UnicodeSymbol '>')))
   ]
    where
-    testId s i = [testCase (unwords ["identifier parse",s]) $ L.fromString s @?= i
-                 ,testCase (unwords ["identifier roundtrip",s]) $ L.toString (L.fromString s::Identifier) @?= s]
+    testId s i = [testCase (unwords ["identifier parse",s]) $ convert s @?= i
+                 ,testCase (unwords ["identifier roundtrip",s]) $ convert (convert s::Identifier) @?= s]
 
 transformTests = testGroup "Transform Tests" [
   testRecDeps (Proxy :: Proxy Bool) 1
@@ -278,7 +270,10 @@ prop_encoding :: forall a. (Pretty a,Flat a, Model a) => RT a
 prop_encoding x = dynamicShow x == prettyShow x
 
 dynamicShow :: forall a. (Flat a, Model a) => a -> String
-dynamicShow a = prettyShow (let Right v = decodeAbsTypeModel (absTypeModel (Proxy::Proxy a)) (flat a) in v)
+--dynamicShow a = prettyShow (let Right v = decodeAbsTypeModel (absTypeModel (Proxy::Proxy a)) (flat a) in v)
+dynamicShow a = case decodeAbsTypeModel (absTypeModel (Proxy::Proxy a)) (flat a) of
+                  Left e  -> error (show e)
+                  Right v -> prettyShow v
 
 type RT a = a -> Bool
 

@@ -5,8 +5,6 @@ module ZM.Transform (
     MapTypeTree,
     typeTree,
     solvedADT,
-    -- * Presentation
-    stringADT,
     -- * Dependencies
     typeDefinition,
     adtDefinition,
@@ -21,6 +19,7 @@ import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
 import           Data.Model.Util           (transitiveClosure)
+import           ZM.Pretty                 ()
 import           ZM.Types
 import           ZM.Util
 
@@ -80,15 +79,6 @@ mapSolve env = map (`solve` env)
 --    where solveS _ (Var n) = TypVar n
 --          solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env
 --          solveS name Rec  = TypRef $ LocalName name
-
--- |Convert references in an absolute definition to their textual form (useful for display)
-stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
-stringADT env adt =
-  let name = declName adt
-  in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
-   where solveS _ (Var n) = TypVar n
-         solveS _ (Ext k) = TypRef . declName . solve k $ env
-         solveS name Rec  = TypRef name
 
 -- |Convert a type to an equivalent concrete ADT whose variables have been substituted by the type parameters (e.g. Maybe Bool -> Maybe = Nothing | Just Bool)
 solvedADT :: (Ord ref, Show ref) => M.Map ref (ADT name consName (ADTRef ref)) -> Type ref -> ADT name consName ref

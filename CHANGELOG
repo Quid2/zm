@@ -1,0 +1,9 @@
+Significant and compatibility-breaking changes.
+
+Version 0.3:
+	- cabal: added upper bounds for dependencies
+	- Removed instance of StringLike (replaced with Convertible) for Identifier
+	- Moved stringADT from ZM.Transform to ZM.Pretty
+        - ZM.Abs
+		- Modified signature of absTypeModelMaybe
+		- Added additional model checking functions

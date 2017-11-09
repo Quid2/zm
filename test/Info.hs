@@ -1,16 +1,21 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
-module Info where
-
+module Info(codes,models) where
 import           Data.Int
-import           ZM
+import qualified Data.Sequence   as S
 import           Data.Word
 import           Test.Data       hiding (Unit)
--- import           Test.Data.Flat  hiding (Unit)
-import           Test.Data.Model()
+import           Test.Data.Model ()
 import qualified Test.Data2      as Data2
 import qualified Test.Data3      as Data3
-import qualified Data.Sequence         as S
+import           ZM
 
+m :: HTypeModel
+m = typeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
+
+a :: AbsTypeModel
+a = absTypeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
+
+models :: [AbsTypeModel]
 models = [
      typ (Proxy :: Proxy AbsADT)
     ,typ (Proxy :: Proxy Bool)
@@ -45,6 +50,7 @@ models = [
     ]
   where typ = absTypeModel
 
+codes :: [Type AbsRef]
 codes = [TypeApp (TypeApp (TypeApp (TypeCon (AbsRef (SHAKE128_48 62 130 87 37 92 191))) (TypeCon (AbsRef (SHAKE128_48 220 38 233 217 0 71)))) (TypeCon (AbsRef (SHAKE128_48 220 38 233 217 0 71)))) (TypeApp (TypeCon (AbsRef (SHAKE128_48 7 177 176 69 172 60))) (TypeCon (AbsRef (SHAKE128_48 75 189 56 88 123 158))))
         ,TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28))
         ,TypeApp (TypeCon (AbsRef (SHAKE128_48 212 160 181 74 243 52))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))

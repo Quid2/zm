@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -19,22 +20,21 @@ import           Data.Flat                      (UTF16Text (..), UTF8Text (..))
 import           Data.Foldable                  (toList)
 import           Data.Int
 import           Data.List
-import qualified Data.ListLike.String           as L
 import qualified Data.Map                       as M
 import           Data.Model.Pretty
+import           Data.Model.Util
 import           Data.Ord
 import qualified Data.Sequence                  as S
 import qualified Data.Text                      as T
 import qualified Data.Text.Encoding             as T
-import           ZM.BLOB
-import           ZM.Model               ()
-import           ZM.Transform
-import           ZM.Types
 import           Data.Word
 import           Numeric                        (readHex)
 import           Text.ParserCombinators.ReadP   hiding (char)
 import           Text.PrettyPrint.HughesPJClass
 import           Text.Printf
+import           ZM.BLOB
+import           ZM.Model                       ()
+import           ZM.Types
 
 -- |Convert the textual representation of a hash code to its equivalent value
 unPrettyRef :: String -> SHAKE128_48 a
@@ -48,14 +48,14 @@ hex :: Word8 -> String
 hex = printf "%02x"
 
 -- |Display a list of Docs, as a tuple with spaced elements
--- 
+--
 -- >>> prettyTuple (map pPrint [11,22,33::Word8])
 -- (11, 22, 33)
 prettyTuple :: [Doc] -> Doc
 prettyTuple = parens . fsep . punctuate comma
 
 -- |Display a list of Docs, with spaced elements
--- 
+--
 -- >>> prettyList (map pPrint [11,22,33::Word8])
 -- [11, 22, 33]
 prettyList :: [Doc] -> Doc
@@ -82,9 +82,22 @@ instance Pretty AbsTypeModel where
     ]
 
 instance {-# OVERLAPS #-} Pretty AbsEnv where
- -- pPrint e = vcat . map (\(h,adt) -> pPrint h <+> text "->" <+> pPrint (e,adt)) $ M.assocs e
- pPrint e = vspacedP . map (\(ref,adt) -> vcat [pPrint ref <> text ":",pPrint . CompactPretty $ (e,adt)]) . sortBy (comparing snd) $ M.assocs e
- --pPrint e = vspacedP . sortBy (comparing snd) . map (\(h,adt) -> (e,adt)) $ M.assocs e
+ -- Previous
+ -- pPrint e = vspacedP . map (\(ref,adt) -> vcat [pPrint ref <> text ":",pPrint . CompactPretty $ (e,adt)]) . sortedEnv $ e
+
+  pPrint e = vspacedP . map (\(ref,adt) -> pPrint (refADT e ref adt) <> char ';') . sortedEnv $ e
+
+sortedEnv :: M.Map a (ADT Identifier Identifier (ADTRef AbsRef)) -> [(a, ADT Identifier Identifier (ADTRef AbsRef))]
+sortedEnv = sortBy (comparing snd) . M.assocs
+
+refADT :: (Pretty p, Convertible name String, Show k, Ord k, Pretty k, Convertible a String) => M.Map k (ADT a consName1 ref) -> p -> ADT name consName2 (ADTRef k) -> ADT QualName consName2 (TypeRef QualName)
+refADT env ref adt =
+  let name = fullName ref adt
+  in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+   where solveS _ (Var n) = TypVar n
+         solveS _ (Ext k) = TypRef . fullName k . solve k $ env
+         solveS name Rec  = TypRef name
+         fullName ref adt = QualName "" (prettyShow ref) (convert $ declName adt)
 
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsType) where
   pPrint (env,t) = pPrint (declName <$> solveAll env t)
@@ -92,7 +105,16 @@ instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsType) where
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsADT) where
   pPrint (env,adt) = pPrint . stringADT env $ adt
 
-instance Pretty Identifier where pPrint = text . L.toString
+-- |Convert references in an absolute definition to their textual form (useful for display)
+stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
+stringADT env adt =
+  let name = declName adt
+  in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+   where solveS _ (Var n) = TypVar n
+         solveS _ (Ext k) = TypRef . declName . solve k $ env
+         solveS name Rec  = TypRef name
+
+instance Pretty Identifier where pPrint = text . convert
 
 instance {-# OVERLAPS #-} Pretty a => Pretty (String,ADTRef a) where
    pPrint (_,Var v) = varP v
@@ -106,11 +128,9 @@ instance Pretty a => Pretty (ADTRef a) where
 
 instance Pretty AbsRef where pPrint (AbsRef sha3) = pPrint sha3
 
-instance Pretty a => Pretty (SHA3_256_6 a) where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
+instance Pretty (SHA3_256_6 a) where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
 
-instance Pretty a => Pretty (SHAKE128_48 a) where pPrint (SHAKE128_48 k1 k2 k3 k4 k5 k6) = char 'K' <> prettyWords [k1,k2,k3,k4,k5,k6]
-
---instance Pretty a => Pretty (SHAKE_256_6 a) where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
+instance Pretty (SHAKE128_48 a) where pPrint (SHAKE128_48 k1 k2 k3 k4 k5 k6) = char 'K' <> prettyWords [k1,k2,k3,k4,k5,k6]
 
 prettyWords :: [Word8] -> Doc
 prettyWords = text . concatMap hex

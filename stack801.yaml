@@ -1,7 +1,6 @@
-resolver: lts-7.21
+resolver: lts-7.24
 
 extra-deps:
-- model-0.3
+- model-0.4.2
 - flat-0.3
-- mono-traversable-1.0.2
 - cryptonite-0.22

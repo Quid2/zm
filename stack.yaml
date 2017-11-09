@@ -1,10 +1,7 @@
-resolver: lts-6.31
-extra-deps:
-- model-0.3
-- flat-0.3
-- mono-traversable-1.0.2
-- cryptonite-0.22
+resolver: lts-6.35
 
-#- cryptonite-0.23
-#- foundation-0.0.9
-#- memory-0.14.5
+extra-deps:
+- model-0.4.2
+- flat-0.3
+- mono-traversable-1.0.4.0
+- cryptonite-0.22
