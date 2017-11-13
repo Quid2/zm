@@ -1,5 +1,5 @@
 name: zm
-version: 0.3
+version: 0.3.1
 synopsis: Language independent, reproducible, absolute types
 description:
     See the <http://github.com/tittoassini/zm online tutorial>.
@@ -115,5 +115,5 @@ test-suite zm-doctest
   type:               exitcode-stdio-1.0
   ghc-options:        -threaded
   main-is:            DocSpec.hs
-  build-depends:      base, doctest>=0.11.1 && <0.14,filemanip>=0.3.6.3 && < 0.3.7
+  build-depends:      base, doctest>=0.11.1 && <0.14,filemanip>=0.3.6.3 && < 0.3.7,zm
   HS-Source-Dirs:     test
