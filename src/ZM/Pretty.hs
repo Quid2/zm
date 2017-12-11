@@ -10,7 +10,7 @@ module ZM.Pretty (
     hex,
     unPrettyRef,
     prettyList,
-    prettyTuple,
+    prettyTuple
     ) where
 
 import qualified Data.ByteString                as B
@@ -31,21 +31,21 @@ import           Data.Word
 import           Numeric                        (readHex)
 import           Text.ParserCombinators.ReadP   hiding (char)
 import           Text.PrettyPrint.HughesPJClass
-import           Text.Printf
 import           ZM.BLOB
 import           ZM.Model                       ()
+import           ZM.Pretty.Base
 import           ZM.Types
 
 -- |Convert the textual representation of a hash code to its equivalent value
+--
+-- >>> unPrettyRef "Kb53bec846608"
+-- SHAKE128_48 181 59 236 132 102 8
 unPrettyRef :: String -> SHAKE128_48 a
 unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHAKE128_48 k1 k2 k3 k4 k5 k6
+
 --unPrettyRef :: String -> SHA3_256_6 a
 --unPrettyRef ('S':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
 unPrettyRef code = error $ "unPrettyRef: unknown code " ++ show code
-
--- |Display a Word in hexadecimal format
-hex :: Word8 -> String
-hex = printf "%02x"
 
 -- |Display a list of Docs, as a tuple with spaced elements
 --
@@ -126,14 +126,6 @@ instance Pretty a => Pretty (ADTRef a) where
    pPrint Rec     = char '\x21AB'
    pPrint (Ext r) = pPrint r
 
-instance Pretty AbsRef where pPrint (AbsRef sha3) = pPrint sha3
-
-instance Pretty (SHA3_256_6 a) where pPrint (SHA3_256_6 k1 k2 k3 k4 k5 k6) = char 'S' <> prettyWords [k1,k2,k3,k4,k5,k6]
-
-instance Pretty (SHAKE128_48 a) where pPrint (SHAKE128_48 k1 k2 k3 k4 k5 k6) = char 'K' <> prettyWords [k1,k2,k3,k4,k5,k6]
-
-prettyWords :: [Word8] -> Doc
-prettyWords = text . concatMap hex
 
 readHexCode :: String -> [Word8]
 readHexCode = readCode []

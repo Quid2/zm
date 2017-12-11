@@ -1,16 +1,13 @@
-#resolver: lts-6.35
-resolver: lts-9.12
-#resolver: nightly-2017-08-30
+resolver: lts-9.17
 
 packages:
 - '.'
-- ../model
-#- ../flat
+#- ../model
 
-#extra-deps:
-#- model-0.4
-#- flat-0.3
-#- mono-traversable-1.0.2
-#- cryptonite-0.24
-#- validation-0.6.2
-
+extra-deps:
+- model-0.4.4
+- flat-0.3
+- mono-traversable-1.0.4.0
+- cryptonite-0.22
+- either-5
+- tasty-hunit-0.10.0.1

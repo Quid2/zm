@@ -1,4 +1,4 @@
-resolver: lts-9.12
+resolver: lts-9.17
 
 extra-deps:
-- model-0.4.2
+- model-0.4.4

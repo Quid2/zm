@@ -1,17 +1,25 @@
 module ZM(
   -- |Check the <https://github.com/tittoassini/zm tutorial and github repo>.
-  module X
+  module           Data.Flat
+  ,module           Data.Model
+  ,module           ZM.Abs
+  ,module           ZM.BLOB
+  ,module           ZM.Dynamic
+  ,module           ZM.Pretty
+  ,module           ZM.Transform
+  ,module           ZM.Types
   ) where
 
-import           Data.Flat       as X
-import           Data.Model      as X hiding (Name)
-import           ZM.Abs          as X
-import           ZM.BLOB         as X hiding (content)
-import           ZM.Dynamic      as X
+import           Data.Flat
+import           Data.Model      hiding (Name)
+import           ZM.Abs
+import           ZM.BLOB         hiding (content)
+import           ZM.Dynamic
 import           ZM.Model        ()
-import           ZM.Pretty       as X
+import           ZM.Pretty
 import           ZM.Pretty.Value ()
-import           ZM.Transform    as X
-import           ZM.Types        as X
+import           ZM.Transform
+import           ZM.Types
+
 
 

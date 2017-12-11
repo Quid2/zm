@@ -6,41 +6,47 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-module ZM.Types (
+module ZM.Types
+
+  (
     -- * Model
-    module Data.Model.Types,
-    AbsTypeModel,
-    AbsType,
-    AbsRef(..),
-    absRef,
-    AbsADT,
-    AbsEnv,
-    ADTRef(..),
-    asIdentifier,
-    Identifier(..),
-    UnicodeLetter(..),
-    UnicodeLetterOrNumberOrLine(..),
-    UnicodeSymbol(..),
-    SHA3_256_6(..),
-    SHAKE128_48(..),
-    NonEmptyList(..),
-    nonEmptyList,
-    Word7,
+    module Data.Model.Types
+  , AbsTypeModel
+  , AbsType
+  , AbsRef(..)
+  , absRef
+  , AbsADT
+  , AbsEnv
+  , ADTRef(..)
+  , getADTRef
+  , asIdentifier
+  , Identifier(..)
+  , UnicodeLetter(..)
+  , UnicodeLetterOrNumberOrLine(..)
+  , UnicodeSymbol(..)
+  , SHA3_256_6(..)
+  , SHAKE128_48(..)
+  , NonEmptyList(..)
+  , nonEmptyList
+  , Word7
     -- * Encodings
-    FlatEncoding(..), UTF8Encoding(..), UTF16LEEncoding(..), NoEncoding(..)
+  , FlatEncoding(..)
+  , UTF8Encoding(..)
+  , UTF16LEEncoding(..)
+  , NoEncoding(..)
     -- * Exceptions
-    ,TypedDecoded,
-    TypedDecodeException(..),
+  , TypedDecoded
+  , TypedDecodeException(..)
     -- *Other Re-exports
-    NFData(),
-    Flat,
-    ZigZag(..),
-    LeastSignificantFirst(..),
-    MostSignificantFirst(..),
-    Value(..),
-    Label(..),
-    label,
-    ) where
+  , NFData()
+  , Flat
+  , ZigZag(..)
+  , LeastSignificantFirst(..)
+  , MostSignificantFirst(..)
+  , Value(..)
+  , Label(..)
+  , label
+  ) where
 
 import           Control.DeepSeq
 import           Control.Exception
@@ -101,6 +107,11 @@ data ADTRef r = Var Word8 -- ^Variable, standing for a type
               | Rec       -- ^Recursive reference to the ADT itself
               | Ext r     -- ^Reference to another ADT
   deriving (Eq, Ord, Show, NFData, Generic, Functor, Foldable, Traversable ,Flat)
+
+-- |Return an external reference, if present
+getADTRef :: ADTRef a -> Maybe a
+getADTRef (Ext r) = Just r
+getADTRef _       = Nothing
 
 -- CHECK: Is it necessary to specify a syntax for identifiers?
 -- |An Identifier, the name of an ADT

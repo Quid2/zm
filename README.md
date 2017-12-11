@@ -323,7 +323,7 @@ For an example of using canonical data types as a data exchange mechanism see [t
 ### Haskell Compatibility
 
 Tested with:
-  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.1 and 8.0.2 (x64)
+  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.2 and 8.2.2 (x64)
   * [ghcjs](https://github.com/ghcjs/ghcjs)
 
 ### Installation

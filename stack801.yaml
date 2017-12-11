@@ -1,6 +1,0 @@
-resolver: lts-7.24
-
-extra-deps:
-- model-0.4.2
-- flat-0.3
-- cryptonite-0.22

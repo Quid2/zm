@@ -1,5 +1,10 @@
 Significant and compatibility-breaking changes.
 
+Version 0.3.2:
+	- ZM.Abs: added absEnvWith
+	- Moved getADTRef form ZM.Transform to ZM.Types
+	- cabal: updated dependencies
+
 Version 0.3:
 	- cabal: added upper bounds for dependencies
 	- Removed instance of StringLike (replaced with Convertible) for Identifier

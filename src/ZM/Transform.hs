@@ -9,8 +9,7 @@ module ZM.Transform (
     typeDefinition,
     adtDefinition,
     innerReferences,
-    references,
-    getADTRef
+    references
     ) where
 
 import           Control.Monad.Trans.State
@@ -62,12 +61,6 @@ references = nub . toList
 
 absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
 absRecDeps env ref = either (Left . unlines) Right $ transitiveClosure getADTRef env ref
-
--- WHAT ABOUT REC?
--- |Return an external reference, if present
-getADTRef :: ADTRef a -> Maybe a
-getADTRef (Ext r) = Just r
-getADTRef _       = Nothing
 
 mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
 mapSolve env = map (`solve` env)
