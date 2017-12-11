@@ -21,11 +21,11 @@ matrix:
   - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
     compiler: ": #GHC 8.0.2"
     addons: {apt: {packages: [cabal-install-1.24,happy-1.19.5,ghc-8.0.2], sources: [hvr-ghc]}}
- 
-  #- env: BUILD=stack ARGS="--resolver lts-6"
-  - env: BUILD=stack ARGS="--stack-yaml stack710.yaml"
-    compiler: ": #stack 7.10.3"
-    addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+  # This fails on Travis, though it works locally, no idea why, error is:
+  # At least the following dependencies are missing:mwc-random -any
+  #- env: BUILD=stack ARGS="--stack-yaml stack710.yaml"
+  #  compiler: ": #stack 7.10.3"
+  #  addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
 
   - env: BUILD=stack ARGS="--stack-yaml stack802.yaml"
     compiler: ": #stack 8.0.2"
@@ -61,7 +61,6 @@ install:
   case "$BUILD" in
     stack)
       ulimit -n 4096
-      stack upgrade
       stack --no-terminal config set system-ghc --global true
       stack --no-terminal install hsc2hs
       stack --no-terminal setup
