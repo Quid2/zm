@@ -8,3 +8,4 @@ extra-deps:
 - foundation-0.0.17
 - memory-0.14.10
 - basement-0.0.4
+- mwc-random-0.13.6.0
