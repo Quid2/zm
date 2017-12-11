@@ -1,5 +1,5 @@
 name: zm
-version: 0.3.1
+version: 0.3.2
 synopsis: Language independent, reproducible, absolute types
 description:
     See the <http://github.com/tittoassini/zm online tutorial>.
@@ -70,7 +70,6 @@ library
                   pretty >= 1.1.2 && < 1.2,
                   transformers >= 0.4.2.0 && < 0.6,
                   convertible == 1.1.*,
-                  mtl >=2.2.1 && < 2.3,
                   text,
                   flat == 0.3.*,
                   model >= 0.4.4 && < 0.5,
