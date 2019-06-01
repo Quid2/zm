@@ -39,6 +39,7 @@ shake_128_ numBytes = stat (js_shake128 $ numBytes*8) numBytes -- 256)
 sha3_256_ :: Int -> B.ByteString -> B.ByteString
 sha3_256_ = stat js_sha3_256
 
+stat :: (JSVal -> JSVal) -> Int -> B.ByteString -> B.ByteString
 stat f n bs = unsafePerformIO $ do
    jbs <- toJSVal $ B.unpack $ bs
    Just bs' <- fromJSVal $ f jbs
@@ -47,11 +48,11 @@ stat f n bs = unsafePerformIO $ do
 -- PROB: these references will be scrambled by the `closure` compiler, as they are not static functions but are setup dynamically by the sha3.hs library
 foreign import javascript unsafe "shake_128.array($2, $1)" js_shake128 :: Int -> JSVal -> JSVal
 
-foreign import javascript unsafe "sha3_224.array($1)" js_sha3_224 :: JSVal -> JSVal
+--foreign import javascript unsafe "sha3_224.array($1)" js_sha3_224 :: JSVal -> JSVal
 
 foreign import javascript unsafe "sha3_256.array($1)" js_sha3_256 :: JSVal -> JSVal
 
-foreign import javascript unsafe "keccak_256.array($1)" js_keccak256 :: JSVal -> JSVal
+-- foreign import javascript unsafe "keccak_256.array($1)" js_keccak256 :: JSVal -> JSVal
 -- foreign import javascript unsafe "(window == undefined ? global : window)['keccak_256']['array']($1)" js_keccak256 :: JSVal -> JSVal
 
 #else
