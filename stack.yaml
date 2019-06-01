@@ -1,7 +1,15 @@
-resolver: lts-6.35
+#resolver: lts-9.14
+#resolver: lts-11.22
+#resolver: lts-12.26
+resolver: lts-13.22
+
+packages:
+- '.'
+#- ../model
+# - ../flat
 
 extra-deps:
-- model-0.4.4
-- flat-0.3
-- mono-traversable-1.0.4.0
-- cryptonite-0.22
+- model-0.5
+- flat-0.3.4
+# - mono-traversable-1.0.4.0
+# - cryptonite-0.22

@@ -1,96 +1,33 @@
-#sudo: false
 sudo: required
-
-dist: trusty
 
 language: c
 
-cache:
-  directories:
-  - $HOME/.ghc
-  - $HOME/.cabal
-  - $HOME/.stack
+services:
+  - docker
 
 matrix:
   include:
+  # - env: IMG=quid2/eta CMD="etlas update;etlas test"
 
-  - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22
-    compiler: ": #GHC 7.10.3"
-    addons: {apt: {packages: [cabal-install-1.22,happy-1.19.5,ghc-7.10.3], sources: [hvr-ghc]}}
+  # - env: IMG=quid2/x64-ubuntu-ghcjs CMD="stack test --stack-yaml stack-ghcjs.yaml"
 
-  - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24
-    compiler: ": #GHC 8.0.2"
-    addons: {apt: {packages: [cabal-install-1.24,happy-1.19.5,ghc-8.0.2], sources: [hvr-ghc]}}
-  # This fails on Travis, though it works locally, no idea why, error is:
-  # At least the following dependencies are missing:mwc-random -any
-  #- env: BUILD=stack ARGS="--stack-yaml stack710.yaml"
-  #  compiler: ": #stack 7.10.3"
-  #  addons: {apt: {packages: [ghc-7.10.3], sources: [hvr-ghc]}}
+  # - env: IMG=quid2/x64-ubuntu-ghcjs-9.21 CMD="stack test --stack-yaml stack-ghcjs-9.21.yaml"
 
-  - env: BUILD=stack ARGS="--stack-yaml stack802.yaml"
-    compiler: ": #stack 8.0.2"
-    addons: {apt: {packages: [ghc-8.0.2], sources: [hvr-ghc]}}
+  - env: IMG=quid2/x32-ubuntu-cabal CMD="cabal install --only-dependencies --enable-tests;cabal test"
 
-  - env: BUILD=stack ARGS="--stack-yaml stack822.yaml"
-    compiler: ": #stack 8.2.2"
-    addons: {apt: {packages: [ghc-8.2.2], sources: [hvr-ghc]}}
+  - env: IMG=quid2/x64-ubuntu-stack-lts-6.35 CMD="stack test --resolver lts-6.35"
 
-  fast_finish: true
+  - env: IMG=quid2/x64-ubuntu-stack-lts-9.21 CMD="stack test --resolver lts-9.21"
+
+  - env: IMG=quid2/x64-ubuntu-stack-lts-11.22 CMD="stack test --resolver lts-11.22"
+
+  - env: IMG=quid2/x64-ubuntu-stack-lts-12.26 CMD="stack test --resolver lts-12.26"
+
+  - env: IMG=quid2/x64-ubuntu-stack-lts-13.22 CMD="stack test --resolver lts-13.22"
 
 before_install:
-# Using compiler above sets CC to an invalid value, so unset it
-- unset CC
-- export PATH=$PATH:/opt/happy/1.19.5/bin/:/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$HOME/.local/bin:$HOME/.cabal/bin
-
-# Download and unpack the stack executable
-- |
-  if [[ $BUILD == "stack" ]]; then
-    mkdir -p ~/.local/bin
-    if [ `uname` = "Darwin" ]
-    then
-      curl --insecure -L https://www.stackage.org/stack/osx-x86_64 | tar xz --strip-components=1 --include '*/stack' -C ~/.local/bin
-    else
-      curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
-    fi
-  fi
-
-install:
-- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-- if [ -f configure.ac ]; then autoreconf -i; fi
-- |
-  case "$BUILD" in
-    stack)
-      ulimit -n 4096
-      stack --no-terminal config set system-ghc --global true
-      stack --no-terminal install hsc2hs
-      stack --no-terminal setup
-      ;;
-    cabal)
-      echo "[cabal preinstall"
-      export PATH="$HOME/.cabal/bin:$PATH";
-      cabal --version
-      travis_retry cabal update
-      sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
-      cabal install hsc2hs
-      cabal install --only-dependencies --enable-tests --force-reinstalls #--enable-benchmarks 
-      ;;
-  esac
+- docker pull $IMG
 
 script:
-- |
-  case "$BUILD" in
-    stack)
-      ulimit -n 4096
-      stack --no-terminal $ARGS test 
-      # > tst # --haddock --no-haddock-deps --ghc-options="-O0 -Wall -fno-warn-unused-do-bind -Werror"
-      ;;
-    cabal)
-      cabal sdist --output-directory=sourcedist && \
-      cd sourcedist && \
-      cabal configure --enable-tests -v2 && \ # --enable-benchmarks 
-      echo "[BUILD" && \
-      cabal build && \
-      echo "BUILD]" && \
-      travis_wait cabal test
-      ;;
-  esac
+- PKG=model
+- docker run -it $IMG bash -c "git clone https://github.com/Quid2/$PKG;cd $PKG;$CMD"
