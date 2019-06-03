@@ -7,7 +7,7 @@ services:
 
 matrix:
   include:
-  - env: IMG=quid2/eta CMD="etlas update;etlas test"
+  - env: IMG=quid2/eta CMD="etlas update;etlas build;etlas test :spec"
 
   - env: IMG=quid2/x64-ubuntu-ghcjs CMD="stack test --stack-yaml stack-ghcjs.yaml"
 
