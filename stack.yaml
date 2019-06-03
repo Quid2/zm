@@ -1,3 +1,4 @@
+#resolver: lts-6.35
 #resolver: lts-9.14
 #resolver: lts-11.22
 #resolver: lts-12.26
@@ -11,10 +12,16 @@ packages:
 extra-deps:
 - model-0.5
 - flat-0.3.4
-- cryptonite-0.26@sha256:43c722f3770c31f4c5376e7aa42645b104834103312e217aa7fe79316416d6df
-- basement-0.0.10@sha256:11b1a13d16c81a7a9706fadfc52ecad60523abd745efd27206e6f43f12d8bcd8
-- memory-0.14.18@sha256:f55301417e1c5a43b055d1f0d3e88abe895d15a3e9d49889af634fb4b7028d40
+
+# to support ghc 7.10.3
+- cryptonite-0.22
+
+# - cryptonite-0.26@sha256:43c722f3770c31f4c5376e7aa42645b104834103312e217aa7fe79316416d6df
+# #- basement-0.0.10@sha256:11b1a13d16c81a7a9706fadfc52ecad60523abd745efd27206e6f43f12d8bcd8
+# - basement-0.0.6
+# - foundation-0.0.19
+# - memory-0.14.18
 
 # - doctest-0.16.1@sha256:69307edfc5629310d72d30be5f72fbf475d5fae0c27c4cb426438f85ffc87f97
 # - mono-traversable-1.0.4.0
-# - cryptonite-0.22
+
