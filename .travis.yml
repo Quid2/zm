@@ -15,7 +15,7 @@ matrix:
 
   # - env: IMG=quid2/x32-ubuntu-cabal CMD="cabal install --only-dependencies --enable-tests;cabal test"
 
-  # - env: IMG=quid2/x64-ubuntu-stack-lts-6.35 CMD="stack test --resolver lts-6.35"
+  - env: IMG=quid2/x64-ubuntu-stack-lts-6.35 CMD="stack test --resolver lts-6.35"
 
   # - env: IMG=quid2/x64-ubuntu-stack-lts-9.21 CMD="stack test --resolver lts-9.21"
 
