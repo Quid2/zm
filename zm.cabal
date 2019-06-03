@@ -27,7 +27,7 @@ library
         ZM
         ZM.Abs
         ZM.BLOB
-        ZM.Coerce
+        -- ZM.Coerce
         ZM.Type.Array
         ZM.Type.BLOB
         ZM.Type.Bit
