@@ -17,10 +17,11 @@ import           Data.Foldable             (toList)
 import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
-import           Data.Model.Util           (transitiveClosure)
+--import           Data.Model.Util           (transitiveClosure)
 import           ZM.Pretty                 ()
 import           ZM.Types
 import           ZM.Util
+import           ZM.Abs
 
 -- |A map of fully applied types to the corresponding saturated constructor tree
 type MapTypeTree = M.Map (Type AbsRef) (ConTree Identifier AbsRef)
@@ -44,11 +45,11 @@ typeTree tm = execEnv (addType (typeEnv tm) (typeName tm))
        Just _ -> return ()
 
 -- | Return all the ADTs referred, directly or indirectly, by the provided type, and defined in the provided environment
-typeDefinition :: AbsEnv -> AbsType -> Either String [AbsADT]
+typeDefinition :: AbsEnv -> AbsType -> Either [ZMError AbsRef] [AbsADT]
 typeDefinition env t = mapSolve env . nub . concat <$> (mapM (absRecDeps env) . references $ t)
 
 -- | Return all the ADTs referred, directly or indirectly, by the ADT identified by the provided reference, and defined in the provided environment
-adtDefinition :: AbsEnv -> AbsRef -> Either String [AbsADT]
+adtDefinition :: AbsEnv -> AbsRef -> Either [ZMError AbsRef] [AbsADT]
 adtDefinition env t = mapSolve env <$> absRecDeps env t
 
 -- |Return the list of references found in the ADT definition
@@ -59,8 +60,10 @@ innerReferences = nub . mapMaybe getADTRef . nub . toList
 references :: AbsType  -> [AbsRef]
 references = nub . toList
 
-absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
-absRecDeps env ref = either (Left . unlines) Right $ transitiveClosure getADTRef env ref
+--absRecDeps :: AbsEnv -> AbsRef -> Either String [AbsRef]
+--absRecDeps env ref = either (Left . unlines . map prettyShow) Right $ transitiveClosure getADTRef env ref
+absRecDeps :: AbsEnv -> AbsRef -> Either [ZMError AbsRef] [AbsRef]
+absRecDeps = transitiveClosure getADTRef
 
 mapSolve :: (Ord k, Show k) => M.Map k b -> [k] -> [b]
 mapSolve env = map (`solve` env)
