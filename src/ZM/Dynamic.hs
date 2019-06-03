@@ -16,7 +16,21 @@ import           Data.Model
 import           ZM.Transform
 import           ZM.Types
 
--- | Decode a Flat encoded value with a known type model to the corresponding Value
+-- $setup
+-- >>> import ZM.Abs
+-- >>> import ZM.Pretty
+-- >>> import ZM.Pretty.Value
+
+{-| Decode a Flat encoded value with a known type model to the corresponding Value.
+
+>>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True)
+Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), valName = "True", valBits = [True], valFields = []})
+
+Same but prettier:
+
+>>> prettyShow <$> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True)
+Right "True"
+-}
 decodeAbsTypeModel :: AbsTypeModel -> B.ByteString -> Decoded Value
 decodeAbsTypeModel = unflatWith . typeDecoder
 
