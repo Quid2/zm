@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+
 -- |Pretty instances for some basic Haskell types and for data type models
 module ZM.Pretty (
     module Data.Model.Pretty,
@@ -23,47 +23,57 @@ import           Data.List
 import qualified Data.Map                       as M
 import           Data.Model.Pretty
 import           Data.Model.Util
-import           Data.Ord
+-- import           Data.Ord
 import qualified Data.Sequence                  as S
 import qualified Data.Text                      as T
 import qualified Data.Text.Encoding             as T
 import           Data.Word
 import           Numeric                        (readHex)
 import           Text.ParserCombinators.ReadP   hiding (char)
+-- import           Text.PrettyPrint
 import           Text.PrettyPrint.HughesPJClass
+import qualified Text.PrettyPrint.HughesPJClass as P
 import           ZM.BLOB
 import           ZM.Model                       ()
 import           ZM.Pretty.Base
 import           ZM.Types
 
--- |Convert the textual representation of a hash code to its equivalent value
---
--- >>> unPrettyRef "Kb53bec846608"
--- SHAKE128_48 181 59 236 132 102 8
-unPrettyRef :: String -> SHAKE128_48 a
-unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHAKE128_48 k1 k2 k3 k4 k5 k6
+{-|
+Convert the textual representation of a hash code to its equivalent value
 
---unPrettyRef :: String -> SHA3_256_6 a
---unPrettyRef ('S':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHA3_256_6 k1 k2 k3 k4 k5 k6
+>>> unPrettyRef "Kb53bec846608"
+SHAKE128_48 181 59 236 132 102 8 
+
+>>> unPrettyRef "Kb53bec8466080000"
+*** Exception: unPrettyRef: unknown code "b53bec8466080000"
+...
+-}
+unPrettyRef :: String -> SHAKE128_48 a
+--unPrettyRef ('K':code) = let [k1,k2,k3,k4,k5,k6] = readHexCode code in SHAKE128_48 k1 k2 k3 k4 k5 k6
+unPrettyRef ('K':code) = case readHexCode code of
+  [k1,k2,k3,k4,k5,k6] -> SHAKE128_48 k1 k2 k3 k4 k5 k6
+  _ -> error $ "unPrettyRef: unknown code " ++ show code
+
 unPrettyRef code = error $ "unPrettyRef: unknown code " ++ show code
 
--- |Display a list of Docs, as a tuple with spaced elements
---
--- >>> prettyTuple (map pPrint [11,22,33::Word8])
--- (11, 22, 33)
+{-|Display a list of Docs, as a tuple with spaced elements
+
+>>> prettyTuple (map pPrint [11,22,33::Word8])
+(11, 22, 33)
+-}
 prettyTuple :: [Doc] -> Doc
 prettyTuple = parens . fsep . punctuate comma
 
--- |Display a list of Docs, with spaced elements
---
--- >>> prettyList (map pPrint [11,22,33::Word8])
--- [11, 22, 33]
+{-|Display a list of Docs, with spaced elements
+>>> prettyList (map pPrint [11,22,33::Word8])
+[11, 22, 33]
+-}
 prettyList :: [Doc] -> Doc
 --prettyList = brackets . hcat . punctuate comma
 prettyList = brackets . fsep . punctuate comma
 
 instance Pretty TypedDecodeException where
-  pPrint (UnknownMetaModel m) = text "Unknown meta model" <> pPrint m
+  pPrint (UnknownMetaModel m) = text "Unknown meta model" P.<> pPrint m
   pPrint (WrongType e a) = let et  = prettyShow e
                                at = prettyShow a
                            in text . unwords $ ["Was expecting type:\n",et,"\n\nBut the data has type:\n",at]
@@ -75,7 +85,7 @@ instance Show a => Pretty (TypedValue a) where pPrint (TypedValue t v)= text (sh
 instance Pretty AbsTypeModel where
   pPrint (TypeModel t e) = vspacedP [
     text "Type:"
-    ,vcat [pPrint t <> text ":",pPrint (e,t)]
+    ,vcat [pPrint t P.<> text ":",pPrint (e,t)]
     -- ,vcat [pPrint t <> text ":",pPrint (declName <$> solveAll e t)]
     ,text "Environment:"
     ,pPrint e
@@ -85,34 +95,56 @@ instance {-# OVERLAPS #-} Pretty AbsEnv where
  -- Previous
  -- pPrint e = vspacedP . map (\(ref,adt) -> vcat [pPrint ref <> text ":",pPrint . CompactPretty $ (e,adt)]) . sortedEnv $ e
 
-  pPrint e = vspacedP . map (\(ref,adt) -> pPrint (refADT e ref adt) <> char ';') . sortedEnv $ e
+  pPrint e = vspacedP . map (\(ref,adt) -> pPrint (refADT e ref adt) P.<> char ';') . sortedEnv $ e
 
 sortedEnv :: M.Map a (ADT Identifier Identifier (ADTRef AbsRef)) -> [(a, ADT Identifier Identifier (ADTRef AbsRef))]
-sortedEnv = sortBy (comparing snd) . M.assocs
+sortedEnv = sortOn snd . M.assocs
 
 refADT :: (Pretty p, Convertible name String, Show k, Ord k, Pretty k, Convertible a String) => M.Map k (ADT a consName1 ref) -> p -> ADT name consName2 (ADTRef k) -> ADT QualName consName2 (TypeRef QualName)
+-- refADT env ref adt =
+--   let name = fullName ref adt
+--   in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+--    where -- solveS _ (Var n) = TypVar n
+--          -- solveS _ (Ext k) = TypRef . fullName k . solve k $ env
+--          -- solveS name Rec  = TypRef name
+--          solveS name = (fullName <$>) . toTypeRef name
+--          fullName ref adt = QualName "" (prettyShow ref) (convert $ declName adt)
+
 refADT env ref adt =
   let name = fullName ref adt
   in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
    where solveS _ (Var n) = TypVar n
          solveS _ (Ext k) = TypRef . fullName k . solve k $ env
          solveS name Rec  = TypRef name
-         fullName ref adt = QualName "" (prettyShow ref) (convert $ declName adt)
+         --fullName ref adt = QualName "" (prettyShow ref) (convert $ declName adt)
+         fullName ref adt = QualName "" (convert $ declName adt) (prettyShow ref)
 
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsType) where
   pPrint (env,t) = pPrint (declName <$> solveAll env t)
 
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsADT) where
-  pPrint (env,adt) = pPrint . stringADT env $ adt
+  pPrint (env,adt) = pPrint $ substAbsADT (\ref -> declName $ solve ref env) adt
 
 -- |Convert references in an absolute definition to their textual form (useful for display)
-stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
-stringADT env adt =
-  let name = declName adt
-  in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
-   where solveS _ (Var n) = TypVar n
-         solveS _ (Ext k) = TypRef . declName . solve k $ env
-         solveS name Rec  = TypRef name
+-- stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
+-- stringADT env adt =
+--   let name = declName adt
+--   in ADT name (declNumParameters adt) ((solveS name <$>) <$> declCons adt)
+--    where solveS _ (Var n) = TypVar n
+--          solveS _ (Ext k) = TypRef . declName . solve k $ env
+--          solveS name Rec  = TypRef name
+
+-- strADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
+
+--stringADT :: AbsEnv -> AbsADT -> ADT Identifier Identifier (TypeRef Identifier)
+
+-- stringADT = substADT (\env k -> declName $ solve k env)
+
+-- stringADT = substAbsADT declName
+
+-- substAbsADT f env adt = ((\ref -> f $ solve ref env) <$>) <$> (toTypeRef (absRef adt) <$> adt)
+
+-- substADT k env adt = (k env <$>) <$> (toTypeRef (absRef adt) <$> adt)
 
 instance Pretty Identifier where pPrint = text . convert
 
@@ -126,7 +158,6 @@ instance Pretty a => Pretty (ADTRef a) where
    pPrint Rec     = char '\x21AB'
    pPrint (Ext r) = pPrint r
 
-
 readHexCode :: String -> [Word8]
 readHexCode = readCode []
 
@@ -135,17 +166,31 @@ readCode bs [] = reverse bs
 readCode bs s  = let (h,t) = splitAt 2 s
                   in readCode (rdHex h : bs) t
 
+{-| Read the last 2 characters as an hex value between 0 and FF
+
+>>> rdHex ""
+*** Exception: rdHex: cannot parse
+...
+
+>>> rdHex "3"
+3
+
+>>> rdHex "08"
+8
+
+>>> rdHex "FF07"
+7
+-}
 rdHex :: String -> Word8
-rdHex s = let [(b,"")] = readP_to_S (readS_to_P readHex) s in b
+rdHex s = case readP_to_S (readS_to_P readHex) s of
+  [(b,"")] ->  b
+  _ -> error $ "rdHex: cannot parse " ++ s
+
 -- instance Pretty a => Pretty (Array a) where pPrint (Array vs) = text "Array" <+> pPrint vs
 -- instance Pretty a => Pretty (Array a) where pPrint (Array vs) = pPrint vs
 instance Pretty a => Pretty (S.Seq a) where pPrint = pPrint . toList
 
 instance Pretty a => Pretty (NonEmptyList a) where pPrint = pPrint . toList
-
-instance (Pretty a,Pretty l) => Pretty (Label a l) where
-   pPrint (Label a Nothing)  = pPrint a
-   pPrint (Label _ (Just l)) = pPrint l
 
 instance Pretty NoEncoding where pPrint = text . show
 
@@ -192,3 +237,6 @@ instance (Pretty a, Pretty b, Pretty c, Pretty d, Pretty e, Pretty f, Pretty g, 
 pPrint0 :: Pretty a => PrettyLevel -> a -> Doc
 pPrint0 l = pPrintPrec l 0
 
+-- instance (Pretty a,Pretty l) => Pretty (Label a l) where
+--    pPrint (Label a Nothing)  = pPrint a
+--    pPrint (Label _ (Just l)) = pPrint l
