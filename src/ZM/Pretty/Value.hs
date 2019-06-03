@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ViewPatterns              #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 
 -- |Pretty Instance for Value (displays a Value as the corresponding Haskell value)
@@ -15,14 +15,15 @@ import           Data.Int
 import           Data.Maybe
 import           Data.Model
 import qualified Data.Sequence                  as S
-import           ZM.Abs
-import           ZM.BLOB
-import           ZM.Pretty
-import           ZM.Type.Array          (Bytes)
-import           ZM.Types
 import           Data.Word
 import           Data.ZigZag
 import           Text.PrettyPrint.HughesPJClass
+import qualified Text.PrettyPrint.HughesPJClass as P
+import           ZM.Abs
+import           ZM.BLOB
+import           ZM.Pretty
+import           ZM.Type.Array                  (Bytes)
+import           ZM.Types
 -- import Debug.Trace
 
 default ()
@@ -38,16 +39,15 @@ instance Pretty Value where
                  Nothing -> (not (null vs),text n : map (pp (l+1)) vs)
                  Just pr -> let (c,d) = pr v in (c,[d])
 
-           in (if complex && l>0 then parens else id) (hsep $ (if null bs || lev == 0 then empty else (text (map (\b -> if
- b then '1' else '0') bs) <> char ':')) : doc) -- : if lev == 0 then empty else )
+           in (if complex && l>0 then parens else id) (hsep $ (if null bs || lev == 0 then empty else (text (map (\b -> if b then '1' else '0') bs) P.<> char ':')) : doc) -- : if lev == 0 then empty else )
 
          ch (Value _ _ _ [w]) = chr $ wl_ w
-         ch v = error (show v)
+         ch v                 = error (show v)
 
          wrd = int . wrd_
 
          wrd_ (Value _ ('V':n) _ _) = read n :: Int -- Word64?
-         wrd_ v                              = error (unwords ["wrd_",show v])
+         wrd_ v                     = error (unwords ["wrd_",show v])
 
          wrd2_ (Value _ _ _ [Value _ ('V':n) _ _]) = read n :: Int
          wrd2_ v = error (unwords ["wrd2_",show v])
@@ -63,11 +63,11 @@ instance Pretty Value where
 
          valList (Value _ "Cons" _ [h,t]) = h:valList t
          valList (Value _ "Nil"  _ [])    = []
-         valList v                      = error (unwords ["valList",show v])
+         valList v                        = error (unwords ["valList",show v])
 
          neList (Value _ "Cons" _ [h,t]) = h:neList t
          neList (Value _ "Elem"  _ [e])  = [e]
-         neList v                      = error (unwords ["neList",show v])
+         neList v                        = error (unwords ["neList",show v])
 
          arrList (Value _ "A0" _ []) = []
          arrList (Value _ ('A':n) _ vs) | length vs == read n + 1 = init vs ++ arrList (last vs)
