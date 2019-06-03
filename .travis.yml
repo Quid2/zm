@@ -23,7 +23,7 @@ matrix:
 
   # - env: IMG=quid2/x64-ubuntu-stack-lts-12.26 CMD="stack test --resolver lts-12.26"
 
-  - env: IMG=quid2/x64-ubuntu-stack-lts-13.22 CMD="stack test --resolver lts-13.22"
+  - env: IMG=quid2/x64-ubuntu-stack-lts-13.22 CMD="export LC_ALL=en_US.UTF-8;export LANG=en_US.UTF-8;export LANGUAGE=en_US.UTF-8;stack test --resolver lts-13.22"
 
 before_install:
 - docker pull $IMG
