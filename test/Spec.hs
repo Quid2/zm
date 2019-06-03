@@ -2,37 +2,41 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TupleSections             #-}
 
 module Main where
 
 import           Control.Exception
-import qualified Data.ByteString       as B
-import qualified Data.ByteString.Lazy  as L
-import qualified Data.ByteString.Short as SBS
+import qualified Data.ByteString                     as B
+import qualified Data.ByteString.Lazy                as L
+import qualified Data.ByteString.Short               as SBS
 import           Data.Digest.Keccak
 import           Data.Either
 import           Data.Foldable
 import           Data.Int
 import           Data.List
-import qualified Data.Map              as M
+import qualified Data.Map                            as M
 import           Data.Maybe
-import           Data.Model            hiding (Name)
-import qualified Data.Sequence         as S
-import qualified Data.Text             as T
+import           Data.Model                          hiding (Name)
+import qualified Data.Sequence                       as S
+import qualified Data.Text                           as T
 import           Data.Word
 import           Debug.Trace
 import           Info
-import           System.Exit           (exitFailure)
+import           System.Exit                         (exitFailure)
 import           System.TimeIt
-import           Test.Data             hiding (Cons, Unit)
-import           Test.Data.Flat        hiding (Cons, Unit)
+import           Test.Data                           hiding (Cons, Unit)
+import           Test.Data.Flat                      hiding (Cons, Unit)
 import           Test.Data.Model
-import qualified Test.Data2            as Data2
-import qualified Test.Data3            as Data3
+import qualified Test.Data2                          as Data2
+import qualified Test.Data3                          as Data3
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck as QC
+import           Test.Tasty.QuickCheck               as QC
+import qualified Test.ZM.ADT.Bool.K306f1981b41c      as Z
+import qualified Test.ZM.ADT.TypedBLOB.K614edd84c8bd as Z
+import qualified Test.ZM.ADT.Word.Kf92e8339908a      as Z
+import qualified Test.ZM.ADT.Word7.Kf4c946334a7e     as Z
+import qualified Test.ZM.ADT.Word8.Kb1f46a49c8f8     as Z
 import           Text.PrettyPrint
 import           ZM
 
@@ -88,11 +92,16 @@ tests = testGroup "Tests"
           , codesTests
           , consistentModelTests
           , mutuallyRecursiveTests
-          , customEncodingTests
-          , encodingTests
           , transformTests
           , identifiersTests
-          --, timelessTests
+
+        --, timelessTests
+
+          -- BUG: These tests lock up with --fast compilation
+          -- stack clean;stack test zm --file-watch --fast
+          , customEncodingTests
+          , encodingTests
+
           ]
 
 sha3DigestTests = testGroup "SHA3 Digest Tests"
@@ -114,7 +123,7 @@ consistentModelTests = testGroup "TypeModel Consistency Tests" $ map tst models
  where
   tst tm = testCase (unwords ["Consistency"]) $ internalConsistency tm && externalConsistency tm @?= True
 
-internalConsistency = noErrors . refErrors . typeEnv
+internalConsistency = noErrors . map prettyShow . refErrors . typeEnv
 
 -- |Check external consistency of absolute environment
 -- the key of every ADT in the env is correct (same as calculated directly on the ADT)
@@ -129,11 +138,21 @@ mutuallyRecursiveTests = testGroup "Mutually Recursion Detection Tests" $ [
   tst proxy =
     let r = absTypeModelMaybe proxy
     in testCase (unwords ["Mutual Recursion",show r]) $
-       isLeft r && (let Left es = r in all (isInfixOf "mutually recursive") es) @?= True
+       --isLeft r && (let Left es = r in all (isInfixOf "mutually recursive") es) @?= True
+       isLeft r && (all isMutuallyRecursive . fromLeft2 $ r) @?= True
+
+fromLeft2 (Left l) = l
+
+isMutuallyRecursive (MutuallyRecursive _) = True
+isMutuallyRecursive _                     = False
 
 -- |Test all custom flat instances for conformity to their model
 customEncodingTests = testGroup "Typed Unit Tests" [
-  em (Proxy :: Proxy T.Text) (Proxy :: Proxy (BLOB UTF8Encoding))
+   om (Proxy :: Proxy Z.Bool) False
+   ,om (Proxy :: Proxy Z.Word8) (255::Word8)
+   ,om (Proxy :: Proxy Z.Word) (930123123::Word)
+   ,om (Proxy :: Proxy Z.TypedBLOB) (typedBLOB False)
+  ,em (Proxy :: Proxy T.Text) (Proxy :: Proxy (BLOB UTF8Encoding))
   ,em (Proxy :: Proxy UTF8Text) (Proxy :: Proxy (BLOB UTF8Encoding))
   ,em (Proxy :: Proxy UTF16Text) (Proxy :: Proxy (BLOB UTF16LEEncoding))
   ,e ()
@@ -168,6 +187,7 @@ customEncodingTests = testGroup "Typed Unit Tests" [
   ,e $ blob NoEncoding [11::Word8,22,33]
   ,e $ blob UTF8Encoding [97::Word8,98,99]
   ,e $ blob UTF16LEEncoding ([0x24,0x00,0xAC,0x20,0x01,0xD8,0x37,0xDC]::[Word8]) -- $€𐐷
+  --,e $ typedBLOB True
   ,e (T.pack "abc$€𐐷")
   ,e (UTF8Text $ T.pack "abc$€𐐷")
   ,e (UTF16Text $ T.pack "abc$€𐐷")
@@ -216,15 +236,17 @@ customEncodingTests = testGroup "Typed Unit Tests" [
     ab = [False,True,False]
     ac = ['v','i','c']
 
-    -- e :: forall a. (Prettier a, Flat a, Show a, Model a) => a -> TestTree
-    -- e x = testCase (unwords ["Encoding",show x]) $ dynamicShow x @?= prettierShow x
     e :: forall a. (Pretty a, Flat a, Show a, Model a) => a -> TestTree
-    e x = testCase (unwords ["Encoding",show x,prettyShow x,dynamicShow x]) $ dynamicShow x @?= prettyShow x
+    e x = testCase (unwords ["Custom Encoding",show x,prettyShow x,dynamicShow x]) $ dynamicShow x @?= prettyShow x -- prettierShow x
     em p1 p2 = testCase (unwords ["Model Mapping"]) $ absType p1 @?= absType p2
+
+
+om :: forall a m. (Flat a, Show a, Eq a, Flat m) => Proxy m -> a -> TestTree
+om p v = testCase (unwords ["Original Model Mapping"]) $ (let Right (vm::m) = unflat (flat v) in unflat (flat vm)) @?= Right v
 
 -- As previous test but using Arbitrary values
 encodingTests = testGroup "Encoding Tests"
-                  [ ce "()" (prop_encoding :: RT ())
+                  [ce "()" (prop_encoding :: RT ())
                   , ce "Bool" (prop_encoding :: RT Bool)
                   , ce "Maybe Bool" (prop_encoding :: RT (Maybe Bool))
                   , ce "Word" (prop_encoding :: RT Word)

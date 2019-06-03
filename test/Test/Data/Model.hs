@@ -1,14 +1,14 @@
-{-# LANGUAGE StandaloneDeriving ,DeriveGeneric ,ScopedTypeVariables ,FlexibleContexts ,DeriveAnyClass #-}
+{-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 module Test.Data.Model where
 
 import           Data.Model
 import           Test.Data
 import qualified Test.Data2 as Data2
 import qualified Test.Data3 as Data3
-import Data.Word
-import GHC.Generics
-import Data.Proxy
-import Data.Typeable
+--import Data.Word()
+--import GHC.Generics()
+--import Data.Proxy
+--import Data.Typeable
 
 -- instance Model Word8
 -- instance Model Words

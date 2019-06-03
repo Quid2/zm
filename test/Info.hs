@@ -9,11 +9,11 @@ import qualified Test.Data2      as Data2
 import qualified Test.Data3      as Data3
 import           ZM
 
-m :: HTypeModel
-m = typeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
+-- m :: HTypeModel
+-- m = typeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
 
-a :: AbsTypeModel
-a = absTypeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
+-- a :: AbsTypeModel
+-- a = absTypeModel (Proxy :: Proxy (List (Data2.List (Data3.List Bool))))
 
 models :: [AbsTypeModel]
 models = [

@@ -1,17 +1,18 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE UndecidableInstances ,DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts ,FlexibleInstances ,LambdaCase ,StandaloneDeriving #-}
-module Test.Data.Flat(module Test.Data) where
-import Data.Flat
-import Data.Flat.Encoder
-import Data.Flat.Decoder
-import Test.Data
-import Test.Data2.Flat()
-import Data.Word
---import Data.Flat.Poke
-import Data.Foldable
-import Data.Int
-import GHC.Generics
+
+{-# LANGUAGE UndecidableInstances ,DeriveGeneric, FlexibleContexts, FlexibleInstances,StandaloneDeriving #-}
+module Test.Data.Flat
+  ( module Test.Data
+  )
+where
+import           Data.Flat
+import           Data.Flat.Encoder
+import           Data.Flat.Decoder
+import           Test.Data
+import           Test.Data2.Flat                ( )
+import           Data.Word
+import           Data.Foldable
+import           Data.Int
+import           GHC.Generics
 
 {-
 Compilation times:
@@ -40,6 +41,8 @@ instance Flat N
 instance Flat Unit
 
 instance Flat a => Flat (List a)
+
+instance Flat a => Flat (Tree a)
 
 instance Flat Direction
 instance Flat Words

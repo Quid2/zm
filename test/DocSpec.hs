@@ -5,8 +5,10 @@ import           System.FilePath.Find
 import           Test.DocTest
 
 main :: IO ()
-main =
-  find always ((extension ==? ".hs") &&? (exceptFiles ["Test.hs","ZM/Parser.hs","Data/Timeless.hs"])) "src" >>= doctest
+main = do
+  files <- find always ((extension ==? ".hs") &&? (exceptFiles ["Test.hs","Data/Timeless.hs"])) "src"
+  --print files   
+  doctest files
 
 exceptFiles :: Foldable t => t [Char] -> FindClause Bool
 exceptFiles mdls =

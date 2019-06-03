@@ -1,23 +1,27 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE MultiParamTypeClasses ,DeriveGeneric ,DeriveDataTypeable ,ScopedTypeVariables ,GADTs ,NoMonomorphismRestriction ,DeriveGeneric ,DefaultSignatures ,TemplateHaskell ,TypeFamilies ,FlexibleContexts ,FlexibleInstances ,EmptyDataDecls #-}
+{-# LANGUAGE ConstraintKinds           #-}
+{-# LANGUAGE DeriveDataTypeable        #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE DeriveTraversable         #-}
+{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TypeFamilies              #-}
 {-
  A collection of data types used for testing.
 -}
+
 module Test.Data where
 
-import Control.Exception
-import           Data.Char
+import           Data.Data
 import           Data.Int
 import           Data.Word
-
-import           Data.Typeable
-import           Data.Data
 import           GHC.Generics
-import           Data.Data
-import qualified Test.Data2 as D2
-import Data.Foldable
-import GHC.Exts hiding (toList)
+import qualified Test.Data2                    as D2
+-- import           Test.Tasty.QuickCheck
 
 data Void deriving Generic
 
@@ -40,7 +44,7 @@ data N = One
        | Three
        | Four
        | Five
-  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Enum)
+  deriving (Eq, Ord, Read, Show, Typeable, Data, Generic, Enum, Bounded)
 
 -- toForestD :: Forest a -> ForestD (Tr2 a)
  -- toForestD (Forest lt) = undefined -- Forest2 (ForestD (map (\t -> let Tr2 tt = treeConv t in tt) . toList $ lt))
