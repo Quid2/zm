@@ -1,10 +1,16 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-module ZM.Type.String (String(..)) where
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 
-import Prelude hiding (String)
+module ZM.Type.String
+  ( String(..)
+  ) where
+
+import           Control.DeepSeq
+import           Data.Flat
 import           Data.Model
-import Data.Flat
-import ZM.Model ()
+import           Prelude         hiding (String)
+import           ZM.Model        ()
 
-data String = String [Char] deriving (Eq, Ord, Show, Generic, Flat, Model)  
+data String =
+  String [Char]
+  deriving (Eq, Ord, Show, Generic, Flat, Model, NFData)
