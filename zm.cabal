@@ -1,5 +1,5 @@
 name: zm
-version: 0.3.3
+version: 0.3.5
 synopsis: Language independent, reproducible, absolute types
 description: See the <http://github.com/Quid2/zm online tutorial>.
 homepage: http://github.com/Quid2/zm
@@ -8,10 +8,11 @@ license:             BSD3
 license-file:        LICENSE
 author:              Pasqualino `Titto` Assini
 maintainer:          tittoassini@gmail.com
-copyright:           Copyright: (c) 2016 Pasqualino `Titto` Assini
+copyright:           Copyright: (c) 2016-2019 Pasqualino `Titto` Assini
 cabal-version: >=1.10
 build-type: Simple
 Tested-With: GHC == 7.10.3 GHC == 8.0.2 GHC == 8.2.2 GHC == 8.4.4 GHC == 8.6.5
+
 extra-source-files:
     stack.yaml
     README.md
@@ -38,6 +39,7 @@ library
         ZM.Type.Char
         ZM.Type.Float32
         ZM.Type.Float64
+        ZM.Type.Function
         ZM.Type.List
         ZM.Type.NonEmptyList
         ZM.Type.Map
@@ -73,7 +75,8 @@ library
                   -- convertible == 1.1.*,
                   text,
                   flat == 0.3.*,
-                  model >= 0.4.4 && < 0.6,
+                  model >= 0.5,
+                  -- 0.4.4 && < 0.6,
                   either > 4.3.2 && <6
     js-sources:
         jsbits/sha3.js
