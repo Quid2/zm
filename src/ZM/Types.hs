@@ -8,7 +8,6 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 module ZM.Types
-    -- * Model
   ( module Data.Model.Types
   , AbsTypeModel
   , AbsType
