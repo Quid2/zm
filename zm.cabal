@@ -1,156 +1,171 @@
-name: zm
-version: 0.3.5
-synopsis: Language independent, reproducible, absolute types
-description: See the <http://github.com/Quid2/zm online tutorial>.
-homepage: http://github.com/Quid2/zm
-category: Data,Reflection
-license:             BSD3
-license-file:        LICENSE
-author:              Pasqualino `Titto` Assini
-maintainer:          tittoassini@gmail.com
-copyright:           Copyright: (c) 2016-2019 Pasqualino `Titto` Assini
-cabal-version: >=1.10
-build-type: Simple
-Tested-With: GHC == 7.10.3 GHC == 8.0.2 GHC == 8.2.2 GHC == 8.4.4 GHC == 8.6.5
+name:               zm
+version:            0.3.7
+synopsis:           Language independent, reproducible, absolute types
+description:        See the <http://github.com/Quid2/zm online tutorial>.
+homepage:           http://github.com/Quid2/zm
+category:           Data,Reflection
+license:            BSD3
+license-file:       LICENSE
+author:             Pasqualino `Titto` Assini
+maintainer:         tittoassini@gmail.com
+copyright:          Copyright: (c) 2016-2019 Pasqualino `Titto` Assini
+cabal-version:      >=1.10
+build-type:         Simple
+tested-with:
+  GHC ==7.10.3 || ==8.0.2 || ==8.2.2 || ==8.4.4 || ==8.6.5
 
 extra-source-files:
-    stack.yaml
-    README.md
+  stack.yaml
+  README.md
 
 source-repository head
-    type: git
-    location: https://github.com/Quid2/zm
+  type:     git
+  location: https://github.com/Quid2/zm
 
 library
-    exposed-modules:
-        Data.Digest.Keccak
-        Data.List.Extra
-        ZM
-        ZM.Abs
-        ZM.BLOB
-        -- ZM.Coerce
-        ZM.Type.Array
-        ZM.Type.BLOB
-        ZM.Type.Bit
-        ZM.Type.Bits8
-        ZM.Type.Bits11
-        ZM.Type.Bits23
-        ZM.Type.Bits52
-        ZM.Type.Char
-        ZM.Type.Float32
-        ZM.Type.Float64
-        ZM.Type.Function
-        ZM.Type.List
-        ZM.Type.NonEmptyList
-        ZM.Type.Map
-        ZM.Type.Repo0
-        ZM.Type.Repo
-        ZM.Type.String
-        ZM.Type.Tuples
-        ZM.Type.Unit
-        ZM.Type.Words
-        ZM.Dynamic
-        ZM.Type.Generate
-        ZM.Pretty
-        ZM.Pretty.Base
-        ZM.Pretty.Value
-        ZM.Model
-        ZM.Transform
-        ZM.Types
-        ZM.Util
-    
-    if impl(ghcjs -any)
-        build-depends:
-            ghcjs-base >=0.2 && <0.3
-    else
-        build-depends: cryptonite >=0.22 && <1,memory
+  exposed-modules:
+    Data.Digest.Keccak
+    Data.List.Extra
+    ZM
+    ZM.Abs
+    ZM.BLOB
+    ZM.Dynamic
+    ZM.Model
+    ZM.Pretty
+    ZM.Pretty.Base
+    ZM.Pretty.Value
+    ZM.Transform
+    ZM.Type.Array
+    ZM.Type.BLOB
+    ZM.Type.Bit
+    ZM.Type.Bits11
+    ZM.Type.Bits23
+    ZM.Type.Bits52
+    ZM.Type.Bits8
+    ZM.Type.Char
+    ZM.Type.Float32
+    ZM.Type.Float64
+    ZM.Type.Function
+    ZM.Type.Generate
+    ZM.Type.List
+    ZM.Type.Map
+    ZM.Type.NonEmptyList
+    ZM.Type.Repo
+    ZM.Type.Repo0
+    ZM.Type.String
+    ZM.Type.Tuples
+    ZM.Type.Unit
+    ZM.Type.Words
+    ZM.Types
+    ZM.Util
 
+  -- ZM.Coerce
+  if impl(ghcjs -any)
+    build-depends: ghcjs-base ==0.2.*
+
+  else
     build-depends:
-                  base >=4.8 && <5,
-                  bytestring>=0.10.6.0 && < 0.11,
-                  containers,
-                  deepseq == 1.4.*,
-                  pretty >= 1.1.2 && < 1.2,
-                  transformers >= 0.4.2.0 && < 0.6,
-                  -- convertible == 1.1.*,
-                  text,
-                  flat == 0.3.*,
-                  model >= 0.5,
-                  -- 0.4.4 && < 0.6,
-                  either > 4.3.2 && <6
-    js-sources:
-        jsbits/sha3.js
-    default-language: Haskell2010
-    hs-source-dirs: src
-    -- ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
-    if impl(ghc >8)        
-        ghc-options: -Wall -funbox-strict-fields -fno-warn-orphans -fno-warn-name-shadowing -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints 
-    -- -Werror
+        cryptonite  >=0.22 && <1
+      , memory
+
+  build-depends:
+      base          >=4.8      && <5
+    , bytestring    >=0.10.6.0 && <0.11
+    , containers
+    , deepseq       >=1.4      && <1.5
+    , either        >4.3.2    && <6
+    , flat          >=0.3      && <0.4
+    , model         >=0.5
+    , pretty        >=1.1.2    && <1.2
+    , text
+    , transformers  >=0.4.2.0  && <0.6
+
+  -- convertible == 1.1.*,
+  -- 0.4.4 && < 0.6,
+  js-sources:       jsbits/sha3.js
+  default-language: Haskell2010
+  hs-source-dirs:   src
+
+  -- ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
+  if impl(ghc >8)
+    ghc-options:
+      -Wall -funbox-strict-fields -fno-warn-orphans
+      -fno-warn-name-shadowing -Wincomplete-record-updates
+      -Wincomplete-uni-patterns -Wredundant-constraints
+
+-- -Werror
 
 test-suite spec
-    type: exitcode-stdio-1.0
-    main-is: Spec.hs
-    build-depends:
-                  base,
-                  containers,
-                  bytestring,
-                  text,
-                  pretty,
-                  tasty >= 0.11, 
-                  tasty-hunit >= 0.8,
-                  tasty-quickcheck >=0.8.1,
-                  timeit>=1,
-                  flat,
-                  model,
-                  zm
-    default-language: Haskell2010
-    hs-source-dirs: test
-    other-modules:
-        ZM.Prim
-        Info
-        Test.Data
-        Test.Data.Flat
-        Test.Data.Model
-        Test.Data2
-        Test.Data2.Flat
-        Test.Data3
-        Test.Data3.Flat
-        Test.ZM.ADT.ADT.K3e8257255cbf
-        Test.ZM.ADT.ADTRef.K07b1b045ac3c
-        Test.ZM.ADT.AbsRef.K4bbd38587b9e
-        Test.ZM.ADT.Array.K2e8b4519aeaa
-        Test.ZM.ADT.BLOB.Kf139d4751fda
-        Test.ZM.ADT.Bool.K306f1981b41c
-        Test.ZM.ADT.Bytes.Kf8844385a443
-        Test.ZM.ADT.Char.K066db52af145
-        Test.ZM.ADT.ConTree.K86653e040025
-        Test.ZM.ADT.Either.K6260e465ae74
-        Test.ZM.ADT.Filler.Kae1dfeece189
-        Test.ZM.ADT.FlatEncoding.K982148c09ddb
-        Test.ZM.ADT.Identifier.Kdc26e9d90047
-        Test.ZM.ADT.LeastSignificantFirst.K20ffacc8f8c9
-        Test.ZM.ADT.List.Kb8cd13187198
-        Test.ZM.ADT.Maybe.Kda6836778fd4
-        Test.ZM.ADT.MostSignificantFirst.K74e2b3b89941
-        Test.ZM.ADT.NonEmptyList.Kbf2d1c86eb20
-        Test.ZM.ADT.PreAligned.Kb2f28cf37d12
-        Test.ZM.ADT.SHAKE128_48.K9f214799149b
-        Test.ZM.ADT.Tuple2.Ka5583bf3ad34
-        Test.ZM.ADT.Type.K7028aa556ebc
-        Test.ZM.ADT.TypedBLOB.K614edd84c8bd
-        Test.ZM.ADT.UnicodeLetter.K3878b3580fc5
-        Test.ZM.ADT.UnicodeLetterOrNumberOrLine.K33445520c45a
-        Test.ZM.ADT.UnicodeSymbol.K801030ef543c
-        Test.ZM.ADT.Word.Kf92e8339908a
-        Test.ZM.ADT.Word32.K2412799c99f1
-        Test.ZM.ADT.Word7.Kf4c946334a7e
-        Test.ZM.ADT.Word8.Kb1f46a49c8f8
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  type:             exitcode-stdio-1.0
+  main-is:          Spec.hs
+  build-depends:
+      base
+    , bytestring
+    , containers
+    , flat
+    , model
+    , pretty
+    , tasty             >=0.11
+    , tasty-hunit       >=0.8
+    , tasty-quickcheck  >=0.8.1
+    , text
+    , timeit            >=1
+    , zm
+
+  default-language: Haskell2010
+  hs-source-dirs:   test
+  other-modules:
+    Info
+    Test.Data
+    Test.Data.Flat
+    Test.Data.Model
+    Test.Data2
+    Test.Data2.Flat
+    Test.Data3
+    Test.Data3.Flat
+    Test.ZM.ADT.ADT.K3e8257255cbf
+    Test.ZM.ADT.ADTRef.K07b1b045ac3c
+    Test.ZM.ADT.AbsRef.K4bbd38587b9e
+    Test.ZM.ADT.Array.K2e8b4519aeaa
+    Test.ZM.ADT.BLOB.Kf139d4751fda
+    Test.ZM.ADT.Bool.K306f1981b41c
+    Test.ZM.ADT.Bytes.Kf8844385a443
+    Test.ZM.ADT.Char.K066db52af145
+    Test.ZM.ADT.ConTree.K86653e040025
+    Test.ZM.ADT.Either.K6260e465ae74
+    Test.ZM.ADT.Filler.Kae1dfeece189
+    Test.ZM.ADT.FlatEncoding.K982148c09ddb
+    Test.ZM.ADT.Identifier.Kdc26e9d90047
+    Test.ZM.ADT.LeastSignificantFirst.K20ffacc8f8c9
+    Test.ZM.ADT.List.Kb8cd13187198
+    Test.ZM.ADT.Maybe.Kda6836778fd4
+    Test.ZM.ADT.MostSignificantFirst.K74e2b3b89941
+    Test.ZM.ADT.NonEmptyList.Kbf2d1c86eb20
+    Test.ZM.ADT.PreAligned.Kb2f28cf37d12
+    Test.ZM.ADT.SHAKE128_48.K9f214799149b
+    Test.ZM.ADT.Tuple2.Ka5583bf3ad34
+    Test.ZM.ADT.Type.K7028aa556ebc
+    Test.ZM.ADT.TypedBLOB.K614edd84c8bd
+    Test.ZM.ADT.UnicodeLetter.K3878b3580fc5
+    Test.ZM.ADT.UnicodeLetterOrNumberOrLine.K33445520c45a
+    Test.ZM.ADT.UnicodeSymbol.K801030ef543c
+    Test.ZM.ADT.Word.Kf92e8339908a
+    Test.ZM.ADT.Word32.K2412799c99f1
+    Test.ZM.ADT.Word7.Kf4c946334a7e
+    Test.ZM.ADT.Word8.Kb1f46a49c8f8
+    ZM.Prim
+
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
 
 test-suite doc
-  default-language:   Haskell2010
-  type:               exitcode-stdio-1.0
-  ghc-options:        -threaded
-  main-is:            DocSpec.hs
-  build-depends:      base, doctest>=0.11.1,filemanip>=0.3.6.3,zm
-  HS-Source-Dirs:     test
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  ghc-options:      -threaded
+  main-is:          DocSpec.hs
+  build-depends:
+      base
+    , doctest    >=0.11.1
+    , filemanip  >=0.3.6.3
+    , zm
+
+  hs-source-dirs:   test
