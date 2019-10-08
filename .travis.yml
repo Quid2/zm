@@ -43,5 +43,7 @@ before_install:
   - docker pull $IMG
 
 script:
-  - PKG=zm
+  - PKG=basename "$PWD"
+  - echo $PKG
+  - echo ${PWD##*/}
   - docker run -it $IMG bash -c "git clone https://github.com/Quid2/$PKG;cd $PKG;$CMD"
