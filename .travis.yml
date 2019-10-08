@@ -40,13 +40,8 @@ matrix:
   # ghc 8.8.X
 
 before_install:
-  - PKG=basename "$PWD"
-  - echo $PKG
-  - echo ${PWD##*/}
+  - PKG= ${PWD##*/}
   - docker pull $IMG
 
 script:
-  - PKG=basename "$PWD"
-  - echo $PKG
-  - echo ${PWD##*/}
   - docker run -it $IMG bash -c "git clone https://github.com/Quid2/$PKG;cd $PKG;$CMD"
