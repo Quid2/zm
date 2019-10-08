@@ -7,8 +7,10 @@ packages:
 
 extra-deps:
   - model-0.5
-  - flat-0.3.4
+  #- flat-0.3.4
+
+  - github: Quid2/flat
+    commit: 122d9943a6a73500ffc7368d237d69d8c2802e6a
 
   # to support ghc 7.10.3
   - cryptonite-0.22
-  
