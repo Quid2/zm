@@ -40,7 +40,7 @@ matrix:
   # ghc 8.8.X
 
 before_install:
-  - PKG= ${PWD##*/}
+  - PKG=${PWD##*/}
   - docker pull $IMG
 
 script:
