@@ -23,7 +23,7 @@ matrix:
     # - env: IMG=quid2/x64-ubuntu-stack-lts-9.21 CMD="stack test --resolver lts-9.21"
 
     # ghc 8.2.2
-    - env: IMG=quid2/x64-ubuntu-stack-lts-11.22 CMD="stack test --resolver lts-11.22"
+    #- env: IMG=quid2/x64-ubuntu-stack-lts-11.22 CMD="stack test --resolver lts-11.22"
     # ghc 8.4.4
     - env: IMG=quid2/x64-ubuntu-stack-lts-12.26 CMD="stack test --resolver lts-12.26"
   # OCCASIONAL!
@@ -40,6 +40,9 @@ matrix:
   # ghc 8.8.X
 
 before_install:
+  - PKG=basename "$PWD"
+  - echo $PKG
+  - echo ${PWD##*/}
   - docker pull $IMG
 
 script:
