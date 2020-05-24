@@ -23,12 +23,14 @@ main = do
       . T.pack
       )
       args
-    else find always ((extension ==? ".hs") &&? exceptFiles []) "src"
+    else find always ((extension ==? ".hs") &&? exceptFiles excepts) "src"
   -- print files
   runTests runOpts files
   genTests genOpts files
 
 runTests opts files = doctest $ opts ++ files
+
+excepts = ["src/ZM/Test.hs", "src/ZM/Pretty/Value.hs", "src/Data/Timeless.hs"]
 
 runOpts = ["--fast", "-XCPP"]
 

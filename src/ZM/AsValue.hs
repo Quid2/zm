@@ -206,8 +206,6 @@ instance AsValue TL.Text where
 
 instance AsValue UTF8Text where
     unVal v vs = UTF8Text (unVal v vs)
-
--- TODO: rename to UTF16Text? or can work with both encodings?
 instance AsValue UTF16Text where
     unVal v vs =  UTF16Text . T.decodeUtf16LE . Z.content $ (unVal v vs :: Z.BLOB UTF16LEEncoding)
 
