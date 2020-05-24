@@ -3,7 +3,7 @@
 module Test.ZM.ADT.Bits52.Kf727da8aa8ad (Bits52(..)) where
 import qualified Prelude(Eq,Ord,Show)
 import qualified GHC.Generics
-import qualified Data.Flat
+import qualified Flat
 import qualified Data.Model
 import qualified Test.ZM.ADT.Bit.K65149ce3b366
 
@@ -59,5 +59,5 @@ data Bits52 =   Bits52 {bit0 :: Test.ZM.ADT.Bit.K65149ce3b366.Bit,
                         bit49 :: Test.ZM.ADT.Bit.K65149ce3b366.Bit,
                         bit50 :: Test.ZM.ADT.Bit.K65149ce3b366.Bit,
                         bit51 :: Test.ZM.ADT.Bit.K65149ce3b366.Bit}
-  deriving (Prelude.Eq, Prelude.Ord, Prelude.Show, GHC.Generics.Generic, Data.Flat.Flat)
+  deriving (Prelude.Eq, Prelude.Ord, Prelude.Show, GHC.Generics.Generic, Flat.Flat)
 instance Data.Model.Model Bits52

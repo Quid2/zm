@@ -1,11 +1,14 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DeriveGeneric     #-}
-module ZM.Type.Repo0 (RepoProtocol(..)) where
+module ZM.Type.Repo0
+  ( RepoProtocol(..)
+  )
+where
 
-import Prelude hiding (String)
+import           Prelude                 hiding ( String )
 import           Data.Model
-import Data.Flat
-import ZM
+import           Flat
+import           ZM
 
 
 {-|

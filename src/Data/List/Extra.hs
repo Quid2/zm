@@ -1,7 +1,9 @@
-{- Additional List functions -}
+{- Additional List functions, from the 'extra' package  -}
 module Data.List.Extra (list) where
 
-{-| from the 'extra' package    
+{-| 
+Non-recursive transform over a list, like maybe.
+
 >>> list 1 (\v _ -> v - 2) []
 1
 

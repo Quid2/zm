@@ -1,4 +1,4 @@
-resolver: lts-14.7
+resolver: lts-14.27
 
 packages:
   - "."
@@ -6,11 +6,14 @@ packages:
 # - ../flat
 
 extra-deps:
-  - model-0.5
-  #- flat-0.3.4
-
-  - github: Quid2/flat
-    commit: 122d9943a6a73500ffc7368d237d69d8c2802e6a
-
+  - flat-0.4.2@sha256:3c62b42f0975ee1dd151da3e7cbbc41d2f2f8369982ccf4f470d9e9882faa4e9,8793
+  - model-0.5@sha256:c54661de2ba056cc59add51970979db6ef86258f470b9cc1a39bc4b6ae4a146a,2468
+  # - github: Quid2/flat
+  #   commit: 122d9943a6a73500ffc7368d237d69d8c2802e6a
   # to support ghc 7.10.3
-  - cryptonite-0.22
+  #- cryptonite-0.22
+  #- megaparsec-6.5.0@sha256:510b5471f31e965a06f91d110456f24ad7e191e0778f4fc8ec053dcb182abcbf,6125
+
+  # Modified doctest, used to generate static tests
+  - git: https://github.com/tittoassini/doctest
+    commit: c9cdbe4eee086cb8aa46e96532160320dd367f09

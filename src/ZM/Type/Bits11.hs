@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module ZM.Type.Bits11 where
-import ZM.Type.Bit
-import Data.Flat
-import Data.Model
+import           ZM.Type.Bit
+import           Flat
+import           Data.Model
 
 data Bits11 =
        Bits11

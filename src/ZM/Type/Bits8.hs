@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric  #-}
 module ZM.Type.Bits8 where
 import ZM.Type.Bit
-import Data.Flat
+import Flat
 import Data.Model
 
 data Bits8 =

@@ -3,13 +3,14 @@
 
 module ZM.Type.String
   ( String(..)
-  ) where
+  )
+where
 
 import           Control.DeepSeq
-import           Data.Flat
+import           Flat
 import           Data.Model
-import           Prelude         hiding (String)
-import           ZM.Model        ()
+import           Prelude                 hiding ( String )
+import           ZM.Model                       ( )
 
 data String =
   String [Char]

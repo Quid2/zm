@@ -1,5 +1,5 @@
 name:               zm
-version:            0.3.7
+version:            0.3.9
 synopsis:           Language independent, reproducible, absolute types
 description:        See the <http://github.com/Quid2/zm online tutorial>.
 homepage:           http://github.com/Quid2/zm
@@ -26,22 +26,32 @@ library
   exposed-modules:
     Data.Digest.Keccak
     Data.List.Extra
+    Data.These
     ZM
     ZM.Abs
+    ZM.AsValue
     ZM.BLOB
-    ZM.Dynamic
+    ZM.BLOB.BLOBList
     ZM.Model
+    ZM.Parser
+    ZM.Parser.ADT
+    ZM.Parser.Env
+    ZM.Parser.Lexer
+    ZM.Parser.Types
+    ZM.Parser.Util
+    ZM.Parser.Value
     ZM.Pretty
     ZM.Pretty.Base
-    ZM.Pretty.Value
+    ZM.To.Decoder
+    ZM.To.Encoder
     ZM.Transform
     ZM.Type.Array
-    ZM.Type.BLOB
     ZM.Type.Bit
     ZM.Type.Bits11
     ZM.Type.Bits23
     ZM.Type.Bits52
     ZM.Type.Bits8
+    ZM.Type.BLOB
     ZM.Type.Char
     ZM.Type.Float32
     ZM.Type.Float64
@@ -50,6 +60,7 @@ library
     ZM.Type.List
     ZM.Type.Map
     ZM.Type.NonEmptyList
+    ZM.Type.Prims
     ZM.Type.Repo
     ZM.Type.Repo0
     ZM.Type.String
@@ -58,6 +69,10 @@ library
     ZM.Type.Words
     ZM.Types
     ZM.Util
+
+  -- ZM.Dynamic
+  -- ZM.Pretty.Value
+  -- ZM.Pretty.Value
 
   -- ZM.Coerce
   if impl(ghcjs -any)
@@ -69,16 +84,22 @@ library
       , memory
 
   build-depends:
-      base          >=4.8      && <5
-    , bytestring    >=0.10.6.0 && <0.11
+      base                >=4.8      && <5
+    , bytestring          >=0.10.6.0 && <0.11
     , containers
-    , deepseq       >=1.4      && <1.5
-    , either        >4.3.2    && <6
-    , flat          >=0.3      && <0.4
-    , model         >=0.5
-    , pretty        >=1.1.2    && <1.2
+    , data-fix
+    , deepseq             >=1.4      && <1.5
+    , directory
+    , either              >4.3.2    && <6
+    , extra
+    , flat                >=0.4      && <0.5
+    , megaparsec          >7        && <9
+    , model               >=0.5      && <0.6
+    , parser-combinators
+    , pretty              >=1.1.2    && <1.2
+    , scientific
     , text
-    , transformers  >=0.4.2.0  && <0.6
+    , transformers        >=0.4.2.0  && <0.6
 
   -- convertible == 1.1.*,
   -- 0.4.4 && < 0.6,
@@ -123,9 +144,9 @@ test-suite spec
     Test.Data2.Flat
     Test.Data3
     Test.Data3.Flat
+    Test.ZM.ADT.AbsRef.K4bbd38587b9e
     Test.ZM.ADT.ADT.K3e8257255cbf
     Test.ZM.ADT.ADTRef.K07b1b045ac3c
-    Test.ZM.ADT.AbsRef.K4bbd38587b9e
     Test.ZM.ADT.Array.K2e8b4519aeaa
     Test.ZM.ADT.BLOB.Kf139d4751fda
     Test.ZM.ADT.Bool.K306f1981b41c
@@ -164,8 +185,12 @@ test-suite doc
   main-is:          DocSpec.hs
   build-depends:
       base
-    , doctest    >=0.11.1
-    , filemanip  >=0.3.6.3
+    , directory
+    , doctest               ==0.16.3.1
+    , filemanip             >=0.3.6.3
+    , QuickCheck
+    , quickcheck-instances
+    , text
     , zm
 
   hs-source-dirs:   test

@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 module ZM.Type.Bit where
-import Data.Flat
+import Flat
 import Data.Model
 
 -- | A Bit

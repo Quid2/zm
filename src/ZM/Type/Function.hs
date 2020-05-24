@@ -3,9 +3,9 @@
 
 module ZM.Type.Function where
 
-import           Data.Flat
+import           Flat
 import           Data.Model
-import           ZM.Types   (SHAKE128_48)
+import           ZM.Types                       ( SHAKE128_48 )
 
 -- Here we would need higher order types:
 -- data Function f k r = Call f | Reply (k f) r deriving (Eq,Ord,Show,Generic,Flat)

@@ -13,13 +13,13 @@ module ZM.Model () where
 import qualified Data.ByteString         as B
 import qualified Data.ByteString.Lazy    as L
 import qualified Data.ByteString.Short   as SBS
-import           Data.Flat               (UTF16Text, UTF8Text)
-import qualified Data.Int                as H
+import           Flat               (UTF16Text, UTF8Text)
+--import qualified Data.Int                as H
 import qualified Data.Map                as M
 import           Data.Model
 import qualified Data.Sequence           as S
 import           Data.Text               (Text)
-import           ZM.Type.Array
+-- import           ZM.Type.Array
 import qualified ZM.Type.BLOB    as Z
 import qualified ZM.Type.Char    as Z
 import           ZM.Type.Float32
@@ -28,10 +28,13 @@ import           ZM.Type.List
 import qualified ZM.Type.Map     as Z
 import           ZM.Type.Tuples
 import           ZM.Type.Unit
-import qualified ZM.Type.Words   as Z
-import qualified Data.Word               as H
+-- import qualified ZM.Type.Words   as Z
+-- import qualified Data.Word               as H
+-- import           Numeric.Natural as H
 import qualified Prelude                 as H
 import           Type.Analyse
+import ZM.Type.Array
+import ZM.Type.Prims()
 
 #include "MachDeps.h"
 
@@ -41,25 +44,26 @@ instance Model () where envType _ = envType (Proxy::Proxy Unit)
 
 -- Signed and Unsigned Whole Numbers
 
-#if WORD_SIZE_IN_BITS == 64
-instance Model H.Word where envType _ = envType (Proxy::Proxy Z.Word64)
-instance Model H.Int where envType _ = envType (Proxy::Proxy Z.Int64)
-#elif WORD_SIZE_IN_BITS == 32
-instance Model H.Word where envType _ = envType (Proxy::Proxy Z.Word32)
-instance Model H.Int where envType _ = envType (Proxy::Proxy Z.Int32)
-#else
-#error expected WORD_SIZE_IN_BITS to be 32 or 64
-#endif
+-- #if WORD_SIZE_IN_BITS == 64
+-- instance Model H.Word where envType _ = envType (Proxy::Proxy Z.Word64)
+-- instance Model H.Int where envType _ = envType (Proxy::Proxy Z.Int64)
+-- #elif WORD_SIZE_IN_BITS == 32
+-- instance Model H.Word where envType _ = envType (Proxy::Proxy Z.Word32)
+-- instance Model H.Int where envType _ = envType (Proxy::Proxy Z.Int32)
+-- #else
+-- #error expected WORD_SIZE_IN_BITS to be 32 or 64
+-- #endif
 
-instance Model H.Word8 where envType _ = envType (Proxy::Proxy Z.Word8)
-instance Model H.Word16 where envType _ = envType (Proxy::Proxy Z.Word16)
-instance Model H.Word32 where envType _ = envType (Proxy::Proxy Z.Word32)
-instance Model H.Word64 where envType _ = envType (Proxy::Proxy Z.Word64)
-instance Model H.Int8 where envType _ = envType (Proxy::Proxy Z.Int8)
-instance Model H.Int16 where envType _ = envType (Proxy::Proxy Z.Int16)
-instance Model H.Int32 where envType _ = envType (Proxy::Proxy Z.Int32)
-instance Model H.Int64 where envType _ = envType (Proxy::Proxy Z.Int64)
-instance Model H.Integer where envType _ = envType (Proxy::Proxy Z.Int)
+-- instance Model H.Word8 where envType _ = envType (Proxy::Proxy Z.Word8)
+-- instance Model H.Word16 where envType _ = envType (Proxy::Proxy Z.Word16)
+-- instance Model H.Word32 where envType _ = envType (Proxy::Proxy Z.Word32)
+-- instance Model H.Word64 where envType _ = envType (Proxy::Proxy Z.Word64)
+-- instance Model H.Int8 where envType _ = envType (Proxy::Proxy Z.Int8)
+-- instance Model H.Int16 where envType _ = envType (Proxy::Proxy Z.Int16)
+-- instance Model H.Int32 where envType _ = envType (Proxy::Proxy Z.Int32)
+-- instance Model H.Int64 where envType _ = envType (Proxy::Proxy Z.Int64)
+-- instance Model H.Integer where envType _ = envType (Proxy::Proxy Z.Int)
+-- instance Model H.Natural where envType _ = envType (Proxy::Proxy Z.Word)
 
 -- Floating-Point Numbers
 instance Model H.Float where envType _ = envType (Proxy::Proxy IEEE_754_binary32)
@@ -68,7 +72,9 @@ instance Model H.Double where envType _ = envType (Proxy::Proxy IEEE_754_binary6
 -- Data Structures
 instance Model a => Model [a] where envType _ = envType (Proxy::Proxy (List a))
 
-instance Model a => Model (S.Seq a) where envType _ = envType (Proxy::Proxy (Array a))
+instance Model a => Model (S.Seq a) where envType _ = envType (Proxy::Proxy (List a))
+-- Changed in flat 0.4.*?
+-- instance Model a => Model (S.Seq a) where envType _ = envType (Proxy::Proxy (Array a))
 
 instance (Model a,Model b) => Model (M.Map a b) where envType _ = envType (Proxy::Proxy (Z.Map a b))
 -- instance {-# OVERLAPPING #-} (AsType a, AsType b) => AsType (App (App (Typ (Map A0 A1)) a) b) where asType _ = asType (undefined::(App (Typ [A0]) (App (App (Typ (A0, A1)) a) b)))

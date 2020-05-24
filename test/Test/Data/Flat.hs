@@ -4,9 +4,9 @@ module Test.Data.Flat
   ( module Test.Data
   )
 where
-import           Data.Flat
-import           Data.Flat.Encoder
-import           Data.Flat.Decoder
+import           Flat
+import           Flat.Encoder
+import           Flat.Decoder
 import           Test.Data
 import           Test.Data2.Flat                ( )
 import           Data.Word

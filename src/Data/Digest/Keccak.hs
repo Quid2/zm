@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds   #-}
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI            #-}
@@ -20,7 +20,25 @@ import qualified "cryptonite" Crypto.Hash             as S
 import qualified Data.ByteArray          as S
 #endif
 
--- |Return the specified number of bytes of the SHAKE-128 hash of the provided byte string
+--import qualified Data.ByteString         as B
+
+
+-- $setup
+-- >>> :set -XOverloadedStrings
+-- >>> import ZM.Pretty
+-- >>> import Data.String
+-- >>> 
+
+{- |Return the specified number of bytes of the SHAKE-128 hash of the provided byte string
+>>> shake_128 8 B.empty == B.pack [127, 156, 43, 164, 232, 143, 130, 125]
+True
+
+>>> shake_128 32 (B.pack [1..10]) == B.pack [142,56,168,122,207,188,35,211,233,209,95,158,63,91,102,156,114,204,22,38,177,105,130,116,173,114,190,153,159,101,10,150]
+True
+
+>>> let i = B.pack [1..10] in shake_128 4 i == B.take 4 (shake_128 32 i)
+True
+-}
 shake_128 :: Int -> B.ByteString -> B.ByteString
 shake_128 numBytes bs | numBytes <=0 || numBytes > 32 = error "shake128: Invalid number of bytes"
                       | otherwise = shake_128_ numBytes bs

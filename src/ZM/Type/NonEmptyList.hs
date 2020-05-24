@@ -3,10 +3,14 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE DeriveTraversable #-}
-module ZM.Type.NonEmptyList(NonEmptyList(..),nonEmptyList) where
+module ZM.Type.NonEmptyList
+  ( NonEmptyList(..)
+  , nonEmptyList
+  )
+where
 
 import           Control.DeepSeq
-import           Data.Flat
+import           Flat
 import           Data.Model
 
 -- |A list that contains at least one element
@@ -18,6 +22,6 @@ instance Model a => Model (NonEmptyList a)
 
 -- |Convert a list to a `NonEmptyList`, returns an error if the list is empty
 nonEmptyList :: [a] -> NonEmptyList a
-nonEmptyList []    = error "Cannot convert an empty list to NonEmptyList"
-nonEmptyList [h]   = Elem h
-nonEmptyList (h:t) = Cons h (nonEmptyList t)
+nonEmptyList []      = error "Cannot convert an empty list to NonEmptyList"
+nonEmptyList [h    ] = Elem h
+nonEmptyList (h : t) = Cons h (nonEmptyList t)

@@ -1,39 +1,45 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-module ZM.Type.Words (
-    Sign(..),
-    Word7(..),
-    Word(..),
-    Word8(..),
-    Word16(..),
-    Word32(..),
-    Word64(..),
-    Int(..),
-    Int8(..),
-    Int16(..),
-    Int32(..),
-    Int64(..),
-    ZigZag(..),
-    MostSignificantFirst(..),
-    LeastSignificantFirst(..),
-    ) where
+module ZM.Type.Words
+  ( Sign(..)
+  , Word7(..)
+  , Word(..)
+  , Word8(..)
+  , Word16(..)
+  , Word32(..)
+  , Word64(..)
+  , Int(..)
+  , Int8(..)
+  , Int16(..)
+  , Int32(..)
+  , Int64(..)
+  , ZigZag(..)
+  , MostSignificantFirst(..)
+  , LeastSignificantFirst(..)
+  )
+where
 
-import Prelude hiding (Word,Int)
-import           Data.Flat
+import           Prelude                 hiding ( Word
+                                                , Int
+                                                )
+import           Flat
 import           Data.Model
 import           ZM.Type.NonEmptyList
 import           ZM.Type.Generate
-import qualified Data.Word             as H
+import qualified Data.Word                     as H
+
 
 -- |A 7 bits unsigned integer
 -- data Word7 = V0 .. V127
-data Word7 = Word7 H.Word8 deriving (Eq, Ord, Show, Generic)
-instance Model Word7 where envType = useCT word7CT
+data Word7 = Word7 H.Word8 deriving (Eq, Ord, Read, Show, Generic)
+instance Model Word7 where
+  envType = useCT word7CT
 
 -- |An 8 bits unsigned integer
 -- data Word8 = V0 | V1 .. | V255
-data Word8 = Word8 H.Word8 deriving (Eq, Ord, Show, Generic)
-instance Model Word8 where envType = useCT word8CT
+data Word8 = Word8 H.Word8 deriving (Eq, Ord, Read, Show, Generic)
+instance Model Word8 where
+  envType = useCT word8CT
 
 {- |
 An unsigned integer of arbitrary length encoded as a non empty list of Word7 words with least significant word first and, inside each word, most significant bit first.
@@ -48,6 +54,8 @@ Split in 7bits groups: 0011010(==26 decimal) 1111010(==122 decimal)
 Build a non-empty list whose elements are the groups in reverse order: Word (Cons V122 (Elem V26))
 
 So Least Significant Byte first with Most Significant Bit first in every 7 bits group.
+
+-- BUG: MostSignificantFirst is useless, Word7 already has an order.
 -}
 data Word = Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
   deriving (Eq, Ord, Show, Generic, Model)

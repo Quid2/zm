@@ -1,17 +1,19 @@
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveGeneric ,CPP  #-}
 
 module ZM.Prim(Z.Word7,H.Word8,Z.Array(..)) where
-import           Data.Flat
-import           Data.Flat.Decoder
-import           Data.Flat.Encoder
+import           Flat
+import           Flat.Decoder
+import           Flat.Encoder
 -- import           Data.Model
 import qualified Data.Word        as H
 -- import           ZM.Type.Generate
 import qualified ZM.Type.Array as Z
 import qualified ZM.Type.Words as Z
 import ZM.Model()
+
 -- type Word7 = H.Word8
+
 
 -- -- |A 7 bits unsigned integer
 -- -- data Word7 = V0 .. V127
@@ -38,3 +40,4 @@ instance Flat Z.Word7 where
 --   encode (Word8 w) = encode w
 --   decode  = Word8 <$> decode
 --   size _ n = n+8
+

@@ -3,11 +3,11 @@
 
 module ZM.Type.Repo
     --RepoProtocol(..)
- where
+                    where
 
-import           Data.Flat
+import           Flat
 import           Data.Model
-import           Prelude    hiding (String)
+import           Prelude                 hiding ( String )
 
 -- import           ZM
 -- import           ZM.Type.String

@@ -14,7 +14,7 @@ module Data.Timeless (
     ) where
 
 import qualified Data.ByteString  as B
-import           Data.Flat
+import           Flat
 import           Data.Model
 import           ZM.Abs
 import           ZM.BLOB
