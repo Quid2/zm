@@ -10,6 +10,7 @@ module Data.Digest.Keccak (sha3_256, shake_128) where
 import qualified Data.ByteString         as B
 
 #ifdef ghcjs_HOST_OS
+
 import           GHCJS.Marshal
 import           GHCJS.Types
 import           System.IO.Unsafe

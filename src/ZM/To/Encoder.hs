@@ -62,22 +62,22 @@ type TypeEncoderMap = M.Map (Type AbsRef) (Parser OBJ)
 type OBJ = (Sum NumBits, Encoding)
 
 -- $setup
--- >>> :set -XDeriveGeneric -XDeriveAnyClass -XRankNTypes -XScopedTypeVariables -XNoMonomorphismRestriction
--- >>> import Data.Bifunctor
--- >>> import Flat.Bits
+-- >>> :set -XDeriveGeneric -XDeriveAnyClass -XRankNTypes -XScopedTypeVariables -XNoMonomorphismRestriction 
+-- >>> import Data.Bifunctor()
+-- >>> import Flat.Bits()
+-- >>> import Flat.Run()
 -- >>> import           ZM.Parser.Util                 (syntaxError)
-
+-- >>> newtype Msg1 = Msg1 { b0 :: Bool } deriving (Generic, Model, Flat, Show)
+-- >>> data Msg3 = Msg3 { b1 :: Bool, b2 :: Bool, b3 :: Bool} deriving (Generic, Model, Flat, Show)
+-- >>> data V = V { v0 :: Char , v1 :: String , v4 :: Float, v5 :: Double} deriving (Generic, Model, Flat, Show)
+-- >>> let m1 = Msg1 True
+-- >>> let m3 = Msg3 True False False
+-- >>> let v1 = V 'j' "78金門" 4.4E34 (-9.9E-19)
+-- >>> let enc = \p s ->  bimap  (prettyShow . syntaxError) prettyShow . encoderFor p $ s
 
 {-|
 Return a "String to Flat" encoder for values of the indicated type.
 
->>> newtype Msg1 = Msg1 { b0 :: Bool } deriving (Generic, Model, Flat, Show)
->>> data Msg3 = Msg3 { b1 :: Bool, b2 :: Bool, b3 :: Bool} deriving (Generic, Model, Flat, Show)
->>> data V = V { v0 :: Char , v1 :: String , v4 :: Float, v5 :: Double} deriving (Generic, Model, Flat, Show)
->>> let m1 = Msg1 True
->>> let m3 = Msg3 True False False
->>> let v1 = V 'j' "78金門" 4.4E34 (-9.9E-19)
->>> let enc = \p s ->  bimap  (prettyShow . syntaxError) prettyShow . encoderFor p $ s
 >>> enc (Proxy :: Proxy (Maybe Bool)) "Just True"
 Right "[193]"
 
@@ -122,62 +122,66 @@ Right "[193]"
 -- >>> enc (Proxy :: Proxy (Either (Maybe Bool) Int)) "Left (Just True): Either (Maybe Bool.K306f1981b41c) Int"
 Right "a"
 
+>>> encodeOK "ABC"
+True
+
+>>> encodeOK False
+True
+
+>>> encodeOK m1
+True
+
+>>> encodeOK2 m1 "Msg1 (True)"
+True
+
+>>> encodeOK2 m1 "(Msg1 {  b0 =(True) })"
+True
+
+>>> encodeOK m3
+True
+
+prop> \(x::Char) -> encodeOK x
+
 $undisplayed
->>> ok False
+>>> encodeOK '金'
 True
 
->>> ok m1
+-- prop> \(x::String) -> encodeOK x
+
+>>> encodeOK "!金金?"
 True
 
->>> ok2 m1 "Msg1 (True)"
-True
+-- prop> \(x::Float) -> encodeOK x
 
->>> ok2 m1 "(Msg1 {  b0 =(True) })"
-True
+-- prop> \(x::Double) -> encodeOK x
 
->>> ok m3
-True
+-- prop> \(x::Integer) -> encodeOK x
 
-prop> \(x::Char) -> ok x
+-- prop> \(v::Int) -> encodeOK2 v (show v)
 
->>> ok '金'
-True
-
--- prop> \(x::String) -> ok x
-
->>> ok "!金金?"
-True
-
--- prop> \(x::Float) -> ok x
-
--- prop> \(x::Double) -> ok x
-
--- prop> \(x::Integer) -> ok x
-
--- prop> \(v::Int) -> ok2 v (show v)
-
--- >>> ok2 m3 "Msg3 (True) False  False"
--- >>> ok2 m3 "Msg3 {b3=False,   b1=True,b2=False}"
--- >>> ok2 m3 "Msg3 {b3=False b1=True b2=False}"
--- >>> ok '金'
--- >>> ok "abc金"
--- >>> ok2 "ab"             "\"ab\""
--- >>> ok2 (-3.4 :: Float)  "-3.4"
--- >>> ok2 (-11 :: Float)   "-11"
--- >>> ok2 (11 :: Float)    "11"
--- >>> ok2 (11 :: Float)    "+11"
--- >>> ok2 (-11.1 :: Float) "-11.1"
--- >>> ok (4.4 :: Float)
--- >>> ok (-4.4 :: Double)
--- >>> ok2 v1 "V 'j' (\"78金門\") 4.4E34 ((-9.9E-19))"
--- >>> ok v1
+-- >>> encodeOK2 m3 "Msg3 (True) False  False"
+-- >>> encodeOK2 m3 "Msg3 {b3=False,   b1=True,b2=False}"
+-- >>> encodeOK2 m3 "Msg3 {b3=False b1=True b2=False}"
+-- >>> encodeOK '金'
+-- >>> encodeOK "abc金"
+-- >>> encodeOK2 "ab"             "\"ab\""
+-- >>> encodeOK2 (-3.4 :: Float)  "-3.4"
+-- >>> encodeOK2 (-11 :: Float)   "-11"
+-- >>> encodeOK2 (11 :: Float)    "11"
+-- >>> encodeOK2 (11 :: Float)    "+11"
+-- >>> encodeOK2 (-11.1 :: Float) "-11.1"
+-- >>> encodeOK (4.4 :: Float)
+-- >>> encodeOK (-4.4 :: Double)
+-- >>> encodeOK2 v1 "V 'j' (\"78金門\") 4.4E34 ((-9.9E-19))"
+-- >>> encodeOK v1
 -}
--- Check that the binary representation of a value is equal to the one produced by the encoding parser.
-ok :: forall a . (Flat a, Model a, Show a) => a -> Bool
-ok v = ok2 v (show v) -- (prettyShow v)
 
-ok2 :: forall a . (Flat a, Model a) => a -> String -> Bool
-ok2 v s = either (const False) (== flat v)
+-- Check that the binary representation of a value is equal to the one produced by the encoding parser.
+encodeOK :: forall a . (Flat a, Model a, Show a) => a -> Bool
+encodeOK v = encodeOK2 v (show v) -- (prettyShow v)
+
+encodeOK2 :: forall a . (Flat a, Model a) => a -> String -> Bool
+encodeOK2 v s = either (const False) (== flat v)
   $ encoderFor (Proxy :: Proxy a) (" " ++ s ++ " ")
 
 -- |Return a Flat encoder for values of the ZM type corresponding to the provided Haskell type
