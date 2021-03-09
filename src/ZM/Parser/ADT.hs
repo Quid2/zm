@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE ScopedTypeVariables    ,CPP   #-}
 
 {- Parse ZM ADT declarations and values -}
 module ZM.Parser.ADT
@@ -126,7 +126,11 @@ We assume that:
 * the length of parsed text is equal to the length of the pretty-shown result
 * the parsed text is disposed on a single line
 -}
+#if MIN_VERSION_megaparsec(9,0,0)
+at :: (TraversableStream s, MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
+#else
 at :: (MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
+#endif 
 at parser = do
   pos <- getSourcePos
   r   <- parser

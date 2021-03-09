@@ -19,13 +19,14 @@ where
 -- import           Data.Word
 import           Text.Megaparsec         hiding ( Label )
 -- import           Text.Megaparsec.Error   hiding ( Label )
-import           ZM.Parser.Lexer
-import           ZM.Parser.Types
+import ZM.Parser.Lexer ( sc, symbol )
+import ZM.Parser.Types
+    ( AtError, Label(Label), Parser, Range(Range) )
 -- import           ZM.To.Util
 -- import           ZM.Types
 -- import           ZM.Util
 import qualified Data.List.NonEmpty            as NE
-import           Data.Bifunctor
+import Data.Bifunctor ( Bifunctor(first) )
 
 -- |Parse a string using the provided parser
 parseDoc :: Parser a -> String -> Either AtError a
@@ -34,8 +35,15 @@ parseDoc parser = parseE (doc parser)
 parseE :: Parser a -> String -> Either AtError a
 parseE p = first syntaxError . parse p ""
 
-#if MIN_VERSION_megaparsec(8,0,0)
+#if MIN_VERSION_megaparsec(9,0,0)
+syntaxError :: (TraversableStream s, VisualStream s,
+                      ShowErrorComponent e) =>
+                     ParseErrorBundle s e -> Label Range String
+#else 
 syntaxError :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> AtError
+#endif
+
+#if MIN_VERSION_megaparsec(8,0,0)
 syntaxError errs =      
   let 
       msg  = unwords . lines . parseErrorTextPretty $ err
