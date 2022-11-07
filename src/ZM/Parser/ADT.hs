@@ -16,12 +16,31 @@ module ZM.Parser.ADT
   )
 where
 
-import           Data.Maybe
-import           Text.Megaparsec
-import           ZM                      hiding ( absRef )
-import           ZM.Parser.Lexer
-import           ZM.Parser.Types
-import           ZM.Parser.Util
+import Data.Maybe ( fromMaybe )
+import Text.Megaparsec
+import ZM
+    ( convert,
+      prettyShow,
+      Convertible,
+      Fields,
+      Type(..),
+      Pretty,
+      Identifier,
+      AbsRef(..) )
+import ZM.Parser.Lexer ( localId, symbol, shake )
+import ZM.Parser.Types
+    ( Label,
+      AtAbsName,
+      AtId,
+      Range,
+      TypeName,
+      ADTParts(ADTParts),
+      Parser,
+      asTypeName )
+import ZM.Parser.Util ( mkAt, cpars, pars )
+
+-- $setup
+-- >>> import ZM.Parser.Util(parseDoc)
 
 {-|Parse a, possibly empty, group of ZM ADT declarations.
 
@@ -126,11 +145,11 @@ We assume that:
 * the length of parsed text is equal to the length of the pretty-shown result
 * the parsed text is disposed on a single line
 -}
-#if MIN_VERSION_megaparsec(9,0,0)
+
 at :: (TraversableStream s, MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
-#else
-at :: (MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
-#endif 
+
+
+
 at parser = do
   pos <- getSourcePos
   r   <- parser
@@ -218,7 +237,7 @@ namedOrAbsRef =
     <$> (optional (symbol ".") *> absReference)
     <|> asTypeName
     <$> (Just <$> localIdentifier)
-    <*> (optional dref)
+    <*> optional dref
 
 namedMaybeAbsRef :: Parser (TypeName Identifier)
 namedMaybeAbsRef = asTypeName <$> (Just <$> localIdentifier) <*> optional dref
@@ -258,3 +277,4 @@ Nothing
 -}
 absReference :: Parser AbsRef
 absReference = AbsRef <$> shake
+
