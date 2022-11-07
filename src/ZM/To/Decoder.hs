@@ -1,42 +1,36 @@
-
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE MultiParamTypeClasses ,PatternSynonyms  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 -- |Dynamical decoding of serialised typed values
-module ZM.To.Decoder
-  ( decodeAbsTypeModel
-  , typeDecoder
-  , typeDecoderMap
-  )
-where
+module ZM.To.Decoder (
+    decodeAbsTypeModel,
+    typeDecoder,
+    typeDecoderMap,
+) where
 
-import qualified Data.ByteString               as B
-import           Flat
-import qualified Data.Map                      as M
+import qualified Data.ByteString    as B
+import qualified Data.Map           as M
 import           Data.Model
-import           ZM.Transform
-import           ZM.Types                       ( AbsTypeModel
-                                                , AbsRef
-                                                , AbsType
-                                                , Identifier
-                                                )
-import           ZM.Parser.Types                ( Value
-                                                , pattern Value
-                                                )
+import           Flat
 import           Flat.Decoder.Types
+import           ZM.Parser.Types    (Value, pattern Value)
+import           ZM.Transform
+import           ZM.Types           (AbsRef, AbsType, AbsTypeModel, Identifier)
 
--- $setup
--- >>> :set -XScopedTypeVariables
--- >>> import ZM
--- >>> import ZM.Abs
--- >>> import ZM.Pretty
--- >>> import Data.Word
--- >>> import Data.Int
--- >>> import ZM.Types
--- >>> import ZM.Parser.Types  
+{- $setup
+ >>> :set -XScopedTypeVariables
+ >>> import ZM
+ >>> import ZM.Abs
+ >>> import ZM.Pretty
+ >>> import Data.Word
+ >>> import Data.Int
+ >>> import ZM.Types
+ >>> import ZM.Parser.Types
+-}
 
-{-| Decode a Flat encoded value with a known type model to the corresponding Value.
+{- | Decode a Flat encoded value with a known type model to the corresponding Value.
 
 >>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True) == Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), valName = "True", valBits = [True], valFields = []})
 True
@@ -68,6 +62,8 @@ Right (Annotate (TypeCon (AbsRef (SHAKE128_48 6 109 181 42 241 69)),[]) (ConstrF
 >>> let Right (Value {valType = TypeApp (TypeCon (AbsRef (SHAKE128_48 184 205 19 24 113 152))) (TypeCon (AbsRef (SHAKE128_48 6 109 181 42 241 69))), valName = "Cons", valBits = [True] , valFields=_}) = decodeAbsTypeModel (absTypeModel (Proxy::Proxy String)) (flat "abc") in True
 True
 
+>>> not True
+
 TODO: implement pretty
 prettyShow <$> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True)
 Right "True"
@@ -75,8 +71,6 @@ Right "True"
 prettyShow <$> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Word8)) (flat (11 :: Word8))
 Right "11"
 -}
-
-
 decodeAbsTypeModel :: AbsTypeModel -> B.ByteString -> Decoded Value
 decodeAbsTypeModel = unflatWith . typeDecoder
 
@@ -91,20 +85,18 @@ type TypeDecoderMap = TypeMap (Get Value)
 typeDecoderMap :: AbsTypeModel -> TypeDecoderMap
 typeDecoderMap = typeOpMap (conDecoder [])
 
-conDecoder
-  :: (Convertible name String)
-  => [Bool]
-  -> TypeDecoderMap
-  -> AbsType
-  -> ConTree name AbsRef
-  -> Get Value
+conDecoder ::
+    (Convertible name String) =>
+    [Bool] ->
+    TypeDecoderMap ->
+    AbsType ->
+    ConTree name AbsRef ->
+    Get Value
 conDecoder bs env t (ConTree l r) = do
-  tag :: Bool <- decode
-  conDecoder (tag : bs) env t (if tag then r else l)
-
+    tag :: Bool <- decode
+    conDecoder (tag : bs) env t (if tag then r else l)
 conDecoder bs env t (Con cn cs) =
-  Value t (convert cn) (reverse bs) <$> mapM (`solve` env) (fieldsTypes cs)
-
+    Value t (convert cn) (reverse bs) <$> mapM (`solve` env) (fieldsTypes cs)
 
 typeOp :: (AbsTypeModel -> TypeMap r) -> AbsTypeModel -> r
 typeOp opMap tm = solve (typeName tm) (opMap tm)
@@ -112,9 +104,9 @@ typeOp opMap tm = solve (typeName tm) (opMap tm)
 -- |A mapping between references to absolute types and the corresponding operation
 type TypeMap r = M.Map (Type AbsRef) r
 
-typeOpMap
-  :: (TypeMap r -> AbsType -> ConTree Identifier AbsRef -> r)
-  -> AbsTypeModel
-  -> TypeMap r
+typeOpMap ::
+    (TypeMap r -> AbsType -> ConTree Identifier AbsRef -> r) ->
+    AbsTypeModel ->
+    TypeMap r
 typeOpMap op tm =
-  let denv = M.mapWithKey (\t ct -> op denv t ct) (typeTree tm) in denv
+    let denv = M.mapWithKey (op denv) (typeTree tm) in denv

@@ -19,32 +19,22 @@ where
 
 import           Control.Applicative.Permutations
 import           Data.Bifunctor
-import           Data.ByteString                ( ByteString )
-import           Flat.Encoder
+import           Data.ByteString                  (ByteString)
 import           Data.Int
-import qualified Data.Map                      as M
+import qualified Data.Map                         as M
 import           Data.Monoid
 import           Data.Void
 import           Data.Word
+import           Flat.Encoder
 import           Text.Megaparsec
-import           ZM                      -- hiding ( Value )
+import           ZM
 import           ZM.Parser.ADT
-import           ZM.Parser.Lexer                ( charLiteral
-                                                , float
-                                                , signed
-                                                , stringLiteral
-                                                , symbol
-                                                , unsigned
-                                                )
-import           ZM.Parser.Types                ( Parser
-                                                , TypeName
-                                                , asTypeName
-                                                )
-import           ZM.Parser.Util                 ( cpars
-                                                , doc
-                                                , pars
-                                                )
-import qualified ZM.Type.String                as ZM
+import           ZM.Parser.Lexer                  (charLiteral, float, signed,
+                                                   stringLiteral, symbol,
+                                                   unsigned)
+import           ZM.Parser.Types                  (Parser, TypeName, asTypeName)
+import           ZM.Parser.Util                   (cpars, doc, pars)
+import qualified ZM.Type.String                   as ZM
 
 -- import           Data.Scientific
 --import           Text.Megaparsec.Char
@@ -62,7 +52,7 @@ type TypeEncoderMap = M.Map (Type AbsRef) (Parser OBJ)
 type OBJ = (Sum NumBits, Encoding)
 
 -- $setup
--- >>> :set -XDeriveGeneric -XDeriveAnyClass -XRankNTypes -XScopedTypeVariables -XNoMonomorphismRestriction 
+-- >>> :set -XDeriveGeneric -XDeriveAnyClass -XRankNTypes -XScopedTypeVariables -XNoMonomorphismRestriction
 -- >>> import Data.Bifunctor()
 -- >>> import Flat.Bits()
 -- >>> import Flat.Run()

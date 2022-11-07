@@ -9,7 +9,7 @@ module ZM.Parser.Env
   , parseADTsWith
   ) where
 
-import           ZM.Parser.ADT
+import ZM.Parser.ADT ( adts )
 
 import           Data.Either
 import           Data.List

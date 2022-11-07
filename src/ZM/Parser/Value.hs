@@ -3,11 +3,10 @@ module ZM.Parser.Value
   , pattern
   )
 where
-import           ZM.Parser.Lexer
-import           ZM.Parser.Util
-import           ZM.Parser.Types         hiding ( Value )
 import           Text.Megaparsec
--- import           Data.Void
+import           ZM.Parser.Lexer
+import           ZM.Parser.Types hiding (Value)
+import           ZM.Parser.Util
 
 -- |Generic ZM value, a constructor followed by optional, optionally named, fields.
 -- data Value = Value String ValueFields
@@ -157,7 +156,7 @@ Nothing
 >>> pflds "{a=(False) b=True}" == Just (Right [("a",Constr "False" (Left [])),("b",Constr "True" (Left []))])
 True
 
->>> pflds "{a= Msg {from=Joe} b=True}" 
+>>> pflds "{a= Msg {from=Joe} b=True}"
 Just (Right [("a",Fix (ConstrF "Msg" (Right [("from",Fix (ConstrF "Joe" (Left [])))]))),("b",Fix (ConstrF "True" (Left [])))])
 
 Haskell style comments are allowed:

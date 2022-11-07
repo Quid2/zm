@@ -8,15 +8,13 @@ module ZM.Type.Array
   )
 where
 
+import           Data.Model
+import qualified Data.Word        as H
 import           Flat
 import           Flat.Decoder
-import           Data.Model
-import           ZM.Type.Generate
-import qualified ZM.Type.Words                 as Z
-
-import qualified Data.Word                     as H
 import           Flat.Encoder
-import           ZM.Type.Prims
+import           ZM.Type.Generate
+import           ZM.Type.Prims    ()
 
 {-|An Array.
 

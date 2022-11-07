@@ -8,8 +8,7 @@ module Data.These
   , these
   ) where
 
-import           Data.Maybe
-import           Data.Semigroup (Semigroup (..))
+import Data.Maybe ( fromJust, isJust )
 
 -- |A data type that represents either a value of type `a`, or a value of type `b`, or both.
 data These a b

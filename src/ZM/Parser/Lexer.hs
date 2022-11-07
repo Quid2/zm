@@ -1,27 +1,34 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module ZM.Parser.Lexer
-    ( sc
-    , eof
-      -- $lexemes
-    , var
-    , localId
-    , symbol
-    , float
-    , charLiteral
-    , stringLiteral
-    , shake
-    , signed
-    , unsigned) where
+module ZM.Parser.Lexer (
+    sc,
+    eof,
+    -- $lexemes
+    var,
+    identifier,
+    sym,
+    localId,
+    symbol,
+    float,
+    charLiteral,
+    stringLiteral,
+    shake,
+    signed,
+    unsigned,
+) where
 
-import           Data.Scientific
+-- TODO: CHECK WHY IT FAILS WITH EVAL PLUGIN
+
 -- import Data.Word
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
+
+import Data.Char as C
+import Data.Scientific
+import Text.Megaparsec
+import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
-import           ZM hiding ()
-import           ZM.Parser.Types (Parser)
+import ZM hiding ()
+import ZM.Parser.Types (Parser)
 
 {- $lexemes
 Lexemes remove any trailing space, including comments:
@@ -34,7 +41,8 @@ but do not remove initial space:
 >>> parseMaybe float "  3.3"
 Nothing
 -}
-{-|
+
+{- |
 >>> parseMaybe charLiteral "''"
 Nothing
 
@@ -59,7 +67,7 @@ Just '\37329'
 charLiteral :: Parser Char
 charLiteral = lexeme $ between (char '\'') (char '\'') L.charLiteral
 
-{-|
+{- |
 >>> parseMaybe stringLiteral "\"\""
 Just ""
 
@@ -69,7 +77,7 @@ Just "abc\n\37329\37329"
 stringLiteral :: Parser String
 stringLiteral = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
 
-{-|
+{- |
 Parse signed floats or integers (as floats)
 
 >>> parseMaybe float "3"
@@ -100,7 +108,8 @@ float = toRealFloat <$> L.signed (return ()) (lexeme L.scientific)
 
 -- TODO: add binary
 -- unsigned = char '0' ( char 'x' >> L.hexadecimal <|>  char' 'b' >> L.binary)
-{-|
+
+{- |
 @setup
 >>> import Data.Word
 >>> import Numeric.Natural
@@ -157,7 +166,7 @@ Nothing
 unsigned :: Integral a => Parser a
 unsigned = (char '0' >> (char 'x' <|> char 'X') >> L.hexadecimal) <|> integral
 
-{-|
+{- |
 @setup
 >>> import Data.Int
 
@@ -205,9 +214,9 @@ signed = L.signed (return ()) (lexeme integral)
 
 integral :: Integral a => Parser a
 integral = do
-  d <- L.decimal
-  notFollowedBy (char '.')
-  return d
+    d <- L.decimal
+    notFollowedBy (char '.')
+    return d
 
 -- TODO:add check on
 -- withPredicate
@@ -223,7 +232,8 @@ integral = do
 --     else do
 --       setOffset o
 --       fail msg
-{-|
+
+{- |
 Parse a ZM localId (a unicode letter followed by zero or more unicode alphanumeric characters or '_')
 
 >>> parseMaybe localId "*"
@@ -250,10 +260,21 @@ Just "ant_13_"
 localId :: Parser String
 localId = lexeme name
 
+identifier :: Parser String
+identifier = lexeme (name <|> sym)
+
 name :: Parser String
 name = (:) <$> letterChar <*> many (alphaNumChar <|> char '_')
 
-{-|    
+sym :: Parser String
+sym = some symChar
+
+-- TODO: spell out allowed categories
+symChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
+symChar = satisfy (\c -> C.isSymbol c || elem (C.generalCategory c) [C.OtherPunctuation, C.CurrencySymbol]) <?> "sym"
+{-# INLINE symChar #-}
+
+{- |
 >>> parseMaybe var "是不是"
 Nothing
 
@@ -269,7 +290,7 @@ Just (Just "\26159\19981\26159")
 var :: Parser (Maybe String)
 var = lexeme (char '_' *> optional name)
 
-{-|
+{- |
 Parse a specific string
 
 >>> parseMaybe (symbol "=") ""
@@ -290,7 +311,7 @@ Just "Gold\37329en"
 symbol :: String -> Parser String
 symbol = L.symbol sc
 
-{-|
+{- |
 Parse absolute reference's compact string format
 
 >>> parseMaybe shake "Ke45682c11f7b"
@@ -302,24 +323,27 @@ Just (SHAKE128_48 228 86 130 193 31 123)
 shake :: Parser (SHAKE128_48 a)
 shake = lexeme k
   where
-    k = (\k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12
-         -> unPrettyRef [k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12])
-      <$> char 'K'
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
-      <*> hexDigitChar
+    k =
+        ( \k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 ->
+            unPrettyRef [k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12]
+        )
+            <$> char 'K'
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
+            <*> hexDigitChar
 
--- |Space consumer
--- |Removes spaces and haskell style line and block comments "--.." "{- ..-}"
+{- |Space consumer
+ |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
+-}
 sc :: Parser ()
 sc = L.space space1 lineComment blockComment
   where
@@ -329,6 +353,7 @@ sc = L.space space1 lineComment blockComment
 
 --end parser = (<* eof)
 --doc = between sc (sc >> eof)
+
 -- |Add trailing space removal to a parser
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc

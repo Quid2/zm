@@ -1,5 +1,5 @@
-{-# LANGUAGE DataKinds   #-}
 {-# LANGUAGE CPP                      #-}
+{-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI            #-}
 {-# LANGUAGE PackageImports           #-}
@@ -7,7 +7,7 @@
 -- |Crypto algorithms of the Keccak family (SHA3/SHAKE), with support for GHCJS.
 module Data.Digest.Keccak (sha3_256, shake_128) where
 
-import qualified Data.ByteString         as B
+import qualified Data.ByteString          as B
 
 #ifdef ghcjs_HOST_OS
 
@@ -17,8 +17,8 @@ import           System.IO.Unsafe
 
 #else
 
-import qualified "cryptonite" Crypto.Hash             as S
-import qualified Data.ByteArray          as S
+import qualified "cryptonite" Crypto.Hash as S
+import qualified Data.ByteArray           as S
 #endif
 
 --import qualified Data.ByteString         as B
@@ -28,7 +28,7 @@ import qualified Data.ByteArray          as S
 -- >>> :set -XOverloadedStrings
 -- >>> import ZM.Pretty
 -- >>> import Data.String
--- >>> 
+-- >>>
 
 {- |Return the specified number of bytes of the SHAKE-128 hash of the provided byte string
 >>> shake_128 8 B.empty == B.pack [127, 156, 43, 164, 232, 143, 130, 125]

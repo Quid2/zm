@@ -1,32 +1,44 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NoMonomorphismRestriction,CPP #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
-module ZM.Parser.Util
-  ( parseDoc
-  -- , parseE
-  , mkAt
-  , syntaxError -- PUBLIC?
-      -- * Parser transformers
-  , doc
-  , pars
-  , cpars
-  , spars
-  )
-where
+module ZM.Parser.Util (
+    parseDoc,
+    -- , parseE
+    mkAt,
+    syntaxError, -- PUBLIC?
+
+    -- * Parser transformers
+    doc,
+    pars,
+    cpars,
+    spars,
+) where
 
 -- import           Data.Model
 -- import           Data.Void
 -- import           Data.Word
-import           Text.Megaparsec         hiding ( Label )
+
 -- import           Text.Megaparsec.Error   hiding ( Label )
-import ZM.Parser.Lexer ( sc, symbol )
-import ZM.Parser.Types
-    ( AtError, Label(Label), Parser, Range(Range) )
+
 -- import           ZM.To.Util
 -- import           ZM.Types
 -- import           ZM.Util
-import qualified Data.List.NonEmpty            as NE
-import Data.Bifunctor ( Bifunctor(first) )
+
+import Data.Bifunctor (Bifunctor (first))
+import qualified Data.List.NonEmpty as NE
+import Text.Megaparsec hiding (Label)
+import ZM.Parser.Lexer (sc, symbol)
+import ZM.Parser.Types (
+    AtError,
+    Label (Label),
+    Parser,
+    Range (Range),
+ )
+
+{- $setup
+ >>> import ZM.Parser.Lexer(float)
+-}
 
 -- |Parse a string using the provided parser
 parseDoc :: Parser a -> String -> Either AtError a
@@ -36,16 +48,18 @@ parseE :: Parser a -> String -> Either AtError a
 parseE p = first syntaxError . parse p ""
 
 #if MIN_VERSION_megaparsec(9,0,0)
-syntaxError :: (TraversableStream s, VisualStream s,
-                      ShowErrorComponent e) =>
-                     ParseErrorBundle s e -> Label Range String
-#else 
+syntaxError :: (TraversableStream s, VisualStream s,ShowErrorComponent e) => ParseErrorBundle s e -> Label Range String
+
+#elif MIN_VERSION_megaparsec(8,0,0)
 syntaxError :: (Stream s, ShowErrorComponent e) => ParseErrorBundle s e -> AtError
+
+#elif MIN_VERSION_megaparsec(7,0,0)
+syntaxError :: (ShowErrorComponent e, Stream s) => ParseErrorBundle s e -> AtError
 #endif
 
 #if MIN_VERSION_megaparsec(8,0,0)
-syntaxError errs =      
-  let 
+syntaxError errs =
+  let
       msg  = unwords . lines . parseErrorTextPretty $ err
       err  = NE.head . bundleErrors $ errs
       (_, pst') = reachOffset (errorOffset err) (bundlePosState errs)
@@ -55,13 +69,8 @@ syntaxError errs =
 #elif MIN_VERSION_megaparsec(7,0,0)
 
 -- NOTE: for 7 and 8 might also parse the output of 'errorBundlePretty'
-
-syntaxError
-  :: (ShowErrorComponent e, Stream s)
-  => ParseErrorBundle s e
-  -> AtError
-syntaxError errs =      
-  let 
+syntaxError errs =
+  let
       msg  = unwords . lines . parseErrorTextPretty $ err
       err  = NE.head . bundleErrors $ errs
       (pos, _, _) = reachOffset (errorOffset err) (bundlePosState errs)
@@ -74,25 +83,24 @@ syntaxError err =
   let pos = NE.head $ errorPos err
   in  mkAt pos 1 (unwords $ tail $ lines $ parseErrorPretty err)
 
-#endif 
-     
+#endif
 
 mkAt :: SourcePos -> Int -> a2 -> Label Range a2
 mkAt pos len = Label (mkRange pos len)
 
 mkRange :: Integral a => SourcePos -> a -> Range
 mkRange pos len =
-  let asP f = (\n -> n - 1) . fromIntegral . unPos . f
-      st = asP sourceColumn pos
-  in  Range (asP sourceLine pos) st (st + fromIntegral len - 1)
+    let asP f = (\n -> n - 1) . fromIntegral . unPos . f
+        st = asP sourceColumn pos
+     in Range (asP sourceLine pos) st (st + fromIntegral len - 1)
 
-{-|
+{- |
 Make the parser into a document parser (that will parse any initial space and till eof)
 -}
 doc :: Parser a -> Parser a
 doc = between sc eof
 
-{-| 
+{- |
 Parses something between square parenthesis "[..]"
 
 >>> parseMaybe (spars float) "[3.7 ]"
@@ -101,7 +109,7 @@ Just 3.7
 spars :: Parser a -> Parser a
 spars = between (symbol "[") (symbol "]")
 
-{-| 
+{- |
 Parses something between curly parenthesis "{..}"
 
 >>> parseMaybe (cpars float) "{ 3.7 }"
@@ -113,7 +121,7 @@ Just 3.7
 cpars :: Parser a -> Parser a
 cpars = between (symbol "{") (symbol "}")
 
-{-| Parses something between parenthesis "(..)"
+{- | Parses something between parenthesis "(..)"
 
 >>> parseMaybe (pars float) "()"
 Nothing
