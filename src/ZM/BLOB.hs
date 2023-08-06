@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE InstanceSigs        #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ZM.BLOB
@@ -21,17 +23,20 @@ where
 
 import           Control.DeepSeq
 import           Data.Bifunctor
-import qualified Data.ByteString               as B
+import qualified Data.ByteString                as B
 import           Data.ByteString.Convert
-import           Flat
 import           Data.Model
+import qualified Data.Text.Encoding             as T
+import           Flat
+import           Text.PrettyPrint.HughesPJClass hiding (first)
 import           Text.Read
 import           ZM.Abs
-import qualified ZM.BLOB.BLOBList              as BL
-import           ZM.Model                       ( )
-import qualified ZM.Type.BLOB                  as Z
+import qualified ZM.BLOB.BLOBList               as BL
+import           ZM.Model                       ()
+import qualified ZM.Type.BLOB                   as Z
 import           ZM.Types
 import           ZM.Util
+
 
 -- |A BLOB is binary value encoded according to a specified encoding (e.g. UTF8)
 data BLOB encoding =
@@ -113,3 +118,16 @@ untypedValue ea = case ea of
 -- |Return a WrongType error
 typeErr :: AbsType -> AbsType -> TypedDecoded a
 typeErr typ typ' = Left $ WrongType typ typ'
+
+instance Show a => Pretty (TypedValue a) where
+  pPrint (TypedValue t v) = text (show v) <+> text "::" <+> pPrint t
+
+instance Pretty encoding => Pretty (BLOB encoding) where
+  pPrint (BLOB enc bs) = text "BLOB" <+> pPrint enc <+> pPrint bs
+
+instance {-# OVERLAPS #-} Pretty (BLOB UTF8Encoding) where
+  pPrint :: BLOB UTF8Encoding -> Doc
+  pPrint = pPrint . T.decodeUtf8 . unblob
+
+instance {-# OVERLAPS #-} Pretty (BLOB UTF16LEEncoding) where
+  pPrint = pPrint . T.decodeUtf16LE . unblob
