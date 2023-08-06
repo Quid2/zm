@@ -8,10 +8,10 @@ license:            BSD3
 license-file:       LICENSE
 author:             Pasqualino `Titto` Assini
 maintainer:         tittoassini@gmail.com
-copyright:          Copyright: (c) 2016-2019 Pasqualino `Titto` Assini
+copyright:          Copyright: (c) 2016-2023 Pasqualino `Titto` Assini
 cabal-version:      >=1.10
 build-type:         Simple
-tested-with:        GHC ==8.10.7 || ==9.4.3
+tested-with:        GHC ==8.10.7 || ==9.2.5 || ==9.4.3
 extra-source-files:
   stack.yaml
   README.md
@@ -24,7 +24,7 @@ library
   exposed-modules:
     Data.Digest.Keccak
     Data.List.Extra
-    Data.These
+    Data.These.Extra
     ZM
     ZM.Abs
     ZM.AsValue
@@ -83,11 +83,11 @@ library
       , memory
 
   build-depends:
-      base                >=4.8      && <5
-    , bytestring          >=0.10.6.0 && <0.12
+      base                >=4.8
+    , bytestring          >=0.10.6.0
     , containers
     , data-fix
-    , deepseq             >=1.4      && <1.5
+    , deepseq             >=1.4
     , directory
     , either              >4.3.2    && <6
     , extra
@@ -95,25 +95,26 @@ library
     , megaparsec          >7        && <10
     , model               >=0.5      && <0.6
     , parser-combinators
-    , pretty              >=1.1.2    && <1.2
+    , pretty              >=1.1.2
     , scientific
     , text
-    , transformers        >=0.4.2.0  && <0.6
+    , these-skinny
+    , transformers        >=0.4.2.0
 
-  -- convertible == 1.1.*,
-  -- 0.4.4 && < 0.6,
   js-sources:       jsbits/sha3.js
   default-language: Haskell2010
   hs-source-dirs:   src
 
   -- ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
-  if impl(ghc >8)
-    ghc-options:
-      -Wall -funbox-strict-fields -fno-warn-orphans
-      -fno-warn-name-shadowing -Wincomplete-record-updates
-      -Wincomplete-uni-patterns -Wredundant-constraints
+  -- if impl(ghc >8)
+  ghc-options:
+    -Wall -funbox-strict-fields -fno-warn-orphans
+    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wredundant-constraints
 
 -- -Werror
+
+-- -fno-warn-name-shadowing
 
 test-suite spec
   type:             exitcode-stdio-1.0
@@ -125,9 +126,9 @@ test-suite spec
     , flat
     , model
     , pretty
-    , tasty             >=0.11
-    , tasty-hunit       >=0.8
-    , tasty-quickcheck  >=0.8.1
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
     , text
     , timeit            >=1
     , zm
@@ -177,19 +178,26 @@ test-suite spec
 
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
 
--- test-suite doc
---   default-language: Haskell2010
---   type:             exitcode-stdio-1.0
---   ghc-options:      -threaded
---   main-is:          DocSpec.hs
---   build-depends:
---       base
---     , directory
---     , doctest               ==0.16.3.1
---     , filemanip             >=0.3.6.3
---     , QuickCheck
---     , quickcheck-instances
---     , text
---     , zm
+test-suite doc
+  default-language: Haskell2010
+  type:             exitcode-stdio-1.0
+  ghc-options:      -threaded
+  main-is:          DocSpec.hs
+  build-depends:
+      base
+    , directory
+    , doctest               ==0.16.3.1
+    , filemanip             >=0.3.6.3
+    , QuickCheck            >=2.14.2
+    , quickcheck-instances  >0.3.27
+    , text
 
---   hs-source-dirs:   test
+  --   base
+  -- , directory
+  -- , doctest               ==0.16.3.1
+  -- , filemanip             >=0.3.6.3
+  -- , QuickCheck
+  -- , quickcheck-instances
+  -- , text
+  -- , zm
+  hs-source-dirs:   test
