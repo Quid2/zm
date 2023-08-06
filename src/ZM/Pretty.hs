@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -14,32 +15,27 @@ module ZM.Pretty
   )
 where
 
-import qualified Data.ByteString               as B
-import qualified Data.ByteString.Lazy          as L
-import qualified Data.ByteString.Short         as SBS
-import           Flat                           ( UTF16Text(..)
-                                                , UTF8Text(..)
-                                                )
-import           Data.Foldable                  ( toList )
+import qualified Data.ByteString                as B
+import qualified Data.ByteString.Lazy           as L
+import qualified Data.ByteString.Short          as SBS
+import           Data.Foldable                  (toList)
 import           Data.Int
 import           Data.List
-import qualified Data.Map                      as M
+import qualified Data.Map                       as M
 import           Data.Model.Pretty
 import           Data.Model.Util
+import           Flat                           (UTF16Text (..), UTF8Text (..))
 -- import           Data.Ord
-import qualified Data.Sequence                 as S
-import qualified Data.Text                     as T
-import qualified Data.Text.Encoding            as T
+import qualified Data.Sequence                  as S
+import qualified Data.Text                      as T
 import           Data.Word
-import           Numeric                        ( readHex )
-import           Text.ParserCombinators.ReadP
-                                         hiding ( char )
+import           Numeric                        (readHex)
+import           Text.ParserCombinators.ReadP   hiding (char)
 -- import           Text.PrettyPrint
 import           Text.PrettyPrint.HughesPJClass
-import qualified Text.PrettyPrint.HughesPJClass
-                                               as P
-import           ZM.BLOB
-import           ZM.Model                       ( )
+import qualified Text.PrettyPrint.HughesPJClass as P
+-- import           ZM.BLOB
+import           ZM.Model                       ()
 import           ZM.Pretty.Base
 import           ZM.Types
 
@@ -47,7 +43,7 @@ import           ZM.Types
 Convert the textual representation of a hash code to its equivalent value
 
 >>> unPrettyRef "Kb53bec846608"
-SHAKE128_48 181 59 236 132 102 8 
+SHAKE128_48 181 59 236 132 102 8
 
 >>> unPrettyRef "Kb53bec8466080000"
 *** Exception: unPrettyRef: unknown code "b53bec8466080000"
@@ -87,14 +83,13 @@ instance Pretty TypedDecodeException where
           $ ["Was expecting type:\n", et, "\n\nBut the data has type:\n", at]
   pPrint (DecodeError e) = pPrint (show e)
 
-instance Show a => Pretty (TypedValue a) where
-  pPrint (TypedValue t v) = text (show v) <+> text "::" <+> pPrint t
-
 -- TODO: merge with similar code in `model` package
 instance Pretty AbsTypeModel where
-  pPrint (TypeModel t e) = vspacedP
-    [ text "Type:"
-    , vcat [pPrint t P.<> text ":", pPrint (e, t)]
+  pPrint (TypeModel t e) = spacedP
+    [
+    -- , vcat [pPrint t P.<> text ":", pPrint (e, t)]
+    -- TODO: display as LocalName.AbsName
+    mconcat [text "Type: ",pPrint (e, t),text " (",pPrint t,text ")"]
     -- ,vcat [pPrint t <> text ":",pPrint (declName <$> solveAll e t)]
     , text "Environment:"
     , pPrint e
@@ -104,8 +99,9 @@ instance {-# OVERLAPS #-} Pretty AbsEnv where
  -- Previous
  -- pPrint e = vspacedP . map (\(ref,adt) -> vcat [pPrint ref <> text ":",pPrint . CompactPretty $ (e,adt)]) . sortedEnv $ e
 
+  pPrint :: AbsEnv -> Doc
   pPrint e =
-    vspacedP
+    spacedP
       . map (\(ref, adt) -> pPrint (refADT e ref adt) P.<> char ';')
       . sortedEnv
       $ e
@@ -147,9 +143,11 @@ refADT env ref adt =
   fullName ref adt = QualName "" (convert $ declName adt) (prettyShow ref)
 
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsType) where
+  pPrint :: (AbsEnv, AbsType) -> Doc
   pPrint (env, t) = pPrint (declName <$> solveAll env t)
 
 instance {-# OVERLAPS #-} Pretty (AbsEnv,AbsADT) where
+  pPrint :: (AbsEnv, AbsADT) -> Doc
   pPrint (env, adt) =
     pPrint $ substAbsADT (\ref -> declName $ solve ref env) adt
 
@@ -225,14 +223,6 @@ instance Pretty a => Pretty (NonEmptyList a) where
 instance Pretty NoEncoding where
   pPrint = text . show
 
-instance Pretty encoding => Pretty (BLOB encoding) where
-  pPrint (BLOB enc bs) = text "BLOB" <+> pPrint enc <+> pPrint bs
-
-instance {-# OVERLAPS #-} Pretty (BLOB UTF8Encoding) where
-  pPrint = pPrint . T.decodeUtf8 . unblob
-
-instance {-# OVERLAPS #-} Pretty (BLOB UTF16LEEncoding) where
-  pPrint = pPrint . T.decodeUtf16LE . unblob
 
 instance Pretty T.Text where
   pPrint = text . T.unpack
