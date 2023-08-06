@@ -3,9 +3,10 @@
 module ZM.Type.Float32(IEEE_754_binary32(..)) where
 
 import           Data.Model
-import           ZM.Type.Bits8
+import           Flat
 import           ZM.Type.Bits23
-import           ZM.Type.Words
+import           ZM.Type.Bits8
+import           ZM.Type.Words  (MostSignificantFirst, Sign)
 
 -- |An IEEE-754 Big Endian 32 bits Float
 data IEEE_754_binary32 =
@@ -14,7 +15,7 @@ data IEEE_754_binary32 =
          , exponent :: MostSignificantFirst Bits8
          , fraction :: MostSignificantFirst Bits23
          }
-  deriving (Eq, Ord, Show, Generic, Model)
+  deriving (Eq, Ord, Show, Generic, Model,Flat)
 
 
 -- Low Endian

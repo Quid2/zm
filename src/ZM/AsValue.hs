@@ -1,5 +1,37 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE MultiParamTypeClasses ,PatternSynonyms ,CPP #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+
+{- |
+Conversion between ZM values in (simple, without field names) textual form and the corresponding Haskell values
+
+>>> unValue (value 'a') :: Char
+'a'
+
+>>> unValue (value (11 :: Word8)) :: Word8
+11
+
+Type safe (?):
+
+>>> unValue (value (11 :: Word8)) :: Word32
+Wrong Value "V11" []
+
+Actually to an internal form that contains also the absolute type and the binary encoding of the value:
+
+>>> value 'a'
+Annotate (TypeCon (AbsRef (SHAKE128_48 6 109 181 42 241 69)),[]) (ConstrF "Char" (Left [Annotate (TypeCon (AbsRef (SHAKE128_48 36 18 121 156 153 241)),[]) (ConstrF "Word32" (Left [Annotate (TypeCon (AbsRef (SHAKE128_48 249 46 131 57 144 138)),[]) (ConstrF "Word" (Left [Annotate (TypeApp (TypeCon (AbsRef (SHAKE128_48 32 255 172 200 248 201))) (TypeApp (TypeCon (AbsRef (SHAKE128_48 191 45 28 134 235 32))) (TypeApp (TypeCon (AbsRef (SHAKE128_48 116 226 179 184 153 65))) (TypeCon (AbsRef (SHAKE128_48 244 201 70 51 74 126))))),[]) (ConstrF "LeastSignificantFirst" (Left [Annotate (TypeApp (TypeCon (AbsRef (SHAKE128_48 191 45 28 134 235 32))) (TypeApp (TypeCon (AbsRef (SHAKE128_48 116 226 179 184 153 65))) (TypeCon (AbsRef (SHAKE128_48 244 201 70 51 74 126)))),[False]) (ConstrF "Elem" (Left [Annotate (TypeApp (TypeCon (AbsRef (SHAKE128_48 116 226 179 184 153 65))) (TypeCon (AbsRef (SHAKE128_48 244 201 70 51 74 126))),[]) (ConstrF "MostSignificantFirst" (Left [Annotate (TypeCon (AbsRef (SHAKE128_48 244 201 70 51 74 126)),[True,True,False,False,False,False,True]) (ConstrF "V97" (Left []))]))]))]))]))]))]))
+
+>>> prettyShow $ value 'a'
+"(Char (Word32 (Word (LeastSignificantFirst (Elem (MostSignificantFirst V97 ))))))"
+
+>>> prettyShow $ value (11::Word8)
+"V11 "
+
+>>> prettyShow $ value (11::Word16)
+"(Word16 (Word (LeastSignificantFirst (Elem (MostSignificantFirst V11 )))))"
+
+>>> prettyShow $ value (11::Word)
+"(Word64 (Word (LeastSignificantFirst (Elem (MostSignificantFirst V11 )))))"
+-}
 module ZM.AsValue
   ( AsValue(..)
   , value
@@ -7,45 +39,39 @@ module ZM.AsValue
   )
 where
 
-import           Data.Model
-import           ZM.Parser.Types                ( Value
-                                                , valName
-                                                , valFields
-                                                  -- pattern Value
-                                                )
-import           Flat.Run
-import           ZM.To.Decoder                  ( decodeAbsTypeModel )
-import           Data.Word
-import           ZM.Abs
-import           ZM.Types
-import           ZM.Type.Words                  ( Word7(..)
-                                                , Sign(..)
-                                                )
-import           Numeric.Natural
-import           Data.ZigZag                    ( zagZig )
 import           Data.Int
+import qualified Data.Map              as M
+import           Data.Model
+import           Data.Word
+import           Data.ZigZag           (zagZig)
+import           Flat.Run
+import           Numeric.Natural
+import           ZM.Abs
+import           ZM.Parser.Types       (Value, valFields, valName)
+import           ZM.To.Decoder         (decodeAbsTypeModel)
 import           ZM.Type.Bit
-import           ZM.Type.Bits8
 import           ZM.Type.Bits11
 import           ZM.Type.Bits23
 import           ZM.Type.Bits52
-import qualified Data.Map                      as M
+import           ZM.Type.Bits8
+import           ZM.Type.Words         (Sign (..), Word7 (..))
+import           ZM.Types
 --import           Data.Char
-import qualified Data.Sequence                 as S
-import ZM.Type.Array
-import Flat.Filler
+import qualified Data.Sequence         as S
+import           Flat.Filler
+import           ZM.Type.Array
 --import qualified ZM.Type.Words   as Z
-import qualified Data.ByteString         as B
-import qualified Data.ByteString.Lazy    as L
-import qualified Data.ByteString.Short   as SBS
-import qualified ZM.Type.BLOB    as E
-import qualified ZM.BLOB    as Z
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Encoding as T
-import Flat(UTF8Text(..),UTF16Text(..))
+import qualified Data.ByteString       as B
+import qualified Data.ByteString.Lazy  as L
+import qualified Data.ByteString.Short as SBS
+import qualified Data.Text             as T
+import qualified Data.Text.Encoding    as T
+import qualified Data.Text.Lazy        as TL
+import           Flat                  (UTF16Text (..), UTF8Text (..))
+import qualified ZM.BLOB               as Z
+import qualified ZM.Type.BLOB          as E
 
-#include "MachDeps.h"
+-- #include "MachDeps.h"
 
 -- $setup
 -- >>> :set -XScopedTypeVariables
@@ -55,25 +81,36 @@ import Flat(UTF8Text(..),UTF16Text(..))
 -- >>> import Data.Word
 -- >>> import Data.Int
 -- >>> import ZM.Types
--- >>> import ZM.Parser.Types  
+-- >>> import ZM.Parser.Types
 -- >>> import ZM.Type.Words(Word7(..))
 -- >>> import Numeric.Natural
 -- >>> import Test.QuickCheck.Instances.Natural
 -- >>> import Data.List
+-- Could not load module ‘Test.QuickCheck.Instances.Natural’
+-- It is a member of the hidden package ‘quickcheck-instances-0.3.28’.
+-- You can run ‘:set -package quickcheck-instances’ to expose it.
+-- (Note: this unloads all the modules in the current scope.)
+-- Use -v (or `:set -v` in ghci) to see a list of the files searched for.
 
 class AsValue a where
   -- unVal :: String -> Either [Value] [(String,Value)] -> a
-  unVal :: String -> [Value] -> a
 
+  unVal ::
+    String      -- ^ constructor name
+    -> [Value]  -- ^ constructor parameters
+    -> a        -- ^ equivalente Haskell value
+
+  -- | Convert a ZM value in (simple, without field names) textual form in the corresponding Haskell value
 unValue :: AsValue a => Value -> a
 unValue v = unVal (valName v) (valFields v)
 
+-- Convert an Haskell value in the corresponding ZM value to (simple, without field names) textual form
 value :: forall a . (Model a, Flat a) => a -> Value
 value a = case decodeAbsTypeModel (absTypeModel (Proxy :: Proxy a)) (flat a) of
   Right v -> v
   Left  _ -> error "impossible"
 
-{- |
+{-
 prop> \(w::Word8) -> unValue (value w) == w
 
 prop> \(w::Word16) -> unValue (value w) == w
@@ -178,25 +215,25 @@ instance (AsValue a) => AsValue (Array a) where
   unVal ('A':i) vs | let n = read i in n == length vs-1 && n < 256 = let Array l2 = unValue (last vs) :: Array a in Array (map unValue (init vs) ++ l2)
   unVal v     vs  = wrongValue v vs
 
-instance AsValue a => AsValue (Z.BLOB a) where 
+instance AsValue a => AsValue (Z.BLOB a) where
     unVal "BLOB" [e,bs] = Z.BLOB (unValue e) (unValue bs)
-    unVal v     vs  = wrongValue v vs
+    unVal v     vs      = wrongValue v vs
 
 instance AsValue E.NoEncoding where
     unVal "NoEncoding" [] = E.NoEncoding
-    unVal v     vs  = wrongValue v vs
+    unVal v     vs        = wrongValue v vs
 
 instance AsValue E.FlatEncoding where
     unVal "FlatEncoding" [] = E.FlatEncoding
-    unVal v     vs  = wrongValue v vs
+    unVal v     vs          = wrongValue v vs
 
-instance AsValue E.UTF8Encoding where 
+instance AsValue E.UTF8Encoding where
     unVal "UTF8Encoding" [] = E.UTF8Encoding
-    unVal v     vs  = wrongValue v vs
+    unVal v     vs          = wrongValue v vs
 
-instance AsValue E.UTF16LEEncoding where 
+instance AsValue E.UTF16LEEncoding where
     unVal "UTF16LEEncoding" [] = E.UTF16LEEncoding
-    unVal v     vs  = wrongValue v vs
+    unVal v     vs             = wrongValue v vs
 
 instance AsValue T.Text where
     unVal v vs = T.decodeUtf8 . Z.content $ (unVal v vs :: Z.BLOB UTF8Encoding)
@@ -206,33 +243,34 @@ instance AsValue TL.Text where
 
 instance AsValue UTF8Text where
     unVal v vs = UTF8Text (unVal v vs)
+
 instance AsValue UTF16Text where
     unVal v vs =  UTF16Text . T.decodeUtf16LE . Z.content $ (unVal v vs :: Z.BLOB UTF16LEEncoding)
 
-instance AsValue B.ByteString where 
+instance AsValue B.ByteString where
     unVal v vs = B.pack (bytes v vs)
 
-instance AsValue L.ByteString where 
+instance AsValue L.ByteString where
     unVal v vs = L.pack (bytes v vs)
 
-instance AsValue SBS.ShortByteString where 
-    unVal v vs = SBS.pack (bytes v vs) 
+instance AsValue SBS.ShortByteString where
+    unVal v vs = SBS.pack (bytes v vs)
 
 bytes :: String -> [Value] -> [Word8]
 bytes v vs = let Bytes (PreAligned _ (Array bs)) = unVal v vs in bs
 
 instance AsValue Bytes where
   unVal "Bytes" [pa] = Bytes (unValue pa)
-  unVal v     vs  = wrongValue v vs
+  unVal v     vs     = wrongValue v vs
 
 instance (AsValue a) => AsValue (PreAligned a) where
   unVal "PreAligned" [f,a] = PreAligned (unValue f) (unValue a)
-  unVal v     vs  = wrongValue v vs
+  unVal v     vs           = wrongValue v vs
 
 instance AsValue Filler where
   unVal "FillerBit" [a] = FillerBit (unValue a)
-  unVal "FillerEnd" [] = FillerEnd
-  unVal v     vs  = wrongValue v vs
+  unVal "FillerEnd" []  = FillerEnd
+  unVal v     vs        = wrongValue v vs
 
 instance (AsValue a,Ord a,AsValue b) => AsValue (M.Map a b) where
   unVal "Map" [a] = M.fromList (unValue a :: [(a, b)])
@@ -309,21 +347,22 @@ instance AsValue Word64 where
   unVal "Word64" [a] = fromIntegral (unValue a :: Natural)
   unVal v        vs  = wrongValue v vs
 
-#if WORD_SIZE_IN_BITS == 32
-#define WORD Word32
-#define INT  Int32
-#elif WORD_SIZE_IN_BITS == 64
-#define WORD Word64
-#define INT  Int64
-#else
-#error expected WORD_SIZE_IN_BITS to be 32 or 64
-#endif
+-- #if WORD_SIZE_IN_BITS == 32
+-- #define WORD Word32
+-- #define INT  Int32
+-- #elif WORD_SIZE_IN_BITS == 64
+-- #define WORD Word64
+-- #define INT  Int64
+-- #else
+-- #error expected WORD_SIZE_IN_BITS to be 32 or 64
+-- #endif
 
 instance AsValue Word where
-  unVal a as = fromIntegral (unVal a as :: WORD)
+  -- unVal a as = fromIntegral (unVal a as :: WORD)
+  unVal a as = fromIntegral (unVal a as :: Word)
 
 instance AsValue Int where
-  unVal a as = fromIntegral (unVal a as :: INT)
+  unVal a as = fromIntegral (unVal a as :: Int)
 
 instance AsValue Natural where
   unVal "Word" [a] = let LeastSignificantFirst w = unValue a in asNatural w
@@ -354,7 +393,7 @@ instance AsValue Float where
     let sign = unValue vsign
         MostSignificantFirst (bexp :: Bits8  ) = unValue mexp
         MostSignificantFirst (bfrac :: Bits23) = unValue mfrac
-        exp  = map
+        expn  = map
           (\f -> bool . f $ bexp)
           [ ZM.Type.Bits8.bit0
           , ZM.Type.Bits8.bit1
@@ -391,7 +430,7 @@ instance AsValue Float where
           , ZM.Type.Bits23.bit21
           , ZM.Type.Bits23.bit22
           ]
-    in  ieee sign exp frac 127
+    in  ieee sign expn frac 127
   unVal v vs = wrongValue v vs
 
 instance AsValue Double where
@@ -399,7 +438,7 @@ instance AsValue Double where
     let sign = unValue vsign
         MostSignificantFirst (bexp :: Bits11 ) = unValue mexp
         MostSignificantFirst (bfrac :: Bits52) = unValue mfrac
-        exp  = map
+        expn  = map
           (\f -> bool . f $ bexp)
           [ ZM.Type.Bits11.bit0
           , ZM.Type.Bits11.bit1
@@ -468,7 +507,7 @@ instance AsValue Double where
           , ZM.Type.Bits52.bit50
           , ZM.Type.Bits52.bit51
           ]
-    in  ieee sign exp frac 1023
+    in  ieee sign expn frac 1023
   unVal v vs = wrongValue v vs
 
 
@@ -647,7 +686,7 @@ ieee sign exps fracs expOff =
       val = fromIntegral fracV * (2 ^^ (expV - expOff - length fracBits + 1))
   in  signV sign * val
 
-{- | 
+{- |
 MSF bitsVal
 
 >>> bitsVal [True,True,False,False,False]
