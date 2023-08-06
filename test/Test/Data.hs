@@ -29,7 +29,7 @@ data X = X X deriving Generic
 
 data Unit = Unit deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
-data Un = Un {un::Bool} deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
+newtype Un = Un {un::Bool} deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
 data D2 = D2 Bool N deriving (Eq, Ord, Read, Show, Typeable, Data, Generic)
 
@@ -158,6 +158,8 @@ data Odd = SuccO Even
 
 -- Existential types
 -- data Fold a b = forall x. Fold (x -> a -> x) x (x -> b)
+
+data E = forall a. E a a deriving (Typeable)
 
 -- data Some :: (* -> *) -> * where
 --   Some :: f a -> Some f

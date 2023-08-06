@@ -3,8 +3,8 @@ module Test.Data.Model where
 
 import           Data.Model
 import           Test.Data
-import qualified Test.Data2 as Data2
-import qualified Test.Data3 as Data3
+import qualified Test.Data2                    as Data2
+import qualified Test.Data3                    as Data3
 --import Data.Word()
 --import GHC.Generics()
 --import Data.Proxy
@@ -60,3 +60,4 @@ instance Model a => Model (Tr2 a)
 -- instance (Model (f a),Typeable f,Model a) => Model (PerfectF f a)
 -- instance (Model v,Model (f v),Model a) => Model (Free f a)
 
+-- instance Model a => Model (E a)

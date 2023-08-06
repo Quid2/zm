@@ -44,13 +44,11 @@ pPrint $ absTypeModel (Proxy :: Proxy (Maybe Bool))
 -> 
 -> Environment:
 -> 
--> K306f1981b41c:
-->  Bool ≡   False
-->         | True
+-> Bool.K306f1981b41c ≡   False
+->                      | True;
 -> 
--> Kda6836778fd4:
-->  Maybe a ≡   Nothing
-->            | Just a
+-> Maybe.Kda6836778fd4 a ≡   Nothing
+->                         | Just a;
 ```
 
 
@@ -69,18 +67,134 @@ pPrint $ absTypeModel (Proxy :: Proxy Word7)
 -> 
 -> Environment:
 -> 
--> Kf4c946334a7e:
-->  Word7 ≡   V0
-->          | V1
-->          | V2
-->          | V3
-->          | V4
--> ...
-->          | V123
-->          | V124
-->          | V125
-->          | V126
-->          | V127
+-> Word7.Kf4c946334a7e ≡   V0
+->                       | V1
+->                       | V2
+->                       | V3
+->                       | V4
+->                       | V5
+->                       | V6
+->                       | V7
+->                       | V8
+->                       | V9
+->                       | V10
+->                       | V11
+->                       | V12
+->                       | V13
+->                       | V14
+->                       | V15
+->                       | V16
+->                       | V17
+->                       | V18
+->                       | V19
+->                       | V20
+->                       | V21
+->                       | V22
+->                       | V23
+->                       | V24
+->                       | V25
+->                       | V26
+->                       | V27
+->                       | V28
+->                       | V29
+->                       | V30
+->                       | V31
+->                       | V32
+->                       | V33
+->                       | V34
+->                       | V35
+->                       | V36
+->                       | V37
+->                       | V38
+->                       | V39
+->                       | V40
+->                       | V41
+->                       | V42
+->                       | V43
+->                       | V44
+->                       | V45
+->                       | V46
+->                       | V47
+->                       | V48
+->                       | V49
+->                       | V50
+->                       | V51
+->                       | V52
+->                       | V53
+->                       | V54
+->                       | V55
+->                       | V56
+->                       | V57
+->                       | V58
+->                       | V59
+->                       | V60
+->                       | V61
+->                       | V62
+->                       | V63
+->                       | V64
+->                       | V65
+->                       | V66
+->                       | V67
+->                       | V68
+->                       | V69
+->                       | V70
+->                       | V71
+->                       | V72
+->                       | V73
+->                       | V74
+->                       | V75
+->                       | V76
+->                       | V77
+->                       | V78
+->                       | V79
+->                       | V80
+->                       | V81
+->                       | V82
+->                       | V83
+->                       | V84
+->                       | V85
+->                       | V86
+->                       | V87
+->                       | V88
+->                       | V89
+->                       | V90
+->                       | V91
+->                       | V92
+->                       | V93
+->                       | V94
+->                       | V95
+->                       | V96
+->                       | V97
+->                       | V98
+->                       | V99
+->                       | V100
+->                       | V101
+->                       | V102
+->                       | V103
+->                       | V104
+->                       | V105
+->                       | V106
+->                       | V107
+->                       | V108
+->                       | V109
+->                       | V110
+->                       | V111
+->                       | V112
+->                       | V113
+->                       | V114
+->                       | V115
+->                       | V116
+->                       | V117
+->                       | V118
+->                       | V119
+->                       | V120
+->                       | V121
+->                       | V122
+->                       | V123
+->                       | V124
+->                       | V125
+->                       | V126
+->                       | V127;
 ```
 
 
@@ -95,34 +209,145 @@ pPrint $ absTypeModel (Proxy :: Proxy Word32)
 -> 
 -> Environment:
 -> 
--> K20ffacc8f8c9:
-->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+-> LeastSignificantFirst.K20ffacc8f8c9 a ≡   LeastSignificantFirst a;
 -> 
--> K74e2b3b89941:
-->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> MostSignificantFirst.K74e2b3b89941 a ≡   MostSignificantFirst a;
 -> 
--> Kbf2d1c86eb20:
-->  NonEmptyList a ≡   Elem a
-->                   | Cons a (NonEmptyList a)
+-> NonEmptyList.Kbf2d1c86eb20 a ≡   Elem a
+->                                | Cons a (NonEmptyList.Kbf2d1c86eb20 a);
 -> 
--> Kf92e8339908a:
-->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+-> Word.Kf92e8339908a ≡   Word (LeastSignificantFirst.K20ffacc8f8c9 (NonEmptyList.Kbf2d1c86eb20 (MostSignificantFirst.K74e2b3b89941 Word7.Kf4c946334a7e)));
 -> 
--> K2412799c99f1:
-->  Word32 ≡ Word32 Word
+-> Word32.K2412799c99f1 ≡   Word32 Word.Kf92e8339908a;
 -> 
--> Kf4c946334a7e:
-->  Word7 ≡   V0
-->          | V1
-->          | V2
-->          | V3
-->          | V4
--> ...
-->          | V123
-->          | V124
-->          | V125
-->          | V126
-->          | V127
+-> Word7.Kf4c946334a7e ≡   V0
+->                       | V1
+->                       | V2
+->                       | V3
+->                       | V4
+->                       | V5
+->                       | V6
+->                       | V7
+->                       | V8
+->                       | V9
+->                       | V10
+->                       | V11
+->                       | V12
+->                       | V13
+->                       | V14
+->                       | V15
+->                       | V16
+->                       | V17
+->                       | V18
+->                       | V19
+->                       | V20
+->                       | V21
+->                       | V22
+->                       | V23
+->                       | V24
+->                       | V25
+->                       | V26
+->                       | V27
+->                       | V28
+->                       | V29
+->                       | V30
+->                       | V31
+->                       | V32
+->                       | V33
+->                       | V34
+->                       | V35
+->                       | V36
+->                       | V37
+->                       | V38
+->                       | V39
+->                       | V40
+->                       | V41
+->                       | V42
+->                       | V43
+->                       | V44
+->                       | V45
+->                       | V46
+->                       | V47
+->                       | V48
+->                       | V49
+->                       | V50
+->                       | V51
+->                       | V52
+->                       | V53
+->                       | V54
+->                       | V55
+->                       | V56
+->                       | V57
+->                       | V58
+->                       | V59
+->                       | V60
+->                       | V61
+->                       | V62
+->                       | V63
+->                       | V64
+->                       | V65
+->                       | V66
+->                       | V67
+->                       | V68
+->                       | V69
+->                       | V70
+->                       | V71
+->                       | V72
+->                       | V73
+->                       | V74
+->                       | V75
+->                       | V76
+->                       | V77
+->                       | V78
+->                       | V79
+->                       | V80
+->                       | V81
+->                       | V82
+->                       | V83
+->                       | V84
+->                       | V85
+->                       | V86
+->                       | V87
+->                       | V88
+->                       | V89
+->                       | V90
+->                       | V91
+->                       | V92
+->                       | V93
+->                       | V94
+->                       | V95
+->                       | V96
+->                       | V97
+->                       | V98
+->                       | V99
+->                       | V100
+->                       | V101
+->                       | V102
+->                       | V103
+->                       | V104
+->                       | V105
+->                       | V106
+->                       | V107
+->                       | V108
+->                       | V109
+->                       | V110
+->                       | V111
+->                       | V112
+->                       | V113
+->                       | V114
+->                       | V115
+->                       | V116
+->                       | V117
+->                       | V118
+->                       | V119
+->                       | V120
+->                       | V121
+->                       | V122
+->                       | V123
+->                       | V124
+->                       | V125
+->                       | V126
+->                       | V127;
 ```
 
 
@@ -137,37 +362,147 @@ pPrint $ absTypeModel (Proxy :: Proxy Char)
 -> 
 -> Environment:
 -> 
--> K066db52af145:
-->  Char ≡ Char Word32
+-> Char.K066db52af145 ≡   Char Word32.K2412799c99f1;
 -> 
--> K20ffacc8f8c9:
-->  LeastSignificantFirst a ≡ LeastSignificantFirst a
+-> LeastSignificantFirst.K20ffacc8f8c9 a ≡   LeastSignificantFirst a;
 -> 
--> K74e2b3b89941:
-->  MostSignificantFirst a ≡ MostSignificantFirst a
+-> MostSignificantFirst.K74e2b3b89941 a ≡   MostSignificantFirst a;
 -> 
--> Kbf2d1c86eb20:
-->  NonEmptyList a ≡   Elem a
-->                   | Cons a (NonEmptyList a)
+-> NonEmptyList.Kbf2d1c86eb20 a ≡   Elem a
+->                                | Cons a (NonEmptyList.Kbf2d1c86eb20 a);
 -> 
--> Kf92e8339908a:
-->  Word ≡ Word (LeastSignificantFirst (NonEmptyList (MostSignificantFirst Word7)))
+-> Word.Kf92e8339908a ≡   Word (LeastSignificantFirst.K20ffacc8f8c9 (NonEmptyList.Kbf2d1c86eb20 (MostSignificantFirst.K74e2b3b89941 Word7.Kf4c946334a7e)));
 -> 
--> K2412799c99f1:
-->  Word32 ≡ Word32 Word
+-> Word32.K2412799c99f1 ≡   Word32 Word.Kf92e8339908a;
 -> 
--> Kf4c946334a7e:
-->  Word7 ≡   V0
-->          | V1
-->          | V2
-->          | V3
-->          | V4
--> ...
-->          | V123
-->          | V124
-->          | V125
-->          | V126
-->          | V127
+-> Word7.Kf4c946334a7e ≡   V0
+->                       | V1
+->                       | V2
+->                       | V3
+->                       | V4
+->                       | V5
+->                       | V6
+->                       | V7
+->                       | V8
+->                       | V9
+->                       | V10
+->                       | V11
+->                       | V12
+->                       | V13
+->                       | V14
+->                       | V15
+->                       | V16
+->                       | V17
+->                       | V18
+->                       | V19
+->                       | V20
+->                       | V21
+->                       | V22
+->                       | V23
+->                       | V24
+->                       | V25
+->                       | V26
+->                       | V27
+->                       | V28
+->                       | V29
+->                       | V30
+->                       | V31
+->                       | V32
+->                       | V33
+->                       | V34
+->                       | V35
+->                       | V36
+->                       | V37
+->                       | V38
+->                       | V39
+->                       | V40
+->                       | V41
+->                       | V42
+->                       | V43
+->                       | V44
+->                       | V45
+->                       | V46
+->                       | V47
+->                       | V48
+->                       | V49
+->                       | V50
+->                       | V51
+->                       | V52
+->                       | V53
+->                       | V54
+->                       | V55
+->                       | V56
+->                       | V57
+->                       | V58
+->                       | V59
+->                       | V60
+->                       | V61
+->                       | V62
+->                       | V63
+->                       | V64
+->                       | V65
+->                       | V66
+->                       | V67
+->                       | V68
+->                       | V69
+->                       | V70
+->                       | V71
+->                       | V72
+->                       | V73
+->                       | V74
+->                       | V75
+->                       | V76
+->                       | V77
+->                       | V78
+->                       | V79
+->                       | V80
+->                       | V81
+->                       | V82
+->                       | V83
+->                       | V84
+->                       | V85
+->                       | V86
+->                       | V87
+->                       | V88
+->                       | V89
+->                       | V90
+->                       | V91
+->                       | V92
+->                       | V93
+->                       | V94
+->                       | V95
+->                       | V96
+->                       | V97
+->                       | V98
+->                       | V99
+->                       | V100
+->                       | V101
+->                       | V102
+->                       | V103
+->                       | V104
+->                       | V105
+->                       | V106
+->                       | V107
+->                       | V108
+->                       | V109
+->                       | V110
+->                       | V111
+->                       | V112
+->                       | V113
+->                       | V114
+->                       | V115
+->                       | V116
+->                       | V117
+->                       | V118
+->                       | V119
+->                       | V120
+->                       | V121
+->                       | V122
+->                       | V123
+->                       | V124
+->                       | V125
+->                       | V126
+->                       | V127;
 ```
 
 
@@ -283,12 +618,11 @@ pPrint $ absTypeModel (Proxy :: Proxy CinqueTerre)
 -> 
 -> Environment:
 -> 
--> K747ebaa65778:
-->  CinqueTerre ≡   Monterosso
-->                | Vernazza
-->                | Corniglia
-->                | Manarola
-->                | RioMaggiore
+-> CinqueTerre.K747ebaa65778 ≡   Monterosso
+->                             | Vernazza
+->                             | Corniglia
+->                             | Manarola
+->                             | RioMaggiore;
 ```
 
 
@@ -323,7 +657,7 @@ For an example of using canonical data types as a data exchange mechanism see [t
 ### Haskell Compatibility
 
 Tested with:
-  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.2 and 8.2.2 (x64)
+  * [ghc](https://www.haskell.org/ghc/) 7.10.3, 8.0.1 and 8.0.2 (x64)
   * [ghcjs](https://github.com/ghcjs/ghcjs)
 
 ### Installation
@@ -331,15 +665,20 @@ Tested with:
  Get the latest stable version from [hackage](https://hackage.haskell.org/package/zm).
 
 ### Acknowledgements
- Contains the following JavaScript library:
 
+* Contains the following JavaScript library:
  js-sha3 v0.5.1 https://github.com/emn178/js-sha3
-
  Copyright 2015, emn178@gmail.com
-
  Licensed under the MIT license:http://www.opensource.org/licenses/MIT
+
+* Includes some functions from the [extra](https://hackage.haskell.org/package/extra) package
 
 ### Known Bugs and Infelicities
 
 * The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
+
+
+### Other Stuff You Might Like
+
+For those who do, you might want to supplement `flat` with  top [ZM - Language independent, reproducible, absolute types](https://github.com/Quid2/zm).

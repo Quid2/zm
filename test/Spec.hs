@@ -6,50 +6,41 @@
 module Main where
 
 import           Control.Exception
-import qualified Data.ByteString               as B
-import qualified Data.ByteString.Lazy          as L
-import qualified Data.ByteString.Short         as SBS
+import qualified Data.ByteString                     as B
+import qualified Data.ByteString.Lazy                as L
+import qualified Data.ByteString.Short               as SBS
 import           Data.Digest.Keccak
 import           Data.Either
 import           Data.Foldable
 import           Data.Int
 import           Data.List
-import qualified Data.Map                      as M
+import qualified Data.Map                            as M
 import           Data.Maybe
-import           Data.Model              hiding ( Name )
-import qualified Data.Sequence                 as S
-import qualified Data.Text                     as T
+import           Data.Model                          hiding (Name)
+import qualified Data.Sequence                       as S
+import qualified Data.Text                           as T
 import           Data.Word
 import           Debug.Trace
 import           Info
-import           System.Exit                    ( exitFailure )
+import           System.Exit                         (exitFailure)
 import           System.TimeIt
-import           Test.Data               hiding ( Cons
-                                                , Unit
-                                                )
-import           Test.Data.Flat          hiding ( Cons
-                                                , Unit
-                                                )
+import           Test.Data                           hiding (Cons, Unit)
+import           Test.Data.Flat                      hiding (Cons, Unit)
 import           Test.Data.Model
-import qualified Test.Data2                    as Data2
-import qualified Test.Data3                    as Data3
+import qualified Test.Data2                          as Data2
+import qualified Test.Data3                          as Data3
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Test.Tasty.QuickCheck         as QC
-import qualified Test.ZM.ADT.Bool.K306f1981b41c
-                                               as Z
-import qualified Test.ZM.ADT.TypedBLOB.K614edd84c8bd
-                                               as Z
-import qualified Test.ZM.ADT.Word.Kf92e8339908a
-                                               as Z
-import qualified Test.ZM.ADT.Word7.Kf4c946334a7e
-                                               as Z
-import qualified Test.ZM.ADT.Word8.Kb1f46a49c8f8
-                                               as Z
+import           Test.Tasty.QuickCheck               as QC
+import qualified Test.ZM.ADT.Bool.K306f1981b41c      as Z
+import qualified Test.ZM.ADT.TypedBLOB.K614edd84c8bd as Z
+import qualified Test.ZM.ADT.Word.Kf92e8339908a      as Z
+import qualified Test.ZM.ADT.Word7.Kf4c946334a7e     as Z
+import qualified Test.ZM.ADT.Word8.Kb1f46a49c8f8     as Z
 import           Text.PrettyPrint
 import           ZM
-import           ZM.To.Decoder
 import           ZM.AsValue
+import           ZM.To.Decoder
 
 -- import Data.Timeless
 t = main
@@ -132,9 +123,9 @@ shakeDigestTests = testGroup
       @?= B.pack out
 
 codesTests = testGroup "Absolute Types Codes Tests"
-                       (map tst $ zip models codes)
+                       (zipWith (curry tst) models codes)
  where
-    --tst (model,code) = testCase (unwords ["Code",prettyShow model]) $ code @?= typeName model  
+    --tst (model,code) = testCase (unwords ["Code",prettyShow model]) $ code @?= typeName model
   tst (model, code) =
     testCase
         (unwords ["Code", let (TypeModel t e) = model in prettyShow (e, t)])
@@ -155,9 +146,10 @@ internalConsistency = noErrors . map prettyShow . refErrors . typeEnv
 -- the key of every ADT in the env is correct (same as calculated directly on the ADT)
 externalConsistency = all (\(r, adt) -> absRef adt == r) . M.toList . typeEnv
 
+mutuallyRecursiveTests :: TestTree
 mutuallyRecursiveTests =
   testGroup "Mutually Recursion Detection Tests"
-    $ [ tst (Proxy :: Proxy A0)
+      [ tst (Proxy :: Proxy A0)
       , tst (Proxy :: Proxy B0)
       , tst (Proxy :: Proxy (Forest Bool))
       ] where
@@ -218,7 +210,7 @@ customEncodingTests = testGroup
   , e $ blob NoEncoding [11 :: Word8, 22, 33]
   , e $ blob UTF8Encoding [97 :: Word8, 98, 99]
   , e $ blob UTF16LEEncoding
-             ([0x24, 0x00, 0xAC, 0x20, 0x01, 0xD8, 0x37, 0xDC] :: [Word8]) -- $€𐐷
+             ([0x24, 0x00, 0xAC, 0x20, 0x01, 0xD8, 0x37, 0xDC] :: [Word8]) -- "$€𐐷"
   --,e $ typedBLOB True
   , e (T.pack "abc$€𐐷")
   , e (UTF8Text $ T.pack "abc$€𐐷")
@@ -306,7 +298,7 @@ encodingTests = testGroup
   , ce "Integer"             (prop_encoding :: RT Integer)
   , ce "Char"                (prop_encoding :: RT Char)
   , ce "String"              (prop_encoding :: RT String) -- too slow
-  , ce "[Maybe (Bool,Char)]" (prop_encoding :: RT ([Maybe (Bool, Char)]))
+  , ce "[Maybe (Bool,Char)]" (prop_encoding :: RT [Maybe (Bool, Char)])
   ]
   where ce n = QC.testProperty (unwords ["Encoding", n])
 
@@ -340,7 +332,7 @@ transformTests = testGroup
  where
   testRecDeps proxy len =
     let tm = absTypeModel proxy
-    in  let Right deps = typeDefinition (typeEnv tm) (typeName tm) -- $ length (typeDefinition (typeEnv tm) (typeName tm)) @?= len
+    in  let Right deps = typeDefinition (typeEnv tm) (typeName tm) -- length (typeDefinition (typeEnv tm) (typeName tm)) @?= len
         in
           testCase (unwords ["recursiveDependencies", prettyShow $ typeName tm])
           $   length deps
