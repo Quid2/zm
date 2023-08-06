@@ -22,7 +22,7 @@ import           Data.Bifunctor
 import           Data.ByteString                  (ByteString)
 import           Data.Int
 import qualified Data.Map                         as M
-import           Data.Monoid
+import Data.Monoid ( Sum(Sum) )
 import           Data.Void
 import           Data.Word
 import           Flat.Encoder

@@ -32,8 +32,8 @@ import           ZM.Types           (AbsRef, AbsType, AbsTypeModel, Identifier)
 
 {- | Decode a Flat encoded value with a known type model to the corresponding Value.
 
->>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True) == Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), valName = "True", valBits = [True], valFields = []})
-True
+>>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Bool)) (flat True)
+Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), valName = "True", valBits = [True], valFields = []})
 
 >>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy (Maybe Bool))) (flat $ Just True) == Right (Value {valType = TypeApp (TypeCon (AbsRef (SHAKE128_48 218 104 54 119 143 212))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28))), valName = "Just", valBits = [True], valFields = [Value {valType = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), valName = "True", valBits = [True], valFields = []}]})
 True
