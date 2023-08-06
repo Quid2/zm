@@ -18,10 +18,10 @@ import           Data.List
 import qualified Data.Map                  as M
 import           Data.Maybe
 --import           Data.Model.Util           (transitiveClosure)
+import           ZM.Abs
 import           ZM.Pretty                 ()
 import           ZM.Types
 import           ZM.Util
-import           ZM.Abs
 
 -- |A map of fully applied types to the corresponding saturated constructor tree
 type MapTypeTree = M.Map (Type AbsRef) (ConTree Identifier AbsRef)
@@ -32,15 +32,15 @@ typeTree tm = execEnv (addType (typeEnv tm) (typeName tm))
  where
    -- |Insert in the env the saturated constructor trees corresponding to the passed type
    -- and any type nested in its definition
-   addType absEnv t = do
+   addType env t = do
      mct <- M.lookup t <$> get
      case mct of
        Nothing ->
-         case declCons $ solvedADT absEnv t of
+         case declCons $ solvedADT env t of
            Just ct -> do
              modify (M.insert t ct)
              -- Recursively on all saturated types inside the contructor tree
-             mapM_ (addType absEnv) (conTreeTypeList ct)
+             mapM_ (addType env) (conTreeTypeList ct)
            Nothing -> return ()
        Just _ -> return ()
 
