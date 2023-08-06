@@ -12,10 +12,9 @@ copyright:          Copyright: (c) 2016-2023 Pasqualino `Titto` Assini
 cabal-version:      >=1.10
 build-type:         Simple
 tested-with:        GHC ==8.10.7 || ==9.2.5 || ==9.4.3
-extra-source-files:
-  stack.yaml
-  README.md
+extra-source-files: README.md
 
+-- stack.yaml
 source-repository head
   type:     git
   location: https://github.com/Quid2/zm
