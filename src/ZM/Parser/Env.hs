@@ -361,7 +361,7 @@ makeADT adt =
         then Right
                ( name adt
                , ADT
-                   { declName = localName <$> name adt
+                   { declName = localTypeName <$> name adt
                    , declNumParameters = fromIntegral (length (vars adt))
                    , declCons = cons
                    })
@@ -374,7 +374,7 @@ makeADT adt =
     varOrName vs r@(Label l tn)
       | hasRef tn = Ext2 r
       | otherwise =
-        let n = typeNameName tn
+        let n = localTypeName tn
          in case M.lookup n vs of
               Nothing -> Ext2 r -- . asQualName <$> n
               Just i  -> Var2 (Label (l, i) n)
@@ -392,7 +392,7 @@ asRef (Var2 (Label (_, i) _)) = TypVar i -- (Label l (TypeName n Nothing))
 -- Locally defined type names (the adt name plus the variables names) must be unique
 uniqueLocalTypeNames :: ADTParts -> [Label Range String]
 uniqueLocalTypeNames adt =
-  dupErrors "type name" ((localName <$> name adt) : vars adt)
+  dupErrors "type name" ((localTypeName <$> name adt) : vars adt)
 
 uniqueConstrNames :: ADTParts -> [Label Range String]
 uniqueConstrNames = dupErrors "constructor" . map fst . constrs

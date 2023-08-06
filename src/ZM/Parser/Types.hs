@@ -15,10 +15,11 @@ module ZM.Parser.Types (
     asTypeName,
     hasName,
     hasRef,
-    typeNameName,
-    typeNameRef,
+    -- typeNameName,
+    -- typeNameRef,
     TypeName,
-    localName,
+    localTypeName,
+    absTypeName,
     -- , asQualName
     Label (..),
     At,
@@ -54,8 +55,7 @@ module ZM.Parser.Types (
 import Data.Either.Validation
 --hiding (Value)
 import Data.Fix
-import Data.Semigroup (Semigroup (..))
-import Data.These
+import Data.These.Extra
 import Data.Void
 import Data.Word
 import Text.Megaparsec hiding (Label, label)
@@ -74,15 +74,14 @@ data ADTParts = ADTParts
     deriving (Show)
 
 instance Pretty ADTParts where
+    pPrint :: ADTParts -> Doc
     pPrint p =
         pPrint (name p)
             <+> hsep (map pPrint $ vars p)
             <+> char '='
             <+> hsep (punctuate (text " |") (map pPrint (constrs p)))
 
---text "ADTParts" <+> pPrint (name p) <+> pPrint (vars p) <+> pPrint (constrs p)
-
--- | A data type name can be either local, or absolute, or both: "Bool" | "Bool.K306f1981b41c" | ".K306f1981b41c"
+-- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c" 
 type TypeName l = These l AbsRef
 
 -- TODO: Convert to These l AbsRef
@@ -97,13 +96,13 @@ type TypeName l = These l AbsRef
 --   pPrint (TypeName n Nothing) = pPrint n
 --   pPrint (TypeName n (Just r)) = pPrint n <> char '.' <> pPrint r
 asTypeName :: Maybe a -> Maybe b -> These a b
-asTypeName = these
+asTypeName = aThese
 
-typeNameName :: TypeName l -> l
-typeNameName = this
+-- typeNameName :: TypeName l -> l
+-- typeNameName = fromThis
 
-typeNameRef :: TypeName l -> AbsRef
-typeNameRef = that
+-- typeNameRef :: TypeName l -> AbsRef
+-- typeNameRef = fromThat
 
 hasName :: These a b -> Bool
 hasName = hasThis
@@ -111,8 +110,11 @@ hasName = hasThis
 hasRef :: These a1 a -> Bool
 hasRef = hasThat
 
-localName :: These c b -> c
-localName = this
+localTypeName :: These a b -> a
+localTypeName = fromThis
+
+absTypeName :: These a b -> b
+absTypeName = fromThat
 
 instance Pretty n => Pretty (TypeName n) where
     pPrint = both pPrint (\r -> char '.' P.<> pPrint r)
