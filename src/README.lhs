@@ -138,7 +138,7 @@ For an example of using canonical data types as a data exchange mechanism see [t
 
 ### Long Term Data Preservation
 
-For an example of using canonical data types as a long term data preservation mechanism see [timeless](https://github.com/Quid2/timeless).
+For an example of using canonical data types as a long term data preservation mechanism see ZM.Timeless.
 
 Inspect the data to figure out its type dynamically
 
@@ -184,16 +184,20 @@ Tested with:
 
  Get the latest stable version from [hackage](https://hackage.haskell.org/package/zm).
 
- ### Acknowledgements
- Contains the following JavaScript library:
-
- js-sha3 v0.5.1 https://github.com/emn178/js-sha3
-
- Copyright 2015, emn178@gmail.com
-
- Licensed under the MIT license:http://www.opensource.org/licenses/MIT
-
  ### Known Bugs and Infelicities
 
 * The unique codes generated for the data types are not yet final and might change in the final version.
 * Instances for parametric data types have to be declared separately (won't work in `deriving`)
+
+### Other Stuff You Might Like
+
+For those who do, you might want to supplement `flat` with  top [ZM - Language independent, reproducible, absolute types](https://github.com/Quid2/zm).
+
+### Acknowledgements
+
+* Contains the following JavaScript library:
+ js-sha3 v0.5.1 https://github.com/emn178/js-sha3
+ Copyright 2015, emn178@gmail.com
+ Licensed under the MIT license:http://www.opensource.org/licenses/MIT
+
+* Includes some functions from the [extra](https://hackage.haskell.org/package/extra) package
