@@ -1,0 +1,1778 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_JWHHut215Tu0dSygqUXeUu"><span id="%24con2tag_1k8Op1x0ewb6NPz0Ww502v"><span id="%24con2tag_4LEXYtTq2k32CDdeJwreUd"></span></span></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFoldable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveFunctor #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE MultiParamTypeClasses #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Types</span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="annot"><span class="hs-identifier">Data.Model.Types</span></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsTypeModel"><span class="hs-identifier">AbsTypeModel</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier">AbsType</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier">AbsRef</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#absRef"><span class="hs-identifier">absRef</span></a></span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier">AbsADT</span></a></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsEnv"><span class="hs-identifier">AbsEnv</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier">ADTRef</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#getADTRef"><span class="hs-identifier">getADTRef</span></a></span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier">toTypeRef</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#substAbsADT"><span class="hs-identifier">substAbsADT</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#asIdentifier"><span class="hs-identifier">asIdentifier</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier">Identifier</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier">UnicodeLetter</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier">UnicodeLetterOrNumberOrLine</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier">UnicodeSymbol</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier">SHA3_256_6</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier">SHAKE128_48</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#shake128_48"><span class="hs-identifier">shake128_48</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#shake128_48_BS"><span class="hs-identifier">shake128_48_BS</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier">NonEmptyList</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier">nonEmptyList</span></a></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#Word7"><span class="hs-identifier">Word7</span></a></span><span>
+</span><span id="line-34"></span><span>      </span><span class="annot"><span class="hs-comment">-- * Encodings</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#FlatEncoding"><span class="hs-identifier">FlatEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#UTF8Encoding"><span class="hs-identifier">UTF8Encoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#UTF16LEEncoding"><span class="hs-identifier">UTF16LEEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#NoEncoding"><span class="hs-identifier">NoEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>      </span><span class="annot"><span class="hs-comment">-- * Exceptions and Errors</span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#TypedDecoded"><span class="hs-identifier">TypedDecoded</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#TypedDecodeException"><span class="hs-identifier">TypedDecodeException</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier">ZMError</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>      </span><span class="annot"><span class="hs-comment">-- *Other Re-exports</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">NFData</span></span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#ZigZag"><span class="hs-identifier">ZigZag</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#LeastSignificantFirst"><span class="hs-identifier">LeastSignificantFirst</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#MostSignificantFirst"><span class="hs-identifier">MostSignificantFirst</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>    </span><span class="hs-comment">--, Value(..)</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-comment">--, Val(..)</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-comment">--, SpecialValue(..)</span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-comment">-- , Binder(..)</span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-comment">-- , Void1</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- , Label(..)</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- , label</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--, Pattern(..)</span><span>
+</span><span id="line-60"></span><span class="hs-comment">--, PatternSpecial(..)</span><span>
+</span><span id="line-61"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span>
+</span><span id="line-63"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span>               </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">B</span></span><span>
+</span><span id="line-64"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="Data.Digest.Keccak.html"><span class="hs-identifier">Data.Digest.Keccak</span></a></span><span>
+</span><span id="line-66"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Either.Validation</span></span><span>
+</span><span id="line-67"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- import qualified Data.Map               as M</span><span>
+</span><span id="line-70"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>              </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Name</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model.Types</span></span><span>        </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">Name</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Model.html"><span class="hs-identifier">ZM.Model</span></a></span><span>                       </span><span class="hs-special">(</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.BLOB.html"><span class="hs-identifier">ZM.Type.BLOB</span></a></span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.NonEmptyList.html"><span class="hs-identifier">ZM.Type.NonEmptyList</span></a></span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.Words.html"><span class="hs-identifier">ZM.Type.Words</span></a></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#LeastSignificantFirst"><span class="hs-identifier">LeastSignificantFirst</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>                                                </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#MostSignificantFirst"><span class="hs-identifier">MostSignificantFirst</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span>                                                </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#Word7"><span class="hs-identifier">Word7</span></a></span><span>
+</span><span id="line-79"></span><span>                                                </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Words.html#ZigZag"><span class="hs-identifier">ZigZag</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>                                                </span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span class="hs-comment">-- |An absolute type, a type identifier that depends only on the definition of the type</span><span>
+</span><span id="line-83"></span><span class="hs-keyword">type</span><span> </span><span id="AbsType"><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-var">AbsType</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="hs-comment">-- |A reference to an absolute data type definition, in the form of a hash of the data type definition itself</span><span>
+</span><span id="line-86"></span><span class="hs-comment">-- data AbsRef = AbsRef (SHA3_256_6 AbsADT) deriving (Eq, Ord, Show, NFData, Generic, Flat)</span><span>
+</span><span id="line-87"></span><span id="local-6989586621679162941"><span id="local-6989586621679162942"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="AbsRef"><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-var">AbsRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="AbsRef"><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-var">AbsRef</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162936"><span id="local-6989586621679162938"><span class="annot"><span class="annottext">AbsRef -&gt; AbsRef -&gt; Bool
+(AbsRef -&gt; AbsRef -&gt; Bool)
+-&gt; (AbsRef -&gt; AbsRef -&gt; Bool) -&gt; Eq AbsRef
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: AbsRef -&gt; AbsRef -&gt; Bool
+$c/= :: AbsRef -&gt; AbsRef -&gt; Bool
+== :: AbsRef -&gt; AbsRef -&gt; Bool
+$c== :: AbsRef -&gt; AbsRef -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162920"><span id="local-6989586621679162922"><span id="local-6989586621679162924"><span id="local-6989586621679162926"><span id="local-6989586621679162928"><span id="local-6989586621679162930"><span id="local-6989586621679162932"><span class="annot"><span class="annottext">Eq AbsRef
+Eq AbsRef
+-&gt; (AbsRef -&gt; AbsRef -&gt; Ordering)
+-&gt; (AbsRef -&gt; AbsRef -&gt; Bool)
+-&gt; (AbsRef -&gt; AbsRef -&gt; Bool)
+-&gt; (AbsRef -&gt; AbsRef -&gt; Bool)
+-&gt; (AbsRef -&gt; AbsRef -&gt; Bool)
+-&gt; (AbsRef -&gt; AbsRef -&gt; AbsRef)
+-&gt; (AbsRef -&gt; AbsRef -&gt; AbsRef)
+-&gt; Ord AbsRef
+AbsRef -&gt; AbsRef -&gt; Bool
+AbsRef -&gt; AbsRef -&gt; Ordering
+AbsRef -&gt; AbsRef -&gt; AbsRef
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: AbsRef -&gt; AbsRef -&gt; AbsRef
+$cmin :: AbsRef -&gt; AbsRef -&gt; AbsRef
+max :: AbsRef -&gt; AbsRef -&gt; AbsRef
+$cmax :: AbsRef -&gt; AbsRef -&gt; AbsRef
+&gt;= :: AbsRef -&gt; AbsRef -&gt; Bool
+$c&gt;= :: AbsRef -&gt; AbsRef -&gt; Bool
+&gt; :: AbsRef -&gt; AbsRef -&gt; Bool
+$c&gt; :: AbsRef -&gt; AbsRef -&gt; Bool
+&lt;= :: AbsRef -&gt; AbsRef -&gt; Bool
+$c&lt;= :: AbsRef -&gt; AbsRef -&gt; Bool
+&lt; :: AbsRef -&gt; AbsRef -&gt; Bool
+$c&lt; :: AbsRef -&gt; AbsRef -&gt; Bool
+compare :: AbsRef -&gt; AbsRef -&gt; Ordering
+$ccompare :: AbsRef -&gt; AbsRef -&gt; Ordering
+$cp1Ord :: Eq AbsRef
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162913"><span id="local-6989586621679162915"><span id="local-6989586621679162917"><span class="annot"><span class="annottext">Int -&gt; AbsRef -&gt; ShowS
+[AbsRef] -&gt; ShowS
+AbsRef -&gt; String
+(Int -&gt; AbsRef -&gt; ShowS)
+-&gt; (AbsRef -&gt; String) -&gt; ([AbsRef] -&gt; ShowS) -&gt; Show AbsRef
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [AbsRef] -&gt; ShowS
+$cshowList :: [AbsRef] -&gt; ShowS
+show :: AbsRef -&gt; String
+$cshow :: AbsRef -&gt; String
+showsPrec :: Int -&gt; AbsRef -&gt; ShowS
+$cshowsPrec :: Int -&gt; AbsRef -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162910"><span class="annot"><span class="annottext">AbsRef -&gt; ()
+(AbsRef -&gt; ()) -&gt; NFData AbsRef
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: AbsRef -&gt; ()
+$crnf :: AbsRef -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. AbsRef -&gt; Rep AbsRef x)
+-&gt; (forall x. Rep AbsRef x -&gt; AbsRef) -&gt; Generic AbsRef
+forall x. Rep AbsRef x -&gt; AbsRef
+forall x. AbsRef -&gt; Rep AbsRef x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep AbsRef x -&gt; AbsRef
+$cfrom :: forall x. AbsRef -&gt; Rep AbsRef x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162900"><span id="local-6989586621679162902"><span id="local-6989586621679162904"><span class="annot"><span class="annottext">Get AbsRef
+AbsRef -&gt; Encoding
+AbsRef -&gt; Int -&gt; Int
+(AbsRef -&gt; Encoding)
+-&gt; Get AbsRef -&gt; (AbsRef -&gt; Int -&gt; Int) -&gt; Flat AbsRef
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: AbsRef -&gt; Int -&gt; Int
+$csize :: AbsRef -&gt; Int -&gt; Int
+decode :: Get AbsRef
+$cdecode :: Get AbsRef
+encode :: AbsRef -&gt; Encoding
+$cencode :: AbsRef -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- type AbsRef = SHAKE128_48 AbsADT</span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- |Return the absolute reference of the given value</span><span>
+</span><span id="line-92"></span><span class="annot"><a href="ZM.Types.html#absRef"><span class="hs-identifier hs-type">absRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-93"></span><span id="absRef"><span class="annot"><span class="annottext">absRef :: AbsADT -&gt; AbsRef
+</span><a href="ZM.Types.html#absRef"><span class="hs-identifier hs-var hs-var">absRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SHAKE128_48 AbsADT -&gt; AbsRef
+</span><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-var">AbsRef</span></a></span><span> </span><span class="annot"><span class="annottext">(SHAKE128_48 AbsADT -&gt; AbsRef)
+-&gt; (AbsADT -&gt; SHAKE128_48 AbsADT) -&gt; AbsADT -&gt; AbsRef
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">AbsADT -&gt; SHAKE128_48 AbsADT
+forall a. Flat a =&gt; a -&gt; SHAKE128_48 a
+</span><a href="ZM.Types.html#shake128_48"><span class="hs-identifier hs-var">shake128_48</span></a></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- |Return the SHAKE128_48 reference of the given value</span><span>
+</span><span id="line-96"></span><span id="local-6989586621679163202"><span class="annot"><a href="ZM.Types.html#shake128_48"><span class="hs-identifier hs-type">shake128_48</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679163202"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679163202"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163202"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-97"></span><span id="shake128_48"><span class="annot"><span class="annottext">shake128_48 :: a -&gt; SHAKE128_48 a
+</span><a href="ZM.Types.html#shake128_48"><span class="hs-identifier hs-var hs-var">shake128_48</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; SHAKE128_48 a
+forall a. ByteString -&gt; SHAKE128_48 a
+</span><a href="ZM.Types.html#shake128_48_BS"><span class="hs-identifier hs-var">shake128_48_BS</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; SHAKE128_48 a)
+-&gt; (a -&gt; ByteString) -&gt; a -&gt; SHAKE128_48 a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; ByteString
+forall a. Flat a =&gt; a -&gt; ByteString
+</span><span class="hs-identifier hs-var">flat</span></span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- |Return the SHAKE128_48 reference of the given ByteString</span><span>
+</span><span id="line-100"></span><span id="local-6989586621679163199"><span class="annot"><a href="ZM.Types.html#shake128_48_BS"><span class="hs-identifier hs-type">shake128_48_BS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163199"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-101"></span><span id="shake128_48_BS"><span class="annot"><span class="annottext">shake128_48_BS :: ByteString -&gt; SHAKE128_48 a
+</span><a href="ZM.Types.html#shake128_48_BS"><span class="hs-identifier hs-var hs-var">shake128_48_BS</span></a></span></span><span> </span><span id="local-6989586621679162896"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679162896"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; [Word8]
+</span><span class="hs-identifier hs-var">B.unpack</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; [Word8])
+-&gt; (ByteString -&gt; ByteString) -&gt; ByteString -&gt; [Word8]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; ByteString -&gt; ByteString
+</span><a href="Data.Digest.Keccak.html#shake_128"><span class="hs-identifier hs-var">shake_128</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">6</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; [Word8]) -&gt; ByteString -&gt; [Word8]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679162896"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-special">[</span><span id="local-6989586621679162893"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162893"><span class="hs-identifier hs-var">w1</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162892"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162892"><span class="hs-identifier hs-var">w2</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162891"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162891"><span class="hs-identifier hs-var">w3</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162890"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162890"><span class="hs-identifier hs-var">w4</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162889"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162889"><span class="hs-identifier hs-var">w5</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162888"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162888"><span class="hs-identifier hs-var">w6</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; SHAKE128_48 a
+forall a.
+Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; Word8 -&gt; SHAKE128_48 a
+</span><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-var">SHAKE128_48</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162893"><span class="hs-identifier hs-var">w1</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162892"><span class="hs-identifier hs-var">w2</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162891"><span class="hs-identifier hs-var">w3</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162890"><span class="hs-identifier hs-var">w4</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162889"><span class="hs-identifier hs-var">w5</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162888"><span class="hs-identifier hs-var">w6</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="annot"><span class="annottext">[Word8]
+</span><span class="hs-identifier">_</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; SHAKE128_48 a
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible&quot;</span></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- |A hash of a value, the first 6 bytes of the value's SHA3-256 hash</span><span>
+</span><span id="line-106"></span><span id="local-6989586621679162884"><span id="local-6989586621679162885"></span></span><span class="hs-keyword">data</span><span> </span><span id="SHA3_256_6"><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier hs-var">SHA3_256_6</span></a></span></span><span> </span><span id="local-6989586621679162883"><span class="annot"><a href="#local-6989586621679162883"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SHA3_256_6"><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier hs-var">SHA3_256_6</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162878"><span id="local-6989586621679162880"><span class="annot"><span class="annottext">SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+(SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool) -&gt; Eq (SHA3_256_6 a)
+forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c/= :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+== :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c== :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162863"><span id="local-6989586621679162865"><span id="local-6989586621679162867"><span id="local-6989586621679162869"><span id="local-6989586621679162871"><span id="local-6989586621679162873"><span id="local-6989586621679162875"><span class="annot"><span class="annottext">Eq (SHA3_256_6 a)
+Eq (SHA3_256_6 a)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Ordering)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a)
+-&gt; (SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a)
+-&gt; Ord (SHA3_256_6 a)
+SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Ordering
+SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+forall a. Eq (SHA3_256_6 a)
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Ordering
+forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+min :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+$cmin :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+max :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+$cmax :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; SHA3_256_6 a
+&gt;= :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c&gt;= :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+&gt; :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c&gt; :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+&lt;= :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c&lt;= :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+&lt; :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+$c&lt; :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Bool
+compare :: SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Ordering
+$ccompare :: forall a. SHA3_256_6 a -&gt; SHA3_256_6 a -&gt; Ordering
+$cp1Ord :: forall a. Eq (SHA3_256_6 a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162857"><span id="local-6989586621679162859"><span id="local-6989586621679162861"><span class="annot"><span class="annottext">Int -&gt; SHA3_256_6 a -&gt; ShowS
+[SHA3_256_6 a] -&gt; ShowS
+SHA3_256_6 a -&gt; String
+(Int -&gt; SHA3_256_6 a -&gt; ShowS)
+-&gt; (SHA3_256_6 a -&gt; String)
+-&gt; ([SHA3_256_6 a] -&gt; ShowS)
+-&gt; Show (SHA3_256_6 a)
+forall a. Int -&gt; SHA3_256_6 a -&gt; ShowS
+forall a. [SHA3_256_6 a] -&gt; ShowS
+forall a. SHA3_256_6 a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SHA3_256_6 a] -&gt; ShowS
+$cshowList :: forall a. [SHA3_256_6 a] -&gt; ShowS
+show :: SHA3_256_6 a -&gt; String
+$cshow :: forall a. SHA3_256_6 a -&gt; String
+showsPrec :: Int -&gt; SHA3_256_6 a -&gt; ShowS
+$cshowsPrec :: forall a. Int -&gt; SHA3_256_6 a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162855"><span class="annot"><span class="annottext">SHA3_256_6 a -&gt; ()
+(SHA3_256_6 a -&gt; ()) -&gt; NFData (SHA3_256_6 a)
+forall a. SHA3_256_6 a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: SHA3_256_6 a -&gt; ()
+$crnf :: forall a. SHA3_256_6 a -&gt; ()
+</span><a href="#local-6989586621679162855"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. SHA3_256_6 a -&gt; Rep (SHA3_256_6 a) x)
+-&gt; (forall x. Rep (SHA3_256_6 a) x -&gt; SHA3_256_6 a)
+-&gt; Generic (SHA3_256_6 a)
+forall x. Rep (SHA3_256_6 a) x -&gt; SHA3_256_6 a
+forall x. SHA3_256_6 a -&gt; Rep (SHA3_256_6 a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (SHA3_256_6 a) x -&gt; SHA3_256_6 a
+forall a x. SHA3_256_6 a -&gt; Rep (SHA3_256_6 a) x
+$cto :: forall a x. Rep (SHA3_256_6 a) x -&gt; SHA3_256_6 a
+$cfrom :: forall a x. SHA3_256_6 a -&gt; Rep (SHA3_256_6 a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162847"><span id="local-6989586621679162849"><span id="local-6989586621679162851"><span class="annot"><span class="annottext">Get (SHA3_256_6 a)
+SHA3_256_6 a -&gt; Encoding
+SHA3_256_6 a -&gt; Int -&gt; Int
+(SHA3_256_6 a -&gt; Encoding)
+-&gt; Get (SHA3_256_6 a)
+-&gt; (SHA3_256_6 a -&gt; Int -&gt; Int)
+-&gt; Flat (SHA3_256_6 a)
+forall a. Get (SHA3_256_6 a)
+forall a. SHA3_256_6 a -&gt; Encoding
+forall a. SHA3_256_6 a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: SHA3_256_6 a -&gt; Int -&gt; Int
+$csize :: forall a. SHA3_256_6 a -&gt; Int -&gt; Int
+decode :: Get (SHA3_256_6 a)
+$cdecode :: forall a. Get (SHA3_256_6 a)
+encode :: SHA3_256_6 a -&gt; Encoding
+$cencode :: forall a. SHA3_256_6 a -&gt; Encoding
+</span><a href="#local-6989586621679162847"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- |A hash of a value, the first 48 bits (6 bytes) of the value's SHAKE128 hash</span><span>
+</span><span id="line-110"></span><span id="local-6989586621679162845"><span id="local-6989586621679162846"></span></span><span class="hs-keyword">data</span><span> </span><span id="SHAKE128_48"><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-var">SHAKE128_48</span></a></span></span><span> </span><span id="local-6989586621679163193"><span class="annot"><a href="#local-6989586621679163193"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="SHAKE128_48"><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-var">SHAKE128_48</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162841"><span id="local-6989586621679162843"><span class="annot"><span class="annottext">SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+(SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool) -&gt; Eq (SHAKE128_48 a)
+forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c/= :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+== :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c== :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162826"><span id="local-6989586621679162828"><span id="local-6989586621679162830"><span id="local-6989586621679162832"><span id="local-6989586621679162834"><span id="local-6989586621679162836"><span id="local-6989586621679162838"><span class="annot"><span class="annottext">Eq (SHAKE128_48 a)
+Eq (SHAKE128_48 a)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Ordering)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a)
+-&gt; (SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a)
+-&gt; Ord (SHAKE128_48 a)
+SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Ordering
+SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+forall a. Eq (SHAKE128_48 a)
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Ordering
+forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+min :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+$cmin :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+max :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+$cmax :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; SHAKE128_48 a
+&gt;= :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c&gt;= :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+&gt; :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c&gt; :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+&lt;= :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c&lt;= :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+&lt; :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+$c&lt; :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Bool
+compare :: SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Ordering
+$ccompare :: forall a. SHAKE128_48 a -&gt; SHAKE128_48 a -&gt; Ordering
+$cp1Ord :: forall a. Eq (SHAKE128_48 a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162820"><span id="local-6989586621679162822"><span id="local-6989586621679162824"><span class="annot"><span class="annottext">Int -&gt; SHAKE128_48 a -&gt; ShowS
+[SHAKE128_48 a] -&gt; ShowS
+SHAKE128_48 a -&gt; String
+(Int -&gt; SHAKE128_48 a -&gt; ShowS)
+-&gt; (SHAKE128_48 a -&gt; String)
+-&gt; ([SHAKE128_48 a] -&gt; ShowS)
+-&gt; Show (SHAKE128_48 a)
+forall a. Int -&gt; SHAKE128_48 a -&gt; ShowS
+forall a. [SHAKE128_48 a] -&gt; ShowS
+forall a. SHAKE128_48 a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [SHAKE128_48 a] -&gt; ShowS
+$cshowList :: forall a. [SHAKE128_48 a] -&gt; ShowS
+show :: SHAKE128_48 a -&gt; String
+$cshow :: forall a. SHAKE128_48 a -&gt; String
+showsPrec :: Int -&gt; SHAKE128_48 a -&gt; ShowS
+$cshowsPrec :: forall a. Int -&gt; SHAKE128_48 a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162818"><span class="annot"><span class="annottext">SHAKE128_48 a -&gt; ()
+(SHAKE128_48 a -&gt; ()) -&gt; NFData (SHAKE128_48 a)
+forall a. SHAKE128_48 a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: SHAKE128_48 a -&gt; ()
+$crnf :: forall a. SHAKE128_48 a -&gt; ()
+</span><a href="#local-6989586621679162818"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. SHAKE128_48 a -&gt; Rep (SHAKE128_48 a) x)
+-&gt; (forall x. Rep (SHAKE128_48 a) x -&gt; SHAKE128_48 a)
+-&gt; Generic (SHAKE128_48 a)
+forall x. Rep (SHAKE128_48 a) x -&gt; SHAKE128_48 a
+forall x. SHAKE128_48 a -&gt; Rep (SHAKE128_48 a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (SHAKE128_48 a) x -&gt; SHAKE128_48 a
+forall a x. SHAKE128_48 a -&gt; Rep (SHAKE128_48 a) x
+$cto :: forall a x. Rep (SHAKE128_48 a) x -&gt; SHAKE128_48 a
+$cfrom :: forall a x. SHAKE128_48 a -&gt; Rep (SHAKE128_48 a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162810"><span id="local-6989586621679162812"><span id="local-6989586621679162814"><span class="annot"><span class="annottext">Get (SHAKE128_48 a)
+SHAKE128_48 a -&gt; Encoding
+SHAKE128_48 a -&gt; Int -&gt; Int
+(SHAKE128_48 a -&gt; Encoding)
+-&gt; Get (SHAKE128_48 a)
+-&gt; (SHAKE128_48 a -&gt; Int -&gt; Int)
+-&gt; Flat (SHAKE128_48 a)
+forall a. Get (SHAKE128_48 a)
+forall a. SHAKE128_48 a -&gt; Encoding
+forall a. SHAKE128_48 a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: SHAKE128_48 a -&gt; Int -&gt; Int
+$csize :: forall a. SHAKE128_48 a -&gt; Int -&gt; Int
+decode :: Get (SHAKE128_48 a)
+$cdecode :: forall a. Get (SHAKE128_48 a)
+encode :: SHAKE128_48 a -&gt; Encoding
+$cencode :: forall a. SHAKE128_48 a -&gt; Encoding
+</span><a href="#local-6989586621679162810"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- CHECK: Same syntax for adt and constructor names</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- |An absolute data type definition, a definition that refers only to other absolute definitions</span><span>
+</span><span id="line-115"></span><span class="hs-keyword">type</span><span> </span><span id="AbsADT"><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-var">AbsADT</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- |An absolute type model, an absolute type and its associated environment</span><span>
+</span><span id="line-118"></span><span class="hs-keyword">type</span><span> </span><span id="AbsTypeModel"><span class="annot"><a href="ZM.Types.html#AbsTypeModel"><span class="hs-identifier hs-var">AbsTypeModel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TypeModel</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- |An environments of absolute types</span><span>
+</span><span id="line-121"></span><span class="hs-keyword">type</span><span> </span><span id="AbsEnv"><span class="annot"><a href="ZM.Types.html#AbsEnv"><span class="hs-identifier hs-var">AbsEnv</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TypeEnv</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- type ADTEnv = M.Map AbsRef AbsADT</span><span>
+</span><span id="line-124"></span><span class="hs-comment">-- FIX: add a custom type for Var</span><span>
+</span><span id="line-125"></span><span class="hs-comment">-- |A reference inside an ADT to another ADT</span><span>
+</span><span id="line-126"></span><span id="local-6989586621679162807"><span id="local-6989586621679162808"></span></span><span class="hs-keyword">data</span><span> </span><span id="ADTRef"><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-var">ADTRef</span></a></span></span><span> </span><span id="local-6989586621679162806"><span class="annot"><a href="#local-6989586621679162806"><span class="hs-identifier hs-type">r</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Var"><span class="annot"><a href="ZM.Types.html#Var"><span class="hs-identifier hs-var">Var</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="hs-comment">-- ^Variable, standing for a type</span><span>
+</span><span id="line-127"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span id="Rec"><span class="annot"><a href="ZM.Types.html#Rec"><span class="hs-identifier hs-var">Rec</span></a></span></span><span> </span><span class="hs-comment">-- ^Recursive reference to the ADT itself</span><span>
+</span><span id="line-128"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span id="Ext"><span class="annot"><a href="ZM.Types.html#Ext"><span class="hs-identifier hs-var">Ext</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679162806"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-comment">-- ^Reference to another ADT</span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162799"><span id="local-6989586621679162801"><span class="annot"><span class="annottext">ADTRef r -&gt; ADTRef r -&gt; Bool
+(ADTRef r -&gt; ADTRef r -&gt; Bool)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Bool) -&gt; Eq (ADTRef r)
+forall r. Eq r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c/= :: forall r. Eq r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+== :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c== :: forall r. Eq r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162784"><span id="local-6989586621679162786"><span id="local-6989586621679162788"><span id="local-6989586621679162790"><span id="local-6989586621679162792"><span id="local-6989586621679162794"><span id="local-6989586621679162796"><span class="annot"><span class="annottext">Eq (ADTRef r)
+Eq (ADTRef r)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Ordering)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Bool)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Bool)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Bool)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; Bool)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; ADTRef r)
+-&gt; (ADTRef r -&gt; ADTRef r -&gt; ADTRef r)
+-&gt; Ord (ADTRef r)
+ADTRef r -&gt; ADTRef r -&gt; Bool
+ADTRef r -&gt; ADTRef r -&gt; Ordering
+ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall r. Ord r =&gt; Eq (ADTRef r)
+forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Ordering
+forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+min :: ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+$cmin :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+max :: ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+$cmax :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; ADTRef r
+&gt;= :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c&gt;= :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+&gt; :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c&gt; :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+&lt;= :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c&lt;= :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+&lt; :: ADTRef r -&gt; ADTRef r -&gt; Bool
+$c&lt; :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Bool
+compare :: ADTRef r -&gt; ADTRef r -&gt; Ordering
+$ccompare :: forall r. Ord r =&gt; ADTRef r -&gt; ADTRef r -&gt; Ordering
+$cp1Ord :: forall r. Ord r =&gt; Eq (ADTRef r)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162778"><span id="local-6989586621679162780"><span id="local-6989586621679162782"><span class="annot"><span class="annottext">Int -&gt; ADTRef r -&gt; ShowS
+[ADTRef r] -&gt; ShowS
+ADTRef r -&gt; String
+(Int -&gt; ADTRef r -&gt; ShowS)
+-&gt; (ADTRef r -&gt; String) -&gt; ([ADTRef r] -&gt; ShowS) -&gt; Show (ADTRef r)
+forall r. Show r =&gt; Int -&gt; ADTRef r -&gt; ShowS
+forall r. Show r =&gt; [ADTRef r] -&gt; ShowS
+forall r. Show r =&gt; ADTRef r -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ADTRef r] -&gt; ShowS
+$cshowList :: forall r. Show r =&gt; [ADTRef r] -&gt; ShowS
+show :: ADTRef r -&gt; String
+$cshow :: forall r. Show r =&gt; ADTRef r -&gt; String
+showsPrec :: Int -&gt; ADTRef r -&gt; ShowS
+$cshowsPrec :: forall r. Show r =&gt; Int -&gt; ADTRef r -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162776"><span class="annot"><span class="annottext">ADTRef r -&gt; ()
+(ADTRef r -&gt; ()) -&gt; NFData (ADTRef r)
+forall r. NFData r =&gt; ADTRef r -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: ADTRef r -&gt; ()
+$crnf :: forall r. NFData r =&gt; ADTRef r -&gt; ()
+</span><a href="#local-6989586621679162776"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. ADTRef r -&gt; Rep (ADTRef r) x)
+-&gt; (forall x. Rep (ADTRef r) x -&gt; ADTRef r) -&gt; Generic (ADTRef r)
+forall x. Rep (ADTRef r) x -&gt; ADTRef r
+forall x. ADTRef r -&gt; Rep (ADTRef r) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall r x. Rep (ADTRef r) x -&gt; ADTRef r
+forall r x. ADTRef r -&gt; Rep (ADTRef r) x
+$cto :: forall r x. Rep (ADTRef r) x -&gt; ADTRef r
+$cfrom :: forall r x. ADTRef r -&gt; Rep (ADTRef r) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162770"><span id="local-6989586621679162772"><span class="annot"><span class="annottext">a -&gt; ADTRef b -&gt; ADTRef a
+(a -&gt; b) -&gt; ADTRef a -&gt; ADTRef b
+(forall a b. (a -&gt; b) -&gt; ADTRef a -&gt; ADTRef b)
+-&gt; (forall a b. a -&gt; ADTRef b -&gt; ADTRef a) -&gt; Functor ADTRef
+forall a b. a -&gt; ADTRef b -&gt; ADTRef a
+forall a b. (a -&gt; b) -&gt; ADTRef a -&gt; ADTRef b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; ADTRef b -&gt; ADTRef a
+$c&lt;$ :: forall a b. a -&gt; ADTRef b -&gt; ADTRef a
+fmap :: (a -&gt; b) -&gt; ADTRef a -&gt; ADTRef b
+$cfmap :: forall a b. (a -&gt; b) -&gt; ADTRef a -&gt; ADTRef b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162735"><span id="local-6989586621679162737"><span id="local-6989586621679162739"><span id="local-6989586621679162741"><span id="local-6989586621679162743"><span id="local-6989586621679162745"><span id="local-6989586621679162747"><span id="local-6989586621679162749"><span id="local-6989586621679162751"><span id="local-6989586621679162753"><span id="local-6989586621679162755"><span id="local-6989586621679162757"><span id="local-6989586621679162759"><span id="local-6989586621679162761"><span id="local-6989586621679162763"><span id="local-6989586621679162765"><span id="local-6989586621679162767"><span class="annot"><span class="annottext">ADTRef a -&gt; Bool
+(a -&gt; m) -&gt; ADTRef a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+(forall m. Monoid m =&gt; ADTRef m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ADTRef a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ADTRef a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a)
+-&gt; (forall a. ADTRef a -&gt; [a])
+-&gt; (forall a. ADTRef a -&gt; Bool)
+-&gt; (forall a. ADTRef a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; ADTRef a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; ADTRef a -&gt; a)
+-&gt; (forall a. Ord a =&gt; ADTRef a -&gt; a)
+-&gt; (forall a. Num a =&gt; ADTRef a -&gt; a)
+-&gt; (forall a. Num a =&gt; ADTRef a -&gt; a)
+-&gt; Foldable ADTRef
+forall a. Eq a =&gt; a -&gt; ADTRef a -&gt; Bool
+forall a. Num a =&gt; ADTRef a -&gt; a
+forall a. Ord a =&gt; ADTRef a -&gt; a
+forall m. Monoid m =&gt; ADTRef m -&gt; m
+forall a. ADTRef a -&gt; Bool
+forall a. ADTRef a -&gt; Int
+forall a. ADTRef a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ADTRef a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: ADTRef a -&gt; a
+$cproduct :: forall a. Num a =&gt; ADTRef a -&gt; a
+sum :: ADTRef a -&gt; a
+$csum :: forall a. Num a =&gt; ADTRef a -&gt; a
+minimum :: ADTRef a -&gt; a
+$cminimum :: forall a. Ord a =&gt; ADTRef a -&gt; a
+maximum :: ADTRef a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; ADTRef a -&gt; a
+elem :: a -&gt; ADTRef a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; ADTRef a -&gt; Bool
+length :: ADTRef a -&gt; Int
+$clength :: forall a. ADTRef a -&gt; Int
+null :: ADTRef a -&gt; Bool
+$cnull :: forall a. ADTRef a -&gt; Bool
+toList :: ADTRef a -&gt; [a]
+$ctoList :: forall a. ADTRef a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; ADTRef a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ADTRef a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; ADTRef a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ADTRef a -&gt; m
+foldMap :: (a -&gt; m) -&gt; ADTRef a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ADTRef a -&gt; m
+fold :: ADTRef m -&gt; m
+$cfold :: forall m. Monoid m =&gt; ADTRef m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162724"><span id="local-6989586621679162726"><span id="local-6989586621679162728"><span id="local-6989586621679162730"><span class="annot"><span class="annottext">Functor ADTRef
+Foldable ADTRef
+Functor ADTRef
+-&gt; Foldable ADTRef
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; ADTRef a -&gt; f (ADTRef b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    ADTRef (f a) -&gt; f (ADTRef a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; ADTRef a -&gt; m (ADTRef b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    ADTRef (m a) -&gt; m (ADTRef a))
+-&gt; Traversable ADTRef
+(a -&gt; f b) -&gt; ADTRef a -&gt; f (ADTRef b)
+forall (t :: * -&gt; *).
+Functor t
+-&gt; Foldable t
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; ADTRef (m a) -&gt; m (ADTRef a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+ADTRef (f a) -&gt; f (ADTRef a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ADTRef a -&gt; m (ADTRef b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ADTRef a -&gt; f (ADTRef b)
+sequence :: ADTRef (m a) -&gt; m (ADTRef a)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; ADTRef (m a) -&gt; m (ADTRef a)
+mapM :: (a -&gt; m b) -&gt; ADTRef a -&gt; m (ADTRef b)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ADTRef a -&gt; m (ADTRef b)
+sequenceA :: ADTRef (f a) -&gt; f (ADTRef a)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+ADTRef (f a) -&gt; f (ADTRef a)
+traverse :: (a -&gt; f b) -&gt; ADTRef a -&gt; f (ADTRef b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ADTRef a -&gt; f (ADTRef b)
+$cp2Traversable :: Foldable ADTRef
+$cp1Traversable :: Functor ADTRef
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162717"><span id="local-6989586621679162719"><span id="local-6989586621679162721"><span class="annot"><span class="annottext">Get (ADTRef r)
+ADTRef r -&gt; Encoding
+ADTRef r -&gt; Int -&gt; Int
+(ADTRef r -&gt; Encoding)
+-&gt; Get (ADTRef r) -&gt; (ADTRef r -&gt; Int -&gt; Int) -&gt; Flat (ADTRef r)
+forall r. Flat r =&gt; Get (ADTRef r)
+forall r. Flat r =&gt; ADTRef r -&gt; Encoding
+forall r. Flat r =&gt; ADTRef r -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: ADTRef r -&gt; Int -&gt; Int
+$csize :: forall r. Flat r =&gt; ADTRef r -&gt; Int -&gt; Int
+decode :: Get (ADTRef r)
+$cdecode :: forall r. Flat r =&gt; Get (ADTRef r)
+encode :: ADTRef r -&gt; Encoding
+$cencode :: forall r. Flat r =&gt; ADTRef r -&gt; Encoding
+</span><a href="#local-6989586621679162717"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- |Return an external reference, if present</span><span>
+</span><span id="line-132"></span><span id="local-6989586621679162716"><span class="annot"><a href="ZM.Types.html#getADTRef"><span class="hs-identifier hs-type">getADTRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162716"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679162716"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-133"></span><span id="getADTRef"><span class="annot"><span class="annottext">getADTRef :: ADTRef a -&gt; Maybe a
+</span><a href="ZM.Types.html#getADTRef"><span class="hs-identifier hs-var hs-var">getADTRef</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Ext"><span class="hs-identifier hs-type">Ext</span></a></span><span> </span><span id="local-6989586621679162715"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679162715"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679162715"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-134"></span><span class="annot"><a href="ZM.Types.html#getADTRef"><span class="hs-identifier hs-var">getADTRef</span></a></span><span> </span><span class="annot"><span class="annottext">ADTRef a
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span id="local-6989586621679163086"><span class="annot"><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier hs-type">toTypeRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679163086"><span class="hs-identifier hs-type">name</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163086"><span class="hs-identifier hs-type">name</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TypeRef</span></span><span> </span><span class="annot"><a href="#local-6989586621679163086"><span class="hs-identifier hs-type">name</span></a></span></span><span>
+</span><span id="line-137"></span><span id="toTypeRef"><span class="annot"><span class="annottext">toTypeRef :: name -&gt; ADTRef name -&gt; TypeRef name
+</span><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier hs-var hs-var">toTypeRef</span></a></span></span><span> </span><span class="annot"><span class="annottext">name
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Var"><span class="hs-identifier hs-type">Var</span></a></span><span> </span><span id="local-6989586621679162714"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162714"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; TypeRef name
+forall name. Word8 -&gt; TypeRef name
+</span><span class="hs-identifier hs-var">TypVar</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679162714"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-138"></span><span class="annot"><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier hs-var">toTypeRef</span></a></span><span> </span><span class="annot"><span class="annottext">name
+</span><span class="hs-identifier">_</span></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Ext"><span class="hs-identifier hs-type">Ext</span></a></span><span> </span><span id="local-6989586621679162712"><span class="annot"><span class="annottext">name
+</span><a href="#local-6989586621679162712"><span class="hs-identifier hs-var">k</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">name -&gt; TypeRef name
+forall name. name -&gt; TypeRef name
+</span><span class="hs-identifier hs-var">TypRef</span></span><span> </span><span class="annot"><span class="annottext">name
+</span><a href="#local-6989586621679162712"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-139"></span><span class="annot"><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier hs-var">toTypeRef</span></a></span><span> </span><span id="local-6989586621679162710"><span class="annot"><span class="annottext">name
+</span><a href="#local-6989586621679162710"><span class="hs-identifier hs-var">adtRef</span></a></span></span><span> </span><span class="annot"><span class="annottext">ADTRef name
+</span><a href="ZM.Types.html#Rec"><span class="hs-identifier hs-var">Rec</span></a></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">name -&gt; TypeRef name
+forall name. name -&gt; TypeRef name
+</span><span class="hs-identifier hs-var">TypRef</span></span><span> </span><span class="annot"><span class="annottext">name
+</span><a href="#local-6989586621679162710"><span class="hs-identifier hs-var">adtRef</span></a></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span id="local-6989586621679162709"><span class="annot"><a href="ZM.Types.html#substAbsADT"><span class="hs-identifier hs-type">substAbsADT</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679162709"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeRef</span></span><span> </span><span class="annot"><a href="#local-6989586621679162709"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-142"></span><span id="substAbsADT"><span class="annot"><span class="annottext">substAbsADT :: (AbsRef -&gt; b) -&gt; AbsADT -&gt; ADT Identifier Identifier (TypeRef b)
+</span><a href="ZM.Types.html#substAbsADT"><span class="hs-identifier hs-var hs-var">substAbsADT</span></a></span></span><span> </span><span id="local-6989586621679162708"><span class="annot"><span class="annottext">AbsRef -&gt; b
+</span><a href="#local-6989586621679162708"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679162707"><span class="annot"><span class="annottext">AbsADT
+</span><a href="#local-6989586621679162707"><span class="hs-identifier hs-var">adt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsRef -&gt; b
+</span><a href="#local-6989586621679162708"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(AbsRef -&gt; b) -&gt; TypeRef AbsRef -&gt; TypeRef b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(TypeRef AbsRef -&gt; TypeRef b)
+-&gt; ADT Identifier Identifier (TypeRef AbsRef)
+-&gt; ADT Identifier Identifier (TypeRef b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsRef -&gt; ADTRef AbsRef -&gt; TypeRef AbsRef
+forall name. name -&gt; ADTRef name -&gt; TypeRef name
+</span><a href="ZM.Types.html#toTypeRef"><span class="hs-identifier hs-var">toTypeRef</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsADT -&gt; AbsRef
+</span><a href="ZM.Types.html#absRef"><span class="hs-identifier hs-var">absRef</span></a></span><span> </span><span class="annot"><span class="annottext">AbsADT
+</span><a href="#local-6989586621679162707"><span class="hs-identifier hs-var">adt</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ADTRef AbsRef -&gt; TypeRef AbsRef)
+-&gt; AbsADT -&gt; ADT Identifier Identifier (TypeRef AbsRef)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">AbsADT
+</span><a href="#local-6989586621679162707"><span class="hs-identifier hs-var">adt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span class="hs-comment">-- CHECK: Is it necessary to specify a syntax for identifiers?</span><span>
+</span><span id="line-145"></span><span class="hs-comment">-- |An Identifier, the name of an ADT</span><span>
+</span><span id="line-146"></span><span id="local-6989586621679162704"><span id="local-6989586621679162705"></span></span><span class="hs-keyword">data</span><span> </span><span id="Identifier"><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-var">Identifier</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Name"><span class="annot"><a href="ZM.Types.html#Name"><span class="hs-identifier hs-var">Name</span></a></span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-type">UnicodeLetter</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-type">UnicodeLetterOrNumberOrLine</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-147"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="Symbol"><span class="annot"><a href="ZM.Types.html#Symbol"><span class="hs-identifier hs-var">Symbol</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier hs-type">NonEmptyList</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-type">UnicodeSymbol</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162698"><span id="local-6989586621679162700"><span class="annot"><span class="annottext">Identifier -&gt; Identifier -&gt; Bool
+(Identifier -&gt; Identifier -&gt; Bool)
+-&gt; (Identifier -&gt; Identifier -&gt; Bool) -&gt; Eq Identifier
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Identifier -&gt; Identifier -&gt; Bool
+$c/= :: Identifier -&gt; Identifier -&gt; Bool
+== :: Identifier -&gt; Identifier -&gt; Bool
+$c== :: Identifier -&gt; Identifier -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162683"><span id="local-6989586621679162685"><span id="local-6989586621679162687"><span id="local-6989586621679162689"><span id="local-6989586621679162691"><span id="local-6989586621679162693"><span id="local-6989586621679162695"><span class="annot"><span class="annottext">Eq Identifier
+Eq Identifier
+-&gt; (Identifier -&gt; Identifier -&gt; Ordering)
+-&gt; (Identifier -&gt; Identifier -&gt; Bool)
+-&gt; (Identifier -&gt; Identifier -&gt; Bool)
+-&gt; (Identifier -&gt; Identifier -&gt; Bool)
+-&gt; (Identifier -&gt; Identifier -&gt; Bool)
+-&gt; (Identifier -&gt; Identifier -&gt; Identifier)
+-&gt; (Identifier -&gt; Identifier -&gt; Identifier)
+-&gt; Ord Identifier
+Identifier -&gt; Identifier -&gt; Bool
+Identifier -&gt; Identifier -&gt; Ordering
+Identifier -&gt; Identifier -&gt; Identifier
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Identifier -&gt; Identifier -&gt; Identifier
+$cmin :: Identifier -&gt; Identifier -&gt; Identifier
+max :: Identifier -&gt; Identifier -&gt; Identifier
+$cmax :: Identifier -&gt; Identifier -&gt; Identifier
+&gt;= :: Identifier -&gt; Identifier -&gt; Bool
+$c&gt;= :: Identifier -&gt; Identifier -&gt; Bool
+&gt; :: Identifier -&gt; Identifier -&gt; Bool
+$c&gt; :: Identifier -&gt; Identifier -&gt; Bool
+&lt;= :: Identifier -&gt; Identifier -&gt; Bool
+$c&lt;= :: Identifier -&gt; Identifier -&gt; Bool
+&lt; :: Identifier -&gt; Identifier -&gt; Bool
+$c&lt; :: Identifier -&gt; Identifier -&gt; Bool
+compare :: Identifier -&gt; Identifier -&gt; Ordering
+$ccompare :: Identifier -&gt; Identifier -&gt; Ordering
+$cp1Ord :: Eq Identifier
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162677"><span id="local-6989586621679162679"><span id="local-6989586621679162681"><span class="annot"><span class="annottext">Int -&gt; Identifier -&gt; ShowS
+[Identifier] -&gt; ShowS
+Identifier -&gt; String
+(Int -&gt; Identifier -&gt; ShowS)
+-&gt; (Identifier -&gt; String)
+-&gt; ([Identifier] -&gt; ShowS)
+-&gt; Show Identifier
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Identifier] -&gt; ShowS
+$cshowList :: [Identifier] -&gt; ShowS
+show :: Identifier -&gt; String
+$cshow :: Identifier -&gt; String
+showsPrec :: Int -&gt; Identifier -&gt; ShowS
+$cshowsPrec :: Int -&gt; Identifier -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162675"><span class="annot"><span class="annottext">Identifier -&gt; ()
+(Identifier -&gt; ()) -&gt; NFData Identifier
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: Identifier -&gt; ()
+$crnf :: Identifier -&gt; ()
+</span><a href="#local-6989586621679162675"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Identifier -&gt; Rep Identifier x)
+-&gt; (forall x. Rep Identifier x -&gt; Identifier) -&gt; Generic Identifier
+forall x. Rep Identifier x -&gt; Identifier
+forall x. Identifier -&gt; Rep Identifier x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Identifier x -&gt; Identifier
+$cfrom :: forall x. Identifier -&gt; Rep Identifier x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162667"><span id="local-6989586621679162669"><span id="local-6989586621679162671"><span class="annot"><span class="annottext">Get Identifier
+Identifier -&gt; Encoding
+Identifier -&gt; Int -&gt; Int
+(Identifier -&gt; Encoding)
+-&gt; Get Identifier -&gt; (Identifier -&gt; Int -&gt; Int) -&gt; Flat Identifier
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: Identifier -&gt; Int -&gt; Int
+$csize :: Identifier -&gt; Int -&gt; Int
+decode :: Get Identifier
+$cdecode :: Get Identifier
+encode :: Identifier -&gt; Encoding
+$cencode :: Identifier -&gt; Encoding
+</span><a href="#local-6989586621679162667"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-149"></span><span>
+</span><span id="line-150"></span><span>                                 </span><span class="hs-comment">-- instance Flat [UnicodeLetterOrNumberOrLine]</span><span>
+</span><span id="line-151"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Convertible</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-comment">-- safeConvert = errorsToConvertResult asIdentifier</span><span>
+</span><span id="line-153"></span><span>  </span><span id="local-6989586621679162664"><span class="annot"><span class="annottext">safeConvert :: String -&gt; ConvertResult Identifier
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">safeConvert</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either Errors Identifier)
+-&gt; String -&gt; ConvertResult Identifier
+forall b t.
+(Typeable b, Typeable t, Show t) =&gt;
+(t -&gt; Either Errors b) -&gt; t -&gt; ConvertResult b
+</span><span class="hs-identifier hs-var">errorsToConvertResult</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Validation Errors Identifier -&gt; Either Errors Identifier
+forall e a. Validation e a -&gt; Either e a
+</span><span class="hs-identifier hs-var">validationToEither</span></span><span> </span><span class="annot"><span class="annottext">(Validation Errors Identifier -&gt; Either Errors Identifier)
+-&gt; (String -&gt; Validation Errors Identifier)
+-&gt; String
+-&gt; Either Errors Identifier
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Validation Errors Identifier
+</span><a href="ZM.Types.html#asIdentifier"><span class="hs-identifier hs-var">asIdentifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Convertible</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-156"></span><span>  </span><span id="local-6989586621679162659"><span class="annot"><span class="annottext">safeConvert :: Identifier -&gt; ConvertResult String
+</span><a href="#local-6989586621679162659"><span class="hs-identifier hs-var hs-var hs-var hs-var">safeConvert</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Name"><span class="hs-identifier hs-type">Name</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-type">UnicodeLetter</span></a></span><span> </span><span id="local-6989586621679162657"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162657"><span class="hs-identifier hs-var">h</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679162656"><span class="annot"><span class="annottext">[UnicodeLetterOrNumberOrLine]
+</span><a href="#local-6989586621679162656"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-157"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; ConvertResult String
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; ConvertResult String) -&gt; String -&gt; ConvertResult String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162657"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; ShowS
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">(UnicodeLetterOrNumberOrLine -&gt; Char)
+-&gt; [UnicodeLetterOrNumberOrLine] -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-type">UnicodeLetterOrNumberOrLine</span></a></span><span> </span><span id="local-6989586621679162654"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162654"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162654"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[UnicodeLetterOrNumberOrLine]
+</span><a href="#local-6989586621679162656"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-158"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">safeConvert</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Symbol"><span class="hs-identifier hs-type">Symbol</span></a></span><span> </span><span id="local-6989586621679162653"><span class="annot"><span class="annottext">NonEmptyList UnicodeSymbol
+</span><a href="#local-6989586621679162653"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ConvertResult String
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; ConvertResult String) -&gt; String -&gt; ConvertResult String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(UnicodeSymbol -&gt; Char) -&gt; [UnicodeSymbol] -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-type">UnicodeSymbol</span></a></span><span> </span><span id="local-6989586621679162651"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162651"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162651"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([UnicodeSymbol] -&gt; String)
+-&gt; (NonEmptyList UnicodeSymbol -&gt; [UnicodeSymbol])
+-&gt; NonEmptyList UnicodeSymbol
+-&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">NonEmptyList UnicodeSymbol -&gt; [UnicodeSymbol]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">toList</span></span><span> </span><span class="annot"><span class="annottext">(NonEmptyList UnicodeSymbol -&gt; String)
+-&gt; NonEmptyList UnicodeSymbol -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">NonEmptyList UnicodeSymbol
+</span><a href="#local-6989586621679162653"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="hs-comment">{-|Validate a string as an Identifier
+&gt;&gt;&gt; asIdentifier &quot;Id_1&quot;
+Success (Name (UnicodeLetter 'I') [UnicodeLetterOrNumberOrLine 'd',UnicodeLetterOrNumberOrLine '_',UnicodeLetterOrNumberOrLine '1'])
+
+&gt;&gt;&gt; asIdentifier &quot;&lt;&gt;&quot;
+Success (Symbol (Cons (UnicodeSymbol '&lt;') (Elem (UnicodeSymbol '&gt;'))))
+
+&gt;&gt;&gt; asIdentifier &quot;&quot;
+Failure [&quot;identifier cannot be empty&quot;]
+
+&gt;&gt;&gt; asIdentifier &quot;a*^&quot;
+Failure [&quot;In a*^: '*' is not an Unicode Letter or Number or a _&quot;,&quot;In a*^: '^' is not an Unicode Letter or Number or a _&quot;]
+-}</span><span>
+</span><span id="line-173"></span><span class="annot"><a href="ZM.Types.html#asIdentifier"><span class="hs-identifier hs-type">asIdentifier</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Errors</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span>
+</span><span id="line-174"></span><span id="asIdentifier"><span class="annot"><span class="annottext">asIdentifier :: String -&gt; Validation Errors Identifier
+</span><a href="ZM.Types.html#asIdentifier"><span class="hs-identifier hs-var hs-var">asIdentifier</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>        </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Errors -&gt; Validation Errors Identifier
+forall a. Errors -&gt; Validation Errors a
+</span><a href="ZM.Types.html#err"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;identifier cannot be empty&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-175"></span><span class="annot"><a href="ZM.Types.html#asIdentifier"><span class="hs-identifier hs-var">asIdentifier</span></a></span><span> </span><span id="local-6989586621679162648"><span class="annot"><span class="annottext">i :: String
+</span><a href="#local-6989586621679162648"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679162647"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162647"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679162646"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162646"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Validation Errors Identifier -&gt; Validation Errors Identifier
+forall ctx (p :: * -&gt; * -&gt; *) c.
+(Convertible ctx String, Bifunctor p) =&gt;
+ctx -&gt; p Errors c -&gt; p Errors c
+</span><span class="hs-identifier hs-var">errsInContext</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162648"><span class="hs-identifier hs-var">i</span></a></span><span> </span><span class="annot"><span class="annottext">(Validation Errors Identifier -&gt; Validation Errors Identifier)
+-&gt; Validation Errors Identifier -&gt; Validation Errors Identifier
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isLetter</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162647"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-176"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">UnicodeLetter -&gt; [UnicodeLetterOrNumberOrLine] -&gt; Identifier
+</span><a href="ZM.Types.html#Name"><span class="hs-identifier hs-var">Name</span></a></span><span> </span><span class="annot"><span class="annottext">(UnicodeLetter -&gt; [UnicodeLetterOrNumberOrLine] -&gt; Identifier)
+-&gt; Validation Errors UnicodeLetter
+-&gt; Validation Errors ([UnicodeLetterOrNumberOrLine] -&gt; Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Validation Errors UnicodeLetter
+</span><a href="ZM.Types.html#asLetter"><span class="hs-identifier hs-var">asLetter</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162647"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Validation Errors ([UnicodeLetterOrNumberOrLine] -&gt; Identifier)
+-&gt; Validation Errors [UnicodeLetterOrNumberOrLine]
+-&gt; Validation Errors Identifier
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Validation Errors UnicodeLetterOrNumberOrLine)
+-&gt; String -&gt; Validation Errors [UnicodeLetterOrNumberOrLine]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Validation Errors UnicodeLetterOrNumberOrLine
+</span><a href="ZM.Types.html#asLetterOrNumber"><span class="hs-identifier hs-var">asLetterOrNumber</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162646"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-177"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">NonEmptyList UnicodeSymbol -&gt; Identifier
+</span><a href="ZM.Types.html#Symbol"><span class="hs-identifier hs-var">Symbol</span></a></span><span> </span><span class="annot"><span class="annottext">(NonEmptyList UnicodeSymbol -&gt; Identifier)
+-&gt; ([UnicodeSymbol] -&gt; NonEmptyList UnicodeSymbol)
+-&gt; [UnicodeSymbol]
+-&gt; Identifier
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[UnicodeSymbol] -&gt; NonEmptyList UnicodeSymbol
+forall a. [a] -&gt; NonEmptyList a
+</span><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-var">nonEmptyList</span></a></span><span> </span><span class="annot"><span class="annottext">([UnicodeSymbol] -&gt; Identifier)
+-&gt; Validation Errors [UnicodeSymbol]
+-&gt; Validation Errors Identifier
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Validation Errors UnicodeSymbol)
+-&gt; String -&gt; Validation Errors [UnicodeSymbol]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Validation Errors UnicodeSymbol
+</span><a href="ZM.Types.html#asSymbol"><span class="hs-identifier hs-var">asSymbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679162648"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="hs-comment">-- |A character that is either a `UnicodeLetter`, a `UnicodeNumber` or the special character '_'</span><span>
+</span><span id="line-180"></span><span id="local-6989586621679162638"><span id="local-6989586621679162639"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="UnicodeLetterOrNumberOrLine"><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-var">UnicodeLetterOrNumberOrLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UnicodeLetterOrNumberOrLine"><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-var">UnicodeLetterOrNumberOrLine</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-181"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162634"><span id="local-6989586621679162636"><span class="annot"><span class="annottext">UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+(UnicodeLetterOrNumberOrLine
+ -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; Eq UnicodeLetterOrNumberOrLine
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c/= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+== :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c== :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162619"><span id="local-6989586621679162621"><span id="local-6989586621679162623"><span id="local-6989586621679162625"><span id="local-6989586621679162627"><span id="local-6989586621679162629"><span id="local-6989586621679162631"><span class="annot"><span class="annottext">Eq UnicodeLetterOrNumberOrLine
+Eq UnicodeLetterOrNumberOrLine
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Ordering)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine)
+-&gt; (UnicodeLetterOrNumberOrLine
+    -&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine)
+-&gt; Ord UnicodeLetterOrNumberOrLine
+UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; Ordering
+UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine
+$cmin :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine
+max :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine
+$cmax :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine
+&gt;= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c&gt;= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+&gt; :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c&gt; :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+&lt;= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c&lt;= :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+&lt; :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+$c&lt; :: UnicodeLetterOrNumberOrLine -&gt; UnicodeLetterOrNumberOrLine -&gt; Bool
+compare :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; Ordering
+$ccompare :: UnicodeLetterOrNumberOrLine
+-&gt; UnicodeLetterOrNumberOrLine -&gt; Ordering
+$cp1Ord :: Eq UnicodeLetterOrNumberOrLine
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162613"><span id="local-6989586621679162615"><span id="local-6989586621679162617"><span class="annot"><span class="annottext">Int -&gt; UnicodeLetterOrNumberOrLine -&gt; ShowS
+[UnicodeLetterOrNumberOrLine] -&gt; ShowS
+UnicodeLetterOrNumberOrLine -&gt; String
+(Int -&gt; UnicodeLetterOrNumberOrLine -&gt; ShowS)
+-&gt; (UnicodeLetterOrNumberOrLine -&gt; String)
+-&gt; ([UnicodeLetterOrNumberOrLine] -&gt; ShowS)
+-&gt; Show UnicodeLetterOrNumberOrLine
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UnicodeLetterOrNumberOrLine] -&gt; ShowS
+$cshowList :: [UnicodeLetterOrNumberOrLine] -&gt; ShowS
+show :: UnicodeLetterOrNumberOrLine -&gt; String
+$cshow :: UnicodeLetterOrNumberOrLine -&gt; String
+showsPrec :: Int -&gt; UnicodeLetterOrNumberOrLine -&gt; ShowS
+$cshowsPrec :: Int -&gt; UnicodeLetterOrNumberOrLine -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162611"><span class="annot"><span class="annottext">UnicodeLetterOrNumberOrLine -&gt; ()
+(UnicodeLetterOrNumberOrLine -&gt; ())
+-&gt; NFData UnicodeLetterOrNumberOrLine
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UnicodeLetterOrNumberOrLine -&gt; ()
+$crnf :: UnicodeLetterOrNumberOrLine -&gt; ()
+</span><a href="#local-6989586621679162611"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x.
+ UnicodeLetterOrNumberOrLine -&gt; Rep UnicodeLetterOrNumberOrLine x)
+-&gt; (forall x.
+    Rep UnicodeLetterOrNumberOrLine x -&gt; UnicodeLetterOrNumberOrLine)
+-&gt; Generic UnicodeLetterOrNumberOrLine
+forall x.
+Rep UnicodeLetterOrNumberOrLine x -&gt; UnicodeLetterOrNumberOrLine
+forall x.
+UnicodeLetterOrNumberOrLine -&gt; Rep UnicodeLetterOrNumberOrLine x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x.
+Rep UnicodeLetterOrNumberOrLine x -&gt; UnicodeLetterOrNumberOrLine
+$cfrom :: forall x.
+UnicodeLetterOrNumberOrLine -&gt; Rep UnicodeLetterOrNumberOrLine x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162603"><span id="local-6989586621679162605"><span id="local-6989586621679162607"><span class="annot"><span class="annottext">Get UnicodeLetterOrNumberOrLine
+UnicodeLetterOrNumberOrLine -&gt; Encoding
+UnicodeLetterOrNumberOrLine -&gt; Int -&gt; Int
+(UnicodeLetterOrNumberOrLine -&gt; Encoding)
+-&gt; Get UnicodeLetterOrNumberOrLine
+-&gt; (UnicodeLetterOrNumberOrLine -&gt; Int -&gt; Int)
+-&gt; Flat UnicodeLetterOrNumberOrLine
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UnicodeLetterOrNumberOrLine -&gt; Int -&gt; Int
+$csize :: UnicodeLetterOrNumberOrLine -&gt; Int -&gt; Int
+decode :: Get UnicodeLetterOrNumberOrLine
+$cdecode :: Get UnicodeLetterOrNumberOrLine
+encode :: UnicodeLetterOrNumberOrLine -&gt; Encoding
+$cencode :: UnicodeLetterOrNumberOrLine -&gt; Encoding
+</span><a href="#local-6989586621679162603"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-182"></span><span>
+</span><span id="line-183"></span><span class="hs-comment">{-|
+A character that is included in one of the following Unicode classes:
+UppercaseLetter
+LowercaseLetter
+TitlecaseLetter
+ModifierLetter
+OtherLetter
+-}</span><span>
+</span><span id="line-191"></span><span id="local-6989586621679162601"><span id="local-6989586621679162602"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="UnicodeLetter"><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-var">UnicodeLetter</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UnicodeLetter"><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-var">UnicodeLetter</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-192"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162597"><span id="local-6989586621679162599"><span class="annot"><span class="annottext">UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+(UnicodeLetter -&gt; UnicodeLetter -&gt; Bool)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Bool) -&gt; Eq UnicodeLetter
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c/= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+== :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c== :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162582"><span id="local-6989586621679162584"><span id="local-6989586621679162586"><span id="local-6989586621679162588"><span id="local-6989586621679162590"><span id="local-6989586621679162592"><span id="local-6989586621679162594"><span class="annot"><span class="annottext">Eq UnicodeLetter
+Eq UnicodeLetter
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Ordering)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Bool)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Bool)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Bool)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; Bool)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter)
+-&gt; (UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter)
+-&gt; Ord UnicodeLetter
+UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+UnicodeLetter -&gt; UnicodeLetter -&gt; Ordering
+UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter
+$cmin :: UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter
+max :: UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter
+$cmax :: UnicodeLetter -&gt; UnicodeLetter -&gt; UnicodeLetter
+&gt;= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c&gt;= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+&gt; :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c&gt; :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+&lt;= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c&lt;= :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+&lt; :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+$c&lt; :: UnicodeLetter -&gt; UnicodeLetter -&gt; Bool
+compare :: UnicodeLetter -&gt; UnicodeLetter -&gt; Ordering
+$ccompare :: UnicodeLetter -&gt; UnicodeLetter -&gt; Ordering
+$cp1Ord :: Eq UnicodeLetter
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162576"><span id="local-6989586621679162578"><span id="local-6989586621679162580"><span class="annot"><span class="annottext">Int -&gt; UnicodeLetter -&gt; ShowS
+[UnicodeLetter] -&gt; ShowS
+UnicodeLetter -&gt; String
+(Int -&gt; UnicodeLetter -&gt; ShowS)
+-&gt; (UnicodeLetter -&gt; String)
+-&gt; ([UnicodeLetter] -&gt; ShowS)
+-&gt; Show UnicodeLetter
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UnicodeLetter] -&gt; ShowS
+$cshowList :: [UnicodeLetter] -&gt; ShowS
+show :: UnicodeLetter -&gt; String
+$cshow :: UnicodeLetter -&gt; String
+showsPrec :: Int -&gt; UnicodeLetter -&gt; ShowS
+$cshowsPrec :: Int -&gt; UnicodeLetter -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162574"><span class="annot"><span class="annottext">UnicodeLetter -&gt; ()
+(UnicodeLetter -&gt; ()) -&gt; NFData UnicodeLetter
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UnicodeLetter -&gt; ()
+$crnf :: UnicodeLetter -&gt; ()
+</span><a href="#local-6989586621679162574"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. UnicodeLetter -&gt; Rep UnicodeLetter x)
+-&gt; (forall x. Rep UnicodeLetter x -&gt; UnicodeLetter)
+-&gt; Generic UnicodeLetter
+forall x. Rep UnicodeLetter x -&gt; UnicodeLetter
+forall x. UnicodeLetter -&gt; Rep UnicodeLetter x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep UnicodeLetter x -&gt; UnicodeLetter
+$cfrom :: forall x. UnicodeLetter -&gt; Rep UnicodeLetter x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162566"><span id="local-6989586621679162568"><span id="local-6989586621679162570"><span class="annot"><span class="annottext">Get UnicodeLetter
+UnicodeLetter -&gt; Encoding
+UnicodeLetter -&gt; Int -&gt; Int
+(UnicodeLetter -&gt; Encoding)
+-&gt; Get UnicodeLetter
+-&gt; (UnicodeLetter -&gt; Int -&gt; Int)
+-&gt; Flat UnicodeLetter
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UnicodeLetter -&gt; Int -&gt; Int
+$csize :: UnicodeLetter -&gt; Int -&gt; Int
+decode :: Get UnicodeLetter
+$cdecode :: Get UnicodeLetter
+encode :: UnicodeLetter -&gt; Encoding
+$cencode :: UnicodeLetter -&gt; Encoding
+</span><a href="#local-6989586621679162566"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-193"></span><span>
+</span><span id="line-194"></span><span class="hs-comment">{-|
+A character that is included in one of the following Unicode classes:
+DecimalNumber
+LetterNumber
+OtherNumber
+-}</span><span>
+</span><span id="line-200"></span><span id="local-6989586621679162564"><span id="local-6989586621679162565"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="UnicodeNumber"><span class="annot"><a href="ZM.Types.html#UnicodeNumber"><span class="hs-identifier hs-var">UnicodeNumber</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UnicodeNumber"><span class="annot"><a href="ZM.Types.html#UnicodeNumber"><span class="hs-identifier hs-var">UnicodeNumber</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-201"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162559"><span id="local-6989586621679162561"><span class="annot"><span class="annottext">UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+(UnicodeNumber -&gt; UnicodeNumber -&gt; Bool)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Bool) -&gt; Eq UnicodeNumber
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c/= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+== :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c== :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162544"><span id="local-6989586621679162546"><span id="local-6989586621679162548"><span id="local-6989586621679162550"><span id="local-6989586621679162552"><span id="local-6989586621679162554"><span id="local-6989586621679162556"><span class="annot"><span class="annottext">Eq UnicodeNumber
+Eq UnicodeNumber
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Ordering)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Bool)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Bool)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Bool)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; Bool)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber)
+-&gt; (UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber)
+-&gt; Ord UnicodeNumber
+UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+UnicodeNumber -&gt; UnicodeNumber -&gt; Ordering
+UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber
+$cmin :: UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber
+max :: UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber
+$cmax :: UnicodeNumber -&gt; UnicodeNumber -&gt; UnicodeNumber
+&gt;= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c&gt;= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+&gt; :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c&gt; :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+&lt;= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c&lt;= :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+&lt; :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+$c&lt; :: UnicodeNumber -&gt; UnicodeNumber -&gt; Bool
+compare :: UnicodeNumber -&gt; UnicodeNumber -&gt; Ordering
+$ccompare :: UnicodeNumber -&gt; UnicodeNumber -&gt; Ordering
+$cp1Ord :: Eq UnicodeNumber
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162538"><span id="local-6989586621679162540"><span id="local-6989586621679162542"><span class="annot"><span class="annottext">Int -&gt; UnicodeNumber -&gt; ShowS
+[UnicodeNumber] -&gt; ShowS
+UnicodeNumber -&gt; String
+(Int -&gt; UnicodeNumber -&gt; ShowS)
+-&gt; (UnicodeNumber -&gt; String)
+-&gt; ([UnicodeNumber] -&gt; ShowS)
+-&gt; Show UnicodeNumber
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UnicodeNumber] -&gt; ShowS
+$cshowList :: [UnicodeNumber] -&gt; ShowS
+show :: UnicodeNumber -&gt; String
+$cshow :: UnicodeNumber -&gt; String
+showsPrec :: Int -&gt; UnicodeNumber -&gt; ShowS
+$cshowsPrec :: Int -&gt; UnicodeNumber -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162536"><span class="annot"><span class="annottext">UnicodeNumber -&gt; ()
+(UnicodeNumber -&gt; ()) -&gt; NFData UnicodeNumber
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UnicodeNumber -&gt; ()
+$crnf :: UnicodeNumber -&gt; ()
+</span><a href="#local-6989586621679162536"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. UnicodeNumber -&gt; Rep UnicodeNumber x)
+-&gt; (forall x. Rep UnicodeNumber x -&gt; UnicodeNumber)
+-&gt; Generic UnicodeNumber
+forall x. Rep UnicodeNumber x -&gt; UnicodeNumber
+forall x. UnicodeNumber -&gt; Rep UnicodeNumber x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep UnicodeNumber x -&gt; UnicodeNumber
+$cfrom :: forall x. UnicodeNumber -&gt; Rep UnicodeNumber x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162528"><span id="local-6989586621679162530"><span id="local-6989586621679162532"><span class="annot"><span class="annottext">Get UnicodeNumber
+UnicodeNumber -&gt; Encoding
+UnicodeNumber -&gt; Int -&gt; Int
+(UnicodeNumber -&gt; Encoding)
+-&gt; Get UnicodeNumber
+-&gt; (UnicodeNumber -&gt; Int -&gt; Int)
+-&gt; Flat UnicodeNumber
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UnicodeNumber -&gt; Int -&gt; Int
+$csize :: UnicodeNumber -&gt; Int -&gt; Int
+decode :: Get UnicodeNumber
+$cdecode :: Get UnicodeNumber
+encode :: UnicodeNumber -&gt; Encoding
+$cencode :: UnicodeNumber -&gt; Encoding
+</span><a href="#local-6989586621679162528"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-202"></span><span>
+</span><span id="line-203"></span><span class="hs-comment">{-|
+A character that is included in one of the following Unicode classes:
+MathSymbol
+CurrencySymbol
+ModifierSymbol
+OtherSymbol
+-}</span><span>
+</span><span id="line-210"></span><span id="local-6989586621679162526"><span id="local-6989586621679162527"></span></span><span class="hs-keyword">newtype</span><span> </span><span id="UnicodeSymbol"><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-var">UnicodeSymbol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UnicodeSymbol"><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-var">UnicodeSymbol</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-211"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162522"><span id="local-6989586621679162524"><span class="annot"><span class="annottext">UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+(UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool) -&gt; Eq UnicodeSymbol
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c/= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+== :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c== :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162507"><span id="local-6989586621679162509"><span id="local-6989586621679162511"><span id="local-6989586621679162513"><span id="local-6989586621679162515"><span id="local-6989586621679162517"><span id="local-6989586621679162519"><span class="annot"><span class="annottext">Eq UnicodeSymbol
+Eq UnicodeSymbol
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Ordering)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol)
+-&gt; (UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol)
+-&gt; Ord UnicodeSymbol
+UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+UnicodeSymbol -&gt; UnicodeSymbol -&gt; Ordering
+UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol
+$cmin :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol
+max :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol
+$cmax :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; UnicodeSymbol
+&gt;= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c&gt;= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+&gt; :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c&gt; :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+&lt;= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c&lt;= :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+&lt; :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+$c&lt; :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Bool
+compare :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Ordering
+$ccompare :: UnicodeSymbol -&gt; UnicodeSymbol -&gt; Ordering
+$cp1Ord :: Eq UnicodeSymbol
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162501"><span id="local-6989586621679162503"><span id="local-6989586621679162505"><span class="annot"><span class="annottext">Int -&gt; UnicodeSymbol -&gt; ShowS
+[UnicodeSymbol] -&gt; ShowS
+UnicodeSymbol -&gt; String
+(Int -&gt; UnicodeSymbol -&gt; ShowS)
+-&gt; (UnicodeSymbol -&gt; String)
+-&gt; ([UnicodeSymbol] -&gt; ShowS)
+-&gt; Show UnicodeSymbol
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UnicodeSymbol] -&gt; ShowS
+$cshowList :: [UnicodeSymbol] -&gt; ShowS
+show :: UnicodeSymbol -&gt; String
+$cshow :: UnicodeSymbol -&gt; String
+showsPrec :: Int -&gt; UnicodeSymbol -&gt; ShowS
+$cshowsPrec :: Int -&gt; UnicodeSymbol -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162499"><span class="annot"><span class="annottext">UnicodeSymbol -&gt; ()
+(UnicodeSymbol -&gt; ()) -&gt; NFData UnicodeSymbol
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UnicodeSymbol -&gt; ()
+$crnf :: UnicodeSymbol -&gt; ()
+</span><a href="#local-6989586621679162499"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. UnicodeSymbol -&gt; Rep UnicodeSymbol x)
+-&gt; (forall x. Rep UnicodeSymbol x -&gt; UnicodeSymbol)
+-&gt; Generic UnicodeSymbol
+forall x. Rep UnicodeSymbol x -&gt; UnicodeSymbol
+forall x. UnicodeSymbol -&gt; Rep UnicodeSymbol x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep UnicodeSymbol x -&gt; UnicodeSymbol
+$cfrom :: forall x. UnicodeSymbol -&gt; Rep UnicodeSymbol x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162491"><span id="local-6989586621679162493"><span id="local-6989586621679162495"><span class="annot"><span class="annottext">Get UnicodeSymbol
+UnicodeSymbol -&gt; Encoding
+UnicodeSymbol -&gt; Int -&gt; Int
+(UnicodeSymbol -&gt; Encoding)
+-&gt; Get UnicodeSymbol
+-&gt; (UnicodeSymbol -&gt; Int -&gt; Int)
+-&gt; Flat UnicodeSymbol
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UnicodeSymbol -&gt; Int -&gt; Int
+$csize :: UnicodeSymbol -&gt; Int -&gt; Int
+decode :: Get UnicodeSymbol
+$cdecode :: Get UnicodeSymbol
+encode :: UnicodeSymbol -&gt; Encoding
+$cencode :: UnicodeSymbol -&gt; Encoding
+</span><a href="#local-6989586621679162491"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-212"></span><span>
+</span><span id="line-213"></span><span class="annot"><a href="ZM.Types.html#asSymbol"><span class="hs-identifier hs-type">asSymbol</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Errors</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-type">UnicodeSymbol</span></a></span><span>
+</span><span id="line-214"></span><span id="asSymbol"><span class="annot"><span class="annottext">asSymbol :: Char -&gt; Validation Errors UnicodeSymbol
+</span><a href="ZM.Types.html#asSymbol"><span class="hs-identifier hs-var hs-var">asSymbol</span></a></span></span><span> </span><span id="local-6989586621679162490"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSymbol</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnicodeSymbol -&gt; Validation Errors UnicodeSymbol
+forall a e. a -&gt; Validation e a
+</span><a href="ZM.Types.html#ok"><span class="hs-identifier hs-var">ok</span></a></span><span> </span><span class="annot"><span class="annottext">(UnicodeSymbol -&gt; Validation Errors UnicodeSymbol)
+-&gt; UnicodeSymbol -&gt; Validation Errors UnicodeSymbol
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; UnicodeSymbol
+</span><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-var">UnicodeSymbol</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-215"></span><span>           </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Errors -&gt; Validation Errors UnicodeSymbol
+forall a. Errors -&gt; Validation Errors a
+</span><a href="ZM.Types.html#err"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162490"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;is not an Unicode Symbol&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-216"></span><span>
+</span><span id="line-217"></span><span class="annot"><a href="ZM.Types.html#asLetter"><span class="hs-identifier hs-type">asLetter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Errors</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-type">UnicodeLetter</span></a></span><span>
+</span><span id="line-218"></span><span id="asLetter"><span class="annot"><span class="annottext">asLetter :: Char -&gt; Validation Errors UnicodeLetter
+</span><a href="ZM.Types.html#asLetter"><span class="hs-identifier hs-var hs-var">asLetter</span></a></span></span><span> </span><span id="local-6989586621679162486"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162486"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isLetter</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162486"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnicodeLetter -&gt; Validation Errors UnicodeLetter
+forall a e. a -&gt; Validation e a
+</span><a href="ZM.Types.html#ok"><span class="hs-identifier hs-var">ok</span></a></span><span> </span><span class="annot"><span class="annottext">(UnicodeLetter -&gt; Validation Errors UnicodeLetter)
+-&gt; UnicodeLetter -&gt; Validation Errors UnicodeLetter
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; UnicodeLetter
+</span><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-var">UnicodeLetter</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162486"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-219"></span><span>           </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Errors -&gt; Validation Errors UnicodeLetter
+forall a. Errors -&gt; Validation Errors a
+</span><a href="ZM.Types.html#err"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162486"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;is not an Unicode Letter&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-220"></span><span>
+</span><span id="line-221"></span><span class="annot"><a href="ZM.Types.html#asLetterOrNumber"><span class="hs-identifier hs-type">asLetterOrNumber</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Errors</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-type">UnicodeLetterOrNumberOrLine</span></a></span><span>
+</span><span id="line-222"></span><span id="asLetterOrNumber"><span class="annot"><span class="annottext">asLetterOrNumber :: Char -&gt; Validation Errors UnicodeLetterOrNumberOrLine
+</span><a href="ZM.Types.html#asLetterOrNumber"><span class="hs-identifier hs-var hs-var">asLetterOrNumber</span></a></span></span><span> </span><span id="local-6989586621679162485"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span></span><span>
+</span><span id="line-223"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isLetter</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isNumber</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="ZM.Types.html#isAlsoOK"><span class="hs-identifier hs-var">isAlsoOK</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">UnicodeLetterOrNumberOrLine
+-&gt; Validation Errors UnicodeLetterOrNumberOrLine
+forall a e. a -&gt; Validation e a
+</span><a href="ZM.Types.html#ok"><span class="hs-identifier hs-var">ok</span></a></span><span> </span><span class="annot"><span class="annottext">(UnicodeLetterOrNumberOrLine
+ -&gt; Validation Errors UnicodeLetterOrNumberOrLine)
+-&gt; UnicodeLetterOrNumberOrLine
+-&gt; Validation Errors UnicodeLetterOrNumberOrLine
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; UnicodeLetterOrNumberOrLine
+</span><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-var">UnicodeLetterOrNumberOrLine</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-224"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Errors -&gt; Validation Errors UnicodeLetterOrNumberOrLine
+forall a. Errors -&gt; Validation Errors a
+</span><a href="ZM.Types.html#err"><span class="hs-identifier hs-var">err</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679162485"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;is not an Unicode Letter or Number or a _&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span id="local-6989586621679163046"><span id="local-6989586621679163047"><span class="annot"><a href="ZM.Types.html#ok"><span class="hs-identifier hs-type">ok</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679163047"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><a href="#local-6989586621679163046"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163047"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-227"></span><span id="ok"><span class="annot"><span class="annottext">ok :: a -&gt; Validation e a
+</span><a href="ZM.Types.html#ok"><span class="hs-identifier hs-var hs-var">ok</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Validation e a
+forall e a. a -&gt; Validation e a
+</span><span class="hs-identifier hs-var">Success</span></span><span>
+</span><span id="line-228"></span><span>
+</span><span id="line-229"></span><span id="local-6989586621679163065"><span class="annot"><a href="ZM.Types.html#err"><span class="hs-identifier hs-type">err</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Validation</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Errors</span></span><span> </span><span class="annot"><a href="#local-6989586621679163065"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-230"></span><span id="err"><span class="annot"><span class="annottext">err :: Errors -&gt; Validation Errors a
+</span><a href="ZM.Types.html#err"><span class="hs-identifier hs-var hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Errors -&gt; Validation Errors a
+forall e a. e -&gt; Validation e a
+</span><span class="hs-identifier hs-var">Failure</span></span><span> </span><span class="annot"><span class="annottext">(Errors -&gt; Validation Errors a)
+-&gt; (Errors -&gt; Errors) -&gt; Errors -&gt; Validation Errors a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Errors -&gt; Errors
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Errors) -&gt; (Errors -&gt; String) -&gt; Errors -&gt; Errors
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Errors -&gt; String
+</span><span class="hs-identifier hs-var">unwords</span></span><span>
+</span><span id="line-231"></span><span>
+</span><span id="line-232"></span><span class="hs-comment">-- CHECK: IS '_' REALLY NEEDED?</span><span>
+</span><span id="line-233"></span><span class="annot"><a href="ZM.Types.html#isAlsoOK"><span class="hs-identifier hs-type">isAlsoOK</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-234"></span><span id="isAlsoOK"><span class="annot"><span class="annottext">isAlsoOK :: Char -&gt; Bool
+</span><a href="ZM.Types.html#isAlsoOK"><span class="hs-identifier hs-var hs-var">isAlsoOK</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'_'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-235"></span><span class="annot"><a href="ZM.Types.html#isAlsoOK"><span class="hs-identifier hs-var">isAlsoOK</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-236"></span><span>
+</span><span id="line-237"></span><span class="hs-comment">-- |Violations of ZM model constrains</span><span>
+</span><span id="line-238"></span><span class="hs-keyword">data</span><span> </span><span id="ZMError"><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier hs-var">ZMError</span></a></span></span><span> </span><span id="local-6989586621679162478"><span class="annot"><a href="#local-6989586621679162478"><span class="hs-identifier hs-type">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-239"></span><span>    </span><span id="UnknownType"><span class="annot"><a href="ZM.Types.html#UnknownType"><span class="hs-identifier hs-var">UnknownType</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679162478"><span class="hs-identifier hs-type">t</span></a></span><span>
+</span><span id="line-240"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="WrongKind"><span class="annot"><a href="ZM.Types.html#WrongKind"><span class="hs-identifier hs-var">WrongKind</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="reference"><span class="annot"><span class="annottext">ZMError t -&gt; t
+</span><a href="ZM.Types.html#reference"><span class="hs-identifier hs-var hs-var">reference</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679162478"><span class="hs-identifier hs-type">t</span></a></span><span class="hs-special">,</span><span> </span><span id="expectedArity"><span class="annot"><span class="annottext">ZMError t -&gt; Int
+</span><a href="ZM.Types.html#expectedArity"><span class="hs-identifier hs-var hs-var">expectedArity</span></a></span></span><span class="hs-special">,</span><span> </span><span id="actualArity"><span class="annot"><span class="annottext">ZMError t -&gt; Int
+</span><a href="ZM.Types.html#actualArity"><span class="hs-identifier hs-var hs-var">actualArity</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-241"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="MutuallyRecursive"><span class="annot"><a href="ZM.Types.html#MutuallyRecursive"><span class="hs-identifier hs-var">MutuallyRecursive</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679162478"><span class="hs-identifier hs-type">t</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-242"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162466"><span id="local-6989586621679162468"><span id="local-6989586621679162470"><span class="annot"><span class="annottext">Int -&gt; ZMError t -&gt; ShowS
+[ZMError t] -&gt; ShowS
+ZMError t -&gt; String
+(Int -&gt; ZMError t -&gt; ShowS)
+-&gt; (ZMError t -&gt; String)
+-&gt; ([ZMError t] -&gt; ShowS)
+-&gt; Show (ZMError t)
+forall t. Show t =&gt; Int -&gt; ZMError t -&gt; ShowS
+forall t. Show t =&gt; [ZMError t] -&gt; ShowS
+forall t. Show t =&gt; ZMError t -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ZMError t] -&gt; ShowS
+$cshowList :: forall t. Show t =&gt; [ZMError t] -&gt; ShowS
+show :: ZMError t -&gt; String
+$cshow :: forall t. Show t =&gt; ZMError t -&gt; String
+showsPrec :: Int -&gt; ZMError t -&gt; ShowS
+$cshowsPrec :: forall t. Show t =&gt; Int -&gt; ZMError t -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162462"><span id="local-6989586621679162464"><span class="annot"><span class="annottext">a -&gt; ZMError b -&gt; ZMError a
+(a -&gt; b) -&gt; ZMError a -&gt; ZMError b
+(forall a b. (a -&gt; b) -&gt; ZMError a -&gt; ZMError b)
+-&gt; (forall a b. a -&gt; ZMError b -&gt; ZMError a) -&gt; Functor ZMError
+forall a b. a -&gt; ZMError b -&gt; ZMError a
+forall a b. (a -&gt; b) -&gt; ZMError a -&gt; ZMError b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; ZMError b -&gt; ZMError a
+$c&lt;$ :: forall a b. a -&gt; ZMError b -&gt; ZMError a
+fmap :: (a -&gt; b) -&gt; ZMError a -&gt; ZMError b
+$cfmap :: forall a b. (a -&gt; b) -&gt; ZMError a -&gt; ZMError b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162428"><span id="local-6989586621679162430"><span id="local-6989586621679162432"><span id="local-6989586621679162434"><span id="local-6989586621679162436"><span id="local-6989586621679162438"><span id="local-6989586621679162440"><span id="local-6989586621679162442"><span id="local-6989586621679162444"><span id="local-6989586621679162446"><span id="local-6989586621679162448"><span id="local-6989586621679162450"><span id="local-6989586621679162452"><span id="local-6989586621679162454"><span id="local-6989586621679162456"><span id="local-6989586621679162458"><span id="local-6989586621679162460"><span class="annot"><span class="annottext">ZMError a -&gt; Bool
+(a -&gt; m) -&gt; ZMError a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+(forall m. Monoid m =&gt; ZMError m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ZMError a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ZMError a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a)
+-&gt; (forall a. ZMError a -&gt; [a])
+-&gt; (forall a. ZMError a -&gt; Bool)
+-&gt; (forall a. ZMError a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; ZMError a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; ZMError a -&gt; a)
+-&gt; (forall a. Ord a =&gt; ZMError a -&gt; a)
+-&gt; (forall a. Num a =&gt; ZMError a -&gt; a)
+-&gt; (forall a. Num a =&gt; ZMError a -&gt; a)
+-&gt; Foldable ZMError
+forall a. Eq a =&gt; a -&gt; ZMError a -&gt; Bool
+forall a. Num a =&gt; ZMError a -&gt; a
+forall a. Ord a =&gt; ZMError a -&gt; a
+forall m. Monoid m =&gt; ZMError m -&gt; m
+forall a. ZMError a -&gt; Bool
+forall a. ZMError a -&gt; Int
+forall a. ZMError a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ZMError a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: ZMError a -&gt; a
+$cproduct :: forall a. Num a =&gt; ZMError a -&gt; a
+sum :: ZMError a -&gt; a
+$csum :: forall a. Num a =&gt; ZMError a -&gt; a
+minimum :: ZMError a -&gt; a
+$cminimum :: forall a. Ord a =&gt; ZMError a -&gt; a
+maximum :: ZMError a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; ZMError a -&gt; a
+elem :: a -&gt; ZMError a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; ZMError a -&gt; Bool
+length :: ZMError a -&gt; Int
+$clength :: forall a. ZMError a -&gt; Int
+null :: ZMError a -&gt; Bool
+$cnull :: forall a. ZMError a -&gt; Bool
+toList :: ZMError a -&gt; [a]
+$ctoList :: forall a. ZMError a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; ZMError a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ZMError a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; ZMError a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ZMError a -&gt; m
+foldMap :: (a -&gt; m) -&gt; ZMError a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ZMError a -&gt; m
+fold :: ZMError m -&gt; m
+$cfold :: forall m. Monoid m =&gt; ZMError m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-243"></span><span>
+</span><span id="line-244"></span><span class="hs-comment">-- -- -- |An optionally labeled value</span><span>
+</span><span id="line-245"></span><span class="hs-comment">-- data Label a label =</span><span>
+</span><span id="line-246"></span><span class="hs-comment">--   Label a (Maybe label)</span><span>
+</span><span id="line-247"></span><span class="hs-comment">--   deriving (Eq, Ord, Show, NFData, Generic, Flat)</span><span>
+</span><span id="line-248"></span><span class="hs-comment">-- label :: (Functor f, Ord k) =&gt; M.Map k a -&gt; (a -&gt; l) -&gt; f k -&gt; f (Label k l)</span><span>
+</span><span id="line-249"></span><span class="hs-comment">-- label env f o = (\ref -&gt; Label ref (f &lt;$&gt; M.lookup ref env)) &lt;$&gt; o</span><span>
+</span><span id="line-250"></span><span class="hs-keyword">type</span><span> </span><span id="TypedDecoded"><span class="annot"><a href="ZM.Types.html#TypedDecoded"><span class="hs-identifier hs-var">TypedDecoded</span></a></span></span><span> </span><span id="local-6989586621679162427"><span class="annot"><a href="#local-6989586621679162427"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="ZM.Types.html#TypedDecodeException"><span class="hs-identifier hs-type">TypedDecodeException</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162427"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-251"></span><span>
+</span><span id="line-252"></span><span class="hs-comment">-- |An exception thrown if the decoding of a type value fails</span><span>
+</span><span id="line-253"></span><span class="hs-keyword">data</span><span> </span><span id="TypedDecodeException"><span class="annot"><a href="ZM.Types.html#TypedDecodeException"><span class="hs-identifier hs-var">TypedDecodeException</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-254"></span><span>    </span><span id="UnknownMetaModel"><span class="annot"><a href="ZM.Types.html#UnknownMetaModel"><span class="hs-identifier hs-var">UnknownMetaModel</span></a></span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-type">AbsType</span></a></span><span>
+</span><span id="line-255"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="WrongType"><span class="annot"><a href="ZM.Types.html#WrongType"><span class="hs-identifier hs-var">WrongType</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="expectedType"><span class="annot"><span class="annottext">TypedDecodeException -&gt; AbsType
+</span><a href="ZM.Types.html#expectedType"><span class="hs-identifier hs-var hs-var">expectedType</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-type">AbsType</span></a></span><span class="hs-special">,</span><span> </span><span id="actualType"><span class="annot"><span class="annottext">TypedDecodeException -&gt; AbsType
+</span><a href="ZM.Types.html#actualType"><span class="hs-identifier hs-var hs-var">actualType</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-type">AbsType</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-256"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="DecodeError"><span class="annot"><a href="ZM.Types.html#DecodeError"><span class="hs-identifier hs-var">DecodeError</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">DecodeException</span></span><span>
+</span><span id="line-257"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679162415"><span id="local-6989586621679162417"><span id="local-6989586621679162419"><span class="annot"><span class="annottext">Int -&gt; TypedDecodeException -&gt; ShowS
+[TypedDecodeException] -&gt; ShowS
+TypedDecodeException -&gt; String
+(Int -&gt; TypedDecodeException -&gt; ShowS)
+-&gt; (TypedDecodeException -&gt; String)
+-&gt; ([TypedDecodeException] -&gt; ShowS)
+-&gt; Show TypedDecodeException
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [TypedDecodeException] -&gt; ShowS
+$cshowList :: [TypedDecodeException] -&gt; ShowS
+show :: TypedDecodeException -&gt; String
+$cshow :: TypedDecodeException -&gt; String
+showsPrec :: Int -&gt; TypedDecodeException -&gt; ShowS
+$cshowsPrec :: Int -&gt; TypedDecodeException -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162411"><span id="local-6989586621679162413"><span class="annot"><span class="annottext">TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+(TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; Eq TypedDecodeException
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c/= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+== :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c== :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679162396"><span id="local-6989586621679162398"><span id="local-6989586621679162400"><span id="local-6989586621679162402"><span id="local-6989586621679162404"><span id="local-6989586621679162406"><span id="local-6989586621679162408"><span class="annot"><span class="annottext">Eq TypedDecodeException
+Eq TypedDecodeException
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Ordering)
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; (TypedDecodeException -&gt; TypedDecodeException -&gt; Bool)
+-&gt; (TypedDecodeException
+    -&gt; TypedDecodeException -&gt; TypedDecodeException)
+-&gt; (TypedDecodeException
+    -&gt; TypedDecodeException -&gt; TypedDecodeException)
+-&gt; Ord TypedDecodeException
+TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+TypedDecodeException -&gt; TypedDecodeException -&gt; Ordering
+TypedDecodeException
+-&gt; TypedDecodeException -&gt; TypedDecodeException
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: TypedDecodeException
+-&gt; TypedDecodeException -&gt; TypedDecodeException
+$cmin :: TypedDecodeException
+-&gt; TypedDecodeException -&gt; TypedDecodeException
+max :: TypedDecodeException
+-&gt; TypedDecodeException -&gt; TypedDecodeException
+$cmax :: TypedDecodeException
+-&gt; TypedDecodeException -&gt; TypedDecodeException
+&gt;= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c&gt;= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+&gt; :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c&gt; :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+&lt;= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c&lt;= :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+&lt; :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+$c&lt; :: TypedDecodeException -&gt; TypedDecodeException -&gt; Bool
+compare :: TypedDecodeException -&gt; TypedDecodeException -&gt; Ordering
+$ccompare :: TypedDecodeException -&gt; TypedDecodeException -&gt; Ordering
+$cp1Ord :: Eq TypedDecodeException
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-258"></span><span>
+</span><span id="line-259"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162388"><span id="local-6989586621679162390"><span id="local-6989586621679162392"><span class="annot"><span class="hs-identifier hs-type">Exception</span></span><span> </span><span class="annot"><a href="ZM.Types.html#TypedDecodeException"><span class="hs-identifier hs-type">TypedDecodeException</span></a></span></span></span></span><span>
+</span><span id="line-260"></span><span>
+</span><span id="line-261"></span><span class="hs-comment">-- newtype LocalName = LocalName Identifier deriving (Eq, Ord, Show, NFData, Generic, Flat)</span><span>
+</span><span id="line-262"></span><span class="hs-comment">-- Flat instances for data types in the 'model' package</span><span>
+</span><span id="line-263"></span><span id="local-6989586621679162383"><span id="local-6989586621679162384"><span id="local-6989586621679162385"><span id="local-6989586621679162386"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162377"><span id="local-6989586621679162379"><span id="local-6989586621679162381"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162386"><span class="hs-identifier hs-type">adtName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162385"><span class="hs-identifier hs-type">consName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162384"><span class="hs-identifier hs-type">inRef</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162383"><span class="hs-identifier hs-type">exRef</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679162383"><span class="hs-identifier hs-type">exRef</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-264"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeModel</span></span><span> </span><span class="annot"><a href="#local-6989586621679162386"><span class="hs-identifier hs-type">adtName</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162385"><span class="hs-identifier hs-type">consName</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162384"><span class="hs-identifier hs-type">inRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162383"><span class="hs-identifier hs-type">exRef</span></a></span><span class="hs-special">)</span></span></span></span></span></span></span></span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span id="local-6989586621679162374"><span id="local-6989586621679162375"><span id="local-6989586621679162376"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162368"><span id="local-6989586621679162370"><span id="local-6989586621679162372"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162376"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162375"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162374"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="#local-6989586621679162376"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162375"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162374"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-267"></span><span>
+</span><span id="line-268"></span><span id="local-6989586621679162366"><span id="local-6989586621679162367"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162360"><span id="local-6989586621679162362"><span id="local-6989586621679162364"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162367"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162366"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ConTree</span></span><span> </span><span class="annot"><a href="#local-6989586621679162367"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162366"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span></span></span><span>
+</span><span id="line-269"></span><span>
+</span><span id="line-270"></span><span class="hs-comment">-- instance (Flat a,Flat b) =&gt; Flat [(a,Type b)]</span><span>
+</span><span id="line-271"></span><span class="hs-comment">-- instance Flat a =&gt; Flat [Type a]</span><span>
+</span><span id="line-272"></span><span id="local-6989586621679162359"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162353"><span id="local-6989586621679162355"><span id="local-6989586621679162357"><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162359"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679162359"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-273"></span><span>
+</span><span id="line-274"></span><span id="local-6989586621679162352"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162346"><span id="local-6989586621679162348"><span id="local-6989586621679162350"><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679162352"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeRef</span></span><span> </span><span class="annot"><a href="#local-6989586621679162352"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-275"></span><span>
+</span><span id="line-276"></span><span class="hs-comment">-- Model instances</span><span>
+</span><span id="line-277"></span><span id="local-6989586621679162343"><span id="local-6989586621679162344"><span id="local-6989586621679162345"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162339"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162345"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162344"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162343"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="#local-6989586621679162345"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162344"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162343"><span class="hs-identifier hs-type">c</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-278"></span><span>
+</span><span id="line-279"></span><span id="local-6989586621679162336"><span id="local-6989586621679162337"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162332"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162337"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162336"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ConTree</span></span><span> </span><span class="annot"><a href="#local-6989586621679162337"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162336"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-280"></span><span>
+</span><span id="line-281"></span><span id="local-6989586621679162331"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162327"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162331"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162331"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-282"></span><span>
+</span><span id="line-283"></span><span id="local-6989586621679162326"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162322"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162326"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679162326"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-284"></span><span>
+</span><span id="line-285"></span><span id="local-6989586621679162321"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162317"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162321"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeRef</span></span><span> </span><span class="annot"><a href="#local-6989586621679162321"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-286"></span><span>
+</span><span id="line-287"></span><span id="local-6989586621679162313"><span id="local-6989586621679162314"><span id="local-6989586621679162315"><span id="local-6989586621679162316"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162309"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162316"><span class="hs-identifier hs-type">adtName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162315"><span class="hs-identifier hs-type">consName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162314"><span class="hs-identifier hs-type">inRef</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162313"><span class="hs-identifier hs-type">exRef</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-288"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeModel</span></span><span> </span><span class="annot"><a href="#local-6989586621679162316"><span class="hs-identifier hs-type">adtName</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162315"><span class="hs-identifier hs-type">consName</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162314"><span class="hs-identifier hs-type">inRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162313"><span class="hs-identifier hs-type">exRef</span></a></span><span class="hs-special">)</span></span></span></span></span></span><span>
+</span><span id="line-289"></span><span>
+</span><span id="line-290"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162305"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span></span><span>
+</span><span id="line-291"></span><span>
+</span><span id="line-292"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162301"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetter"><span class="hs-identifier hs-type">UnicodeLetter</span></a></span></span><span>
+</span><span id="line-293"></span><span>
+</span><span id="line-294"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162297"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeLetterOrNumberOrLine"><span class="hs-identifier hs-type">UnicodeLetterOrNumberOrLine</span></a></span></span><span>
+</span><span id="line-295"></span><span>
+</span><span id="line-296"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162293"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="ZM.Types.html#UnicodeSymbol"><span class="hs-identifier hs-type">UnicodeSymbol</span></a></span></span><span>
+</span><span id="line-297"></span><span>
+</span><span id="line-298"></span><span id="local-6989586621679162292"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162288"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162292"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier hs-type">SHA3_256_6</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162292"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-299"></span><span>
+</span><span id="line-300"></span><span id="local-6989586621679162287"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162283"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162287"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679162287"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-301"></span><span>
+</span><span id="line-302"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162279"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span></span><span>
+</span><span id="line-303"></span><span>
+</span><span id="line-304"></span><span id="local-6989586621679162278"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679162274"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679162278"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PostAligned</span></span><span> </span><span class="annot"><a href="#local-6989586621679162278"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-305"></span></pre></body></html>

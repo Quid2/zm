@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Repo</span><span>
+</span><span id="line-5"></span><span>    </span><span class="hs-comment">--RepoProtocol(..)</span><span>
+</span><span id="line-6"></span><span>                    </span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>                 </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">String</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- import           ZM</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- import           ZM.Type.String</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- {-|</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- A (simplistic) protocol to permanently store and retrieve ADT definitions.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- -}</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- data RepoProtocol = Record AbsADT                      -- ^Permanently record an absolute type</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--                   | Solve AbsRef                       -- ^Retrieve the absolute type</span><span>
+</span><span id="line-19"></span><span class="hs-comment">--                   | Solved AbsRef AbsADT               -- ^Return the absolute type identified by an absolute reference</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--                   | AskDataTypes                       -- ^Request the list of all known data types</span><span>
+</span><span id="line-21"></span><span class="hs-comment">--                   | KnownDataTypes [(AbsRef, AbsADT)]  -- ^Return the list of all known data types</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--                   | AskDataTypesRefs                       -- ^Request the list of all known data types references (absolute references and names)</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--                   | KnownDataTypesRefs [(AbsRef, String)]  -- ^Return the list of all known data types</span><span>
+</span><span id="line-24"></span><span class="hs-comment">--   deriving (Eq, Ord, Show, Generic, Flat, Model)</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- Ask for all known values of type a</span><span>
+</span><span id="line-26"></span><span id="local-6989586621679159707"><span id="local-6989586621679159708"></span></span><span class="hs-keyword">data</span><span> </span><span id="AllKnown"><span class="annot"><a href="ZM.Type.Repo.html#AllKnown"><span class="hs-identifier hs-var">AllKnown</span></a></span></span><span> </span><span id="local-6989586621679159706"><span class="annot"><a href="#local-6989586621679159706"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-27"></span><span>  </span><span id="AllKnown"><span class="annot"><a href="ZM.Type.Repo.html#AllKnown"><span class="hs-identifier hs-var">AllKnown</span></a></span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159701"><span id="local-6989586621679159703"><span class="annot"><span class="annottext">AllKnown a -&gt; AllKnown a -&gt; Bool
+(AllKnown a -&gt; AllKnown a -&gt; Bool)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Bool) -&gt; Eq (AllKnown a)
+forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c/= :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+== :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c== :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159685"><span id="local-6989586621679159687"><span id="local-6989586621679159689"><span id="local-6989586621679159691"><span id="local-6989586621679159693"><span id="local-6989586621679159695"><span id="local-6989586621679159697"><span class="annot"><span class="annottext">Eq (AllKnown a)
+Eq (AllKnown a)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Ordering)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Bool)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Bool)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Bool)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; Bool)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; AllKnown a)
+-&gt; (AllKnown a -&gt; AllKnown a -&gt; AllKnown a)
+-&gt; Ord (AllKnown a)
+AllKnown a -&gt; AllKnown a -&gt; Bool
+AllKnown a -&gt; AllKnown a -&gt; Ordering
+AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+forall a. Eq (AllKnown a)
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+forall a. AllKnown a -&gt; AllKnown a -&gt; Ordering
+forall a. AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+min :: AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+$cmin :: forall a. AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+max :: AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+$cmax :: forall a. AllKnown a -&gt; AllKnown a -&gt; AllKnown a
+&gt;= :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c&gt;= :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+&gt; :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c&gt; :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+&lt;= :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c&lt;= :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+&lt; :: AllKnown a -&gt; AllKnown a -&gt; Bool
+$c&lt; :: forall a. AllKnown a -&gt; AllKnown a -&gt; Bool
+compare :: AllKnown a -&gt; AllKnown a -&gt; Ordering
+$ccompare :: forall a. AllKnown a -&gt; AllKnown a -&gt; Ordering
+$cp1Ord :: forall a. Eq (AllKnown a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159678"><span id="local-6989586621679159680"><span id="local-6989586621679159682"><span class="annot"><span class="annottext">Int -&gt; AllKnown a -&gt; ShowS
+[AllKnown a] -&gt; ShowS
+AllKnown a -&gt; String
+(Int -&gt; AllKnown a -&gt; ShowS)
+-&gt; (AllKnown a -&gt; String)
+-&gt; ([AllKnown a] -&gt; ShowS)
+-&gt; Show (AllKnown a)
+forall a. Int -&gt; AllKnown a -&gt; ShowS
+forall a. [AllKnown a] -&gt; ShowS
+forall a. AllKnown a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [AllKnown a] -&gt; ShowS
+$cshowList :: forall a. [AllKnown a] -&gt; ShowS
+show :: AllKnown a -&gt; String
+$cshow :: forall a. AllKnown a -&gt; String
+showsPrec :: Int -&gt; AllKnown a -&gt; ShowS
+$cshowsPrec :: forall a. Int -&gt; AllKnown a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. AllKnown a -&gt; Rep (AllKnown a) x)
+-&gt; (forall x. Rep (AllKnown a) x -&gt; AllKnown a)
+-&gt; Generic (AllKnown a)
+forall x. Rep (AllKnown a) x -&gt; AllKnown a
+forall x. AllKnown a -&gt; Rep (AllKnown a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (AllKnown a) x -&gt; AllKnown a
+forall a x. AllKnown a -&gt; Rep (AllKnown a) x
+$cto :: forall a x. Rep (AllKnown a) x -&gt; AllKnown a
+$cfrom :: forall a x. AllKnown a -&gt; Rep (AllKnown a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159668"><span id="local-6989586621679159670"><span id="local-6989586621679159672"><span class="annot"><span class="annottext">Get (AllKnown a)
+AllKnown a -&gt; Encoding
+AllKnown a -&gt; Int -&gt; Int
+(AllKnown a -&gt; Encoding)
+-&gt; Get (AllKnown a)
+-&gt; (AllKnown a -&gt; Int -&gt; Int)
+-&gt; Flat (AllKnown a)
+forall a. Get (AllKnown a)
+forall a. AllKnown a -&gt; Encoding
+forall a. AllKnown a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: AllKnown a -&gt; Int -&gt; Int
+$csize :: forall a. AllKnown a -&gt; Int -&gt; Int
+decode :: Get (AllKnown a)
+$cdecode :: forall a. Get (AllKnown a)
+encode :: AllKnown a -&gt; Encoding
+$cencode :: forall a. AllKnown a -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span id="local-6989586621679159666"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679159662"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159666"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Repo.html#AllKnown"><span class="hs-identifier hs-type">AllKnown</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159666"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- Record a value of type a</span><span>
+</span><span id="line-33"></span><span id="local-6989586621679159659"><span id="local-6989586621679159660"></span></span><span class="hs-keyword">data</span><span> </span><span id="Record"><span class="annot"><a href="ZM.Type.Repo.html#Record"><span class="hs-identifier hs-var">Record</span></a></span></span><span> </span><span id="local-6989586621679159658"><span class="annot"><a href="#local-6989586621679159658"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-34"></span><span>  </span><span id="Record"><span class="annot"><a href="ZM.Type.Repo.html#Record"><span class="hs-identifier hs-var">Record</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679159658"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159653"><span id="local-6989586621679159655"><span class="annot"><span class="annottext">Record a -&gt; Record a -&gt; Bool
+(Record a -&gt; Record a -&gt; Bool)
+-&gt; (Record a -&gt; Record a -&gt; Bool) -&gt; Eq (Record a)
+forall a. Eq a =&gt; Record a -&gt; Record a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Record a -&gt; Record a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Record a -&gt; Record a -&gt; Bool
+== :: Record a -&gt; Record a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Record a -&gt; Record a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159638"><span id="local-6989586621679159640"><span id="local-6989586621679159642"><span id="local-6989586621679159644"><span id="local-6989586621679159646"><span id="local-6989586621679159648"><span id="local-6989586621679159650"><span class="annot"><span class="annottext">Eq (Record a)
+Eq (Record a)
+-&gt; (Record a -&gt; Record a -&gt; Ordering)
+-&gt; (Record a -&gt; Record a -&gt; Bool)
+-&gt; (Record a -&gt; Record a -&gt; Bool)
+-&gt; (Record a -&gt; Record a -&gt; Bool)
+-&gt; (Record a -&gt; Record a -&gt; Bool)
+-&gt; (Record a -&gt; Record a -&gt; Record a)
+-&gt; (Record a -&gt; Record a -&gt; Record a)
+-&gt; Ord (Record a)
+Record a -&gt; Record a -&gt; Bool
+Record a -&gt; Record a -&gt; Ordering
+Record a -&gt; Record a -&gt; Record a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (Record a)
+forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Bool
+forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Ordering
+forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Record a
+min :: Record a -&gt; Record a -&gt; Record a
+$cmin :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Record a
+max :: Record a -&gt; Record a -&gt; Record a
+$cmax :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Record a
+&gt;= :: Record a -&gt; Record a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Bool
+&gt; :: Record a -&gt; Record a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Bool
+&lt;= :: Record a -&gt; Record a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Bool
+&lt; :: Record a -&gt; Record a -&gt; Bool
+$c&lt; :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Bool
+compare :: Record a -&gt; Record a -&gt; Ordering
+$ccompare :: forall a. Ord a =&gt; Record a -&gt; Record a -&gt; Ordering
+$cp1Ord :: forall a. Ord a =&gt; Eq (Record a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159632"><span id="local-6989586621679159634"><span id="local-6989586621679159636"><span class="annot"><span class="annottext">Int -&gt; Record a -&gt; ShowS
+[Record a] -&gt; ShowS
+Record a -&gt; String
+(Int -&gt; Record a -&gt; ShowS)
+-&gt; (Record a -&gt; String) -&gt; ([Record a] -&gt; ShowS) -&gt; Show (Record a)
+forall a. Show a =&gt; Int -&gt; Record a -&gt; ShowS
+forall a. Show a =&gt; [Record a] -&gt; ShowS
+forall a. Show a =&gt; Record a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Record a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Record a] -&gt; ShowS
+show :: Record a -&gt; String
+$cshow :: forall a. Show a =&gt; Record a -&gt; String
+showsPrec :: Int -&gt; Record a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Record a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Record a -&gt; Rep (Record a) x)
+-&gt; (forall x. Rep (Record a) x -&gt; Record a) -&gt; Generic (Record a)
+forall x. Rep (Record a) x -&gt; Record a
+forall x. Record a -&gt; Rep (Record a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (Record a) x -&gt; Record a
+forall a x. Record a -&gt; Rep (Record a) x
+$cto :: forall a x. Rep (Record a) x -&gt; Record a
+$cfrom :: forall a x. Record a -&gt; Rep (Record a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159624"><span id="local-6989586621679159626"><span id="local-6989586621679159628"><span class="annot"><span class="annottext">Get (Record a)
+Record a -&gt; Encoding
+Record a -&gt; Int -&gt; Int
+(Record a -&gt; Encoding)
+-&gt; Get (Record a) -&gt; (Record a -&gt; Int -&gt; Int) -&gt; Flat (Record a)
+forall a. Flat a =&gt; Get (Record a)
+forall a. Flat a =&gt; Record a -&gt; Encoding
+forall a. Flat a =&gt; Record a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: Record a -&gt; Int -&gt; Int
+$csize :: forall a. Flat a =&gt; Record a -&gt; Int -&gt; Int
+decode :: Get (Record a)
+$cdecode :: forall a. Flat a =&gt; Get (Record a)
+encode :: Record a -&gt; Encoding
+$cencode :: forall a. Flat a =&gt; Record a -&gt; Encoding
+</span><a href="#local-6989586621679159624"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span id="local-6989586621679159623"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679159619"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159623"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Repo.html#Record"><span class="hs-identifier hs-type">Record</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159623"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- Solve a reference of type to the corresponding value of type to if it exists.</span><span>
+</span><span id="line-40"></span><span id="local-6989586621679159617"><span id="local-6989586621679159618"></span></span><span class="hs-keyword">data</span><span> </span><span id="Solve"><span class="annot"><a href="ZM.Type.Repo.html#Solve"><span class="hs-identifier hs-var">Solve</span></a></span></span><span> </span><span id="local-6989586621679159616"><span class="annot"><a href="#local-6989586621679159616"><span class="hs-identifier hs-type">ref</span></a></span></span><span> </span><span id="local-6989586621679159615"><span class="annot"><a href="#local-6989586621679159615"><span class="hs-identifier hs-type">to</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-41"></span><span>  </span><span id="Solve"><span class="annot"><a href="ZM.Type.Repo.html#Solve"><span class="hs-identifier hs-var">Solve</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679159616"><span class="hs-identifier hs-type">ref</span></a></span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159610"><span id="local-6989586621679159612"><span class="annot"><span class="annottext">Solve ref to -&gt; Solve ref to -&gt; Bool
+(Solve ref to -&gt; Solve ref to -&gt; Bool)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Bool) -&gt; Eq (Solve ref to)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall ref to. Eq ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+/= :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c/= :: forall ref to. Eq ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+== :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c== :: forall ref to. Eq ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159595"><span id="local-6989586621679159597"><span id="local-6989586621679159599"><span id="local-6989586621679159601"><span id="local-6989586621679159603"><span id="local-6989586621679159605"><span id="local-6989586621679159607"><span class="annot"><span class="annottext">Eq (Solve ref to)
+Eq (Solve ref to)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Ordering)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Bool)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Bool)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Bool)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Bool)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Solve ref to)
+-&gt; (Solve ref to -&gt; Solve ref to -&gt; Solve ref to)
+-&gt; Ord (Solve ref to)
+Solve ref to -&gt; Solve ref to -&gt; Bool
+Solve ref to -&gt; Solve ref to -&gt; Ordering
+Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall ref to. Ord ref =&gt; Eq (Solve ref to)
+forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Ordering
+forall ref to.
+Ord ref =&gt;
+Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+min :: Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+$cmin :: forall ref to.
+Ord ref =&gt;
+Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+max :: Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+$cmax :: forall ref to.
+Ord ref =&gt;
+Solve ref to -&gt; Solve ref to -&gt; Solve ref to
+&gt;= :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c&gt;= :: forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+&gt; :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c&gt; :: forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+&lt;= :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c&lt;= :: forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+&lt; :: Solve ref to -&gt; Solve ref to -&gt; Bool
+$c&lt; :: forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Bool
+compare :: Solve ref to -&gt; Solve ref to -&gt; Ordering
+$ccompare :: forall ref to. Ord ref =&gt; Solve ref to -&gt; Solve ref to -&gt; Ordering
+$cp1Ord :: forall ref to. Ord ref =&gt; Eq (Solve ref to)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159589"><span id="local-6989586621679159591"><span id="local-6989586621679159593"><span class="annot"><span class="annottext">Int -&gt; Solve ref to -&gt; ShowS
+[Solve ref to] -&gt; ShowS
+Solve ref to -&gt; String
+(Int -&gt; Solve ref to -&gt; ShowS)
+-&gt; (Solve ref to -&gt; String)
+-&gt; ([Solve ref to] -&gt; ShowS)
+-&gt; Show (Solve ref to)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall ref to. Show ref =&gt; Int -&gt; Solve ref to -&gt; ShowS
+forall ref to. Show ref =&gt; [Solve ref to] -&gt; ShowS
+forall ref to. Show ref =&gt; Solve ref to -&gt; String
+showList :: [Solve ref to] -&gt; ShowS
+$cshowList :: forall ref to. Show ref =&gt; [Solve ref to] -&gt; ShowS
+show :: Solve ref to -&gt; String
+$cshow :: forall ref to. Show ref =&gt; Solve ref to -&gt; String
+showsPrec :: Int -&gt; Solve ref to -&gt; ShowS
+$cshowsPrec :: forall ref to. Show ref =&gt; Int -&gt; Solve ref to -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Solve ref to -&gt; Rep (Solve ref to) x)
+-&gt; (forall x. Rep (Solve ref to) x -&gt; Solve ref to)
+-&gt; Generic (Solve ref to)
+forall x. Rep (Solve ref to) x -&gt; Solve ref to
+forall x. Solve ref to -&gt; Rep (Solve ref to) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall ref to x. Rep (Solve ref to) x -&gt; Solve ref to
+forall ref to x. Solve ref to -&gt; Rep (Solve ref to) x
+$cto :: forall ref to x. Rep (Solve ref to) x -&gt; Solve ref to
+$cfrom :: forall ref to x. Solve ref to -&gt; Rep (Solve ref to) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159581"><span id="local-6989586621679159583"><span id="local-6989586621679159585"><span class="annot"><span class="annottext">Get (Solve ref to)
+Solve ref to -&gt; Encoding
+Solve ref to -&gt; Int -&gt; Int
+(Solve ref to -&gt; Encoding)
+-&gt; Get (Solve ref to)
+-&gt; (Solve ref to -&gt; Int -&gt; Int)
+-&gt; Flat (Solve ref to)
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+forall ref to. Flat ref =&gt; Get (Solve ref to)
+forall ref to. Flat ref =&gt; Solve ref to -&gt; Encoding
+forall ref to. Flat ref =&gt; Solve ref to -&gt; Int -&gt; Int
+size :: Solve ref to -&gt; Int -&gt; Int
+$csize :: forall ref to. Flat ref =&gt; Solve ref to -&gt; Int -&gt; Int
+decode :: Get (Solve ref to)
+$cdecode :: forall ref to. Flat ref =&gt; Get (Solve ref to)
+encode :: Solve ref to -&gt; Encoding
+$cencode :: forall ref to. Flat ref =&gt; Solve ref to -&gt; Encoding
+</span><a href="#local-6989586621679159581"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span id="local-6989586621679159579"><span id="local-6989586621679159580"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679159575"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159580"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159579"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Repo.html#Solve"><span class="hs-identifier hs-type">Solve</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159580"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159579"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-45"></span></pre></body></html>

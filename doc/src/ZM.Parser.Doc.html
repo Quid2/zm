@@ -1,0 +1,520 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE ExistentialQuantification #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards           #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">{-
+A parser for a concise and extensible document format that can embed programming constructs (data types declarations, function, etc) as well as text, diagrams, etc.
+
+A document is divided into sections, each introduced by a keyword that specify what parser is used to interpret it.
+
+A section name should be either a sequence of characters or as sequence of symbols:
+
+```
+char 'a'
+
+type List a = [a]
+
+:: a declaration of same kind
+
+test 3==2+1
+
+adt Bool = False
+    | True
+
+{html
+  &lt;b&gt;bold&lt;/b&gt;
+}
+
+module X where
+  id a = a
+  ...
+```
+
+| A line of text
+
+{|
+A block of text
+on multiple lines.
+}
+
+{haskell
+
+id a = a
+}
+
+Sections have two syntaxes.
+
+Indented: a section continues till some non whitespace text appears on the first column:
+
+name ....
+  ...
+  ...
+  ...
+
+Enclosed: the section name is preceded by a { and terminated by a } on the first column:
+
+{name ...
+...
+...
+}
+Variant: name can be preceded by some optional space, needed if the name is symbolic and starts with { (needed?)
+
+Variant: any of the three parentheses is supported () [] {}
+
+In both cases, the text that composes the section is passed to the parser exactly as written, including the section name, but excluding the brackets and the optional space.
+
+Space between sections is not significant.
+
+## Compared
+
+xml/html
+verbose but systematic syntax
+
+notebook format
+https://docs.racket-lang.org/scribble/
+
+markdown
+/= as markdown is a sea of text with embedded subsections while here text and non-text have the same dignity.
+
+other 'tools for thought' formats:
+
+create a pandoc obj
+https://github.com/gordonbrander/subtext/blob/main/specification.md
+https://via.hypothes.is/https://talk.fission.codes/t/tools-for-thought-atjson-as-a-potential-format-for-interchange/1880
+-}</span><span>
+</span><span id="line-84"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Parser.Doc</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-88"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Either.Extra</span></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">mapLeft</span></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fold</span></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span>             </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">M</span></span><span>
+</span><span id="line-92"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.Megaparsec.Char</span></span><span>
+</span><span id="line-94"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Parser.Lexer.html"><span class="hs-identifier">ZM.Parser.Lexer</span></a></span><span>
+</span><span id="line-95"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Parser.Types.html"><span class="hs-identifier">ZM.Parser.Types</span></a></span><span>      </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier">Parser</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- import ZM.Parser.Util (parseDoc)</span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-comment">{- $setup
+&gt;&gt;&gt; import Text.Megaparsec(parseMaybe)
+-}</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="hs-keyword">data</span><span> </span><span id="Section"><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-var">Section</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Section"><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-var">Section</span></a></span></span><span> </span><span class="hs-special">{</span><span id="name"><span class="annot"><span class="annottext">Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span id="body"><span class="annot"><span class="annottext">Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#body"><span class="hs-identifier hs-var hs-var">body</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679167242"><span id="local-6989586621679167244"><span id="local-6989586621679167246"><span class="annot"><span class="annottext">Int -&gt; Section -&gt; ShowS
+[Section] -&gt; ShowS
+Section -&gt; String
+(Int -&gt; Section -&gt; ShowS)
+-&gt; (Section -&gt; String) -&gt; ([Section] -&gt; ShowS) -&gt; Show Section
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Section] -&gt; ShowS
+$cshowList :: [Section] -&gt; ShowS
+show :: Section -&gt; String
+$cshow :: Section -&gt; String
+showsPrec :: Int -&gt; Section -&gt; ShowS
+$cshowsPrec :: Int -&gt; Section -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="annot"><a href="ZM.Parser.Doc.html#sectionText"><span class="hs-identifier hs-type">sectionText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-type">Section</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-106"></span><span id="sectionText"><span class="annot"><span class="annottext">sectionText :: Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#sectionText"><span class="hs-identifier hs-var hs-var">sectionText</span></a></span></span><span> </span><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-type">Section</span></a></span><span class="hs-special">{</span><span id="local-6989586621679167238"><span id="local-6989586621679167239"><span class="annot"><span class="annottext">String
+body :: String
+name :: String
+body :: Section -&gt; String
+name :: Section -&gt; String
+</span><a href="#local-6989586621679167238"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167239"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167238"><span class="hs-identifier hs-var">body</span></a></span><span>
+</span><span id="line-107"></span><span>
+</span><span id="line-108"></span><span class="annot"><a href="ZM.Parser.Doc.html#sectionsText"><span class="hs-identifier hs-type">sectionsText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-type">Section</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-109"></span><span id="sectionsText"><span class="annot"><span class="annottext">sectionsText :: [Section] -&gt; String
+</span><a href="ZM.Parser.Doc.html#sectionsText"><span class="hs-identifier hs-var hs-var">sectionsText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
+-&gt; ([Section] -&gt; [String]) -&gt; [Section] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Section -&gt; String) -&gt; [Section] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#sectionText"><span class="hs-identifier hs-var">sectionText</span></a></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- multiParser :: [P b] -&gt; Parser b</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- multiParser = foldr (\(P p c) ps -&gt; (c &lt;$&gt; p) &lt;|&gt; ps) (fail &quot;no parse&quot;)</span><span>
+</span><span id="line-113"></span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- mParser :: Monoid b =&gt; [Parser b] -&gt; Parser b</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- mParser = fold</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="hs-keyword">data</span><span> </span><span id="P"><span class="annot"><a href="ZM.Parser.Doc.html#P"><span class="hs-identifier hs-var">P</span></a></span></span><span> </span><span id="local-6989586621679167233"><span class="annot"><a href="#local-6989586621679167233"><span class="hs-identifier hs-type">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679167232"><span class="annot"><a href="#local-6989586621679167232"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span id="P"><span class="annot"><a href="ZM.Parser.Doc.html#P"><span class="hs-identifier hs-var">P</span></a></span></span><span> </span><span class="hs-special">{</span><span id="parser"><span class="annot"><span class="annottext">()
+</span><a href="ZM.Parser.Doc.html#parser"><span class="hs-identifier hs-var hs-var">parser</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167232"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span id="converter"><span class="annot"><span class="annottext">()
+</span><a href="ZM.Parser.Doc.html#converter"><span class="hs-identifier hs-var hs-var">converter</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679167232"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679167233"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- ps = Left &lt;$&gt; stringLiteral</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- p1 = P stringLiteral id</span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- p2 = P charLiteral (\c -&gt; [c])</span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="hs-comment">{-
+Enhanced Haskell:
+
+* multiple modules in same file (rust style)
+
+* Better integration of tests and code, tests and code are written together but they get split on
+
+module Z where
+
+&gt;&gt;&gt; sum 3 3 == 6
+
+sum a b = a + b
+
+-}</span><span>
+</span><span id="line-139"></span><span class="hs-comment">{-
+module Portfolio where
+
+data StkId = StkId Market String
+
+data Stk = Stk {name::Text,id::StkId}
+
+fn unipol = Stk &quot;Unipol&quot; (Bit &quot;Uni&quot;)
+
+table Stk -&gt; (Stk,Money,Percent)
+Unipol        https://www.google.com/finance/quote/UNI:BIT?window=1Y        BIT:UNI        22,017         46.3%
+
+data PortfolioLine = Line Text Link Double Percent
+ 
+map ()
+
+table [unipol,bami]
+
+-}</span><span>
+</span><span id="line-158"></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="hs-comment">{- | Document evaluation
+
+Variation: Section parsers, in addition of their content are also given access to:
+* their context (the doc and their position in it)
+* the parser itself so thaty can implement nested parsing.
+* a read/write environment [(String,a)]
+
+{|This is some text with an embedded graph {dot ...}
+}
+
+&gt;&gt;&gt; data R = AChar Char | AStr String deriving (Show)
+&gt;&gt;&gt; parsers = M.fromList [(&quot;char&quot;, AChar &lt;$&gt; charLiteral), (&quot;$&quot;, AStr &lt;$&gt; stringLiteral)]
+
+&gt;&gt;&gt; parsers = M.fromList [(&quot;char&quot;, Left &lt;$&gt; charLiteral), (&quot;$&quot;, Right &lt;$&gt; stringLiteral)]
+&gt;&gt;&gt; evalSections parsers &quot;char 'c'\n$ \&quot;abc\&quot;&quot;
+-}</span><span>
+</span><span id="line-176"></span><span id="local-6989586621679167228"><span class="annot"><a href="ZM.Parser.Doc.html#evalSections"><span class="hs-identifier hs-type">evalSections</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">M.Map</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167228"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679167228"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-177"></span><span id="evalSections"><span class="annot"><span class="annottext">evalSections :: Map String (Parser a) -&gt; String -&gt; Either String [a]
+</span><a href="ZM.Parser.Doc.html#evalSections"><span class="hs-identifier hs-var hs-var">evalSections</span></a></span></span><span> </span><span id="local-6989586621679167226"><span class="annot"><span class="annottext">Map String (Parser a)
+</span><a href="#local-6989586621679167226"><span class="hs-identifier hs-var">ps</span></a></span></span><span> </span><span id="local-6989586621679167225"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167225"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String [a])
+-&gt; ([Section] -&gt; Either String [a])
+-&gt; Either String [Section]
+-&gt; Either String [a]
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String [a]
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Section -&gt; Either String a) -&gt; [Section] -&gt; Either String [a]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m (t b)
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="annot"><span class="annottext">Section -&gt; Either String a
+</span><a href="#local-6989586621679167222"><span class="hs-identifier hs-var">eval</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Either String [Section] -&gt; Either String [a])
+-&gt; Either String [Section] -&gt; Either String [a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parser [Section] -&gt; String -&gt; Either String [Section]
+forall a. Parser a -&gt; String -&gt; Either String a
+</span><a href="ZM.Parser.Doc.html#parseS"><span class="hs-identifier hs-var">parseS</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [Section]
+</span><a href="ZM.Parser.Doc.html#sections"><span class="hs-identifier hs-var">sections</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167225"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-178"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-179"></span><span>    </span><span id="local-6989586621679167222"><span class="annot"><span class="annottext">eval :: Section -&gt; Either String a
+</span><a href="#local-6989586621679167222"><span class="hs-identifier hs-var hs-var">eval</span></a></span></span><span> </span><span id="local-6989586621679167219"><span class="annot"><span class="annottext">Section
+</span><a href="#local-6989586621679167219"><span class="hs-identifier hs-var">sect</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-180"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679167218"><span class="annot"><span class="annottext">n :: String
+</span><a href="#local-6989586621679167218"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Section
+</span><a href="#local-6989586621679167219"><span class="hs-identifier hs-var">sect</span></a></span><span>
+</span><span id="line-181"></span><span>         </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Either String a
+-&gt; (Parser a -&gt; Either String a)
+-&gt; Maybe (Parser a)
+-&gt; Either String a
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Either String a
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Unknown section &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ShowS
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167218"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679167216"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167216"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; String -&gt; Either String a
+forall a. Parser a -&gt; String -&gt; Either String a
+</span><a href="ZM.Parser.Doc.html#parseS"><span class="hs-identifier hs-var">parseS</span></a></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167216"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Section -&gt; String
+</span><a href="ZM.Parser.Doc.html#body"><span class="hs-identifier hs-var hs-var">body</span></a></span><span> </span><span class="annot"><span class="annottext">Section
+</span><a href="#local-6989586621679167219"><span class="hs-identifier hs-var">sect</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe (Parser a) -&gt; Either String a)
+-&gt; Maybe (Parser a) -&gt; Either String a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Map String (Parser a) -&gt; Maybe (Parser a)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">M.lookup</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167218"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Map String (Parser a)
+</span><a href="#local-6989586621679167226"><span class="hs-identifier hs-var">ps</span></a></span><span>
+</span><span id="line-182"></span><span>
+</span><span id="line-183"></span><span id="local-6989586621679167320"><span class="annot"><a href="ZM.Parser.Doc.html#parseS"><span class="hs-identifier hs-type">parseS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167320"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="#local-6989586621679167320"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-184"></span><span id="parseS"><span class="annot"><span class="annottext">parseS :: Parser a -&gt; String -&gt; Either String a
+</span><a href="ZM.Parser.Doc.html#parseS"><span class="hs-identifier hs-var hs-var">parseS</span></a></span></span><span> </span><span id="local-6989586621679167214"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167214"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ParseErrorBundle String Void -&gt; String)
+-&gt; Either (ParseErrorBundle String Void) a -&gt; Either String a
+forall a c b. (a -&gt; c) -&gt; Either a b -&gt; Either c b
+</span><span class="hs-identifier hs-var">mapLeft</span></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle String Void -&gt; String
+forall s e.
+(VisualStream s, TraversableStream s, ShowErrorComponent e) =&gt;
+ParseErrorBundle s e -&gt; String
+</span><span class="hs-identifier hs-var">errorBundlePretty</span></span><span> </span><span class="annot"><span class="annottext">(Either (ParseErrorBundle String Void) a -&gt; Either String a)
+-&gt; (String -&gt; Either (ParseErrorBundle String Void) a)
+-&gt; String
+-&gt; Either String a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Parser a
+-&gt; String -&gt; String -&gt; Either (ParseErrorBundle String Void) a
+forall e s a.
+Parsec e s a -&gt; String -&gt; s -&gt; Either (ParseErrorBundle s e) a
+</span><span class="hs-identifier hs-var">runParser</span></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167214"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-185"></span><span>
+</span><span id="line-186"></span><span class="hs-comment">{- |
+
+&gt;&gt;&gt; let src = &quot;adt Bool = False \n | True\nadt Enum = A \n   | B\n | C&quot; in (\ss -&gt; src == sectionsText ss) &lt;$&gt; (parseMaybe sectionsDoc src)
+
+&gt;&gt;&gt; parseMaybe sectionsDoc &quot;\n  abc \nadt Bool = False \n| True\nadt Enum = A \n   | B\n | C&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe sectionsDoc &quot;\n \t \r\n \nadt Bool = False \n| True\nadt Enum = A \n   | B\n | C&quot;
+-}</span><span>
+</span><span id="line-195"></span><span class="annot"><a href="ZM.Parser.Doc.html#sections"><span class="hs-identifier hs-type">sections</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Doc.html#sectionsDoc"><span class="hs-identifier hs-type">sectionsDoc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-type">Section</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-196"></span><span id="sectionsDoc"><span class="annot"><span class="annottext">sectionsDoc :: Parser [Section]
+</span><a href="ZM.Parser.Doc.html#sectionsDoc"><span class="hs-identifier hs-var hs-var">sectionsDoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="ZM.Parser.Doc.html#skipEmptyLines"><span class="hs-identifier hs-var">skipEmptyLines</span></a></span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser [Section] -&gt; Parser [Section]
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser [Section]
+</span><a href="ZM.Parser.Doc.html#sections"><span class="hs-identifier hs-var">sections</span></a></span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe sections &quot;-- a comment\nadt Bool = False \n | True\nadt Enum = A \n   | B\n | C&quot;
+
+parseMaybe sections &quot;adt Bool = False \n | True\nadt Enum = A \n   | B\n | C&quot;
+-}</span><span>
+</span><span id="line-203"></span><span id="sections"><span class="annot"><span class="annottext">sections :: Parser [Section]
+</span><a href="ZM.Parser.Doc.html#sections"><span class="hs-identifier hs-var hs-var">sections</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Section -&gt; Parser [Section]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Section
+</span><a href="ZM.Parser.Doc.html#section"><span class="hs-identifier hs-var">section</span></a></span><span>
+</span><span id="line-204"></span><span>
+</span><span id="line-205"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe section &quot;adt&quot;
+Just (Section {name = &quot;adt&quot;, body = &quot;&quot;})
+
+&gt;&gt;&gt; parseMaybe section &quot;adt    Bool = False | True&quot;
+Just (Section {name = &quot;adt&quot;, body = &quot;Bool = False | True&quot;})
+
+&gt;&gt;&gt; parseMaybe section &quot;adt Enum = A \n   | B\n | C&quot;
+Just (Section {name = &quot;adt&quot;, body = &quot;Enum = A \n   | B\n | C&quot;})
+-}</span><span>
+</span><span id="line-215"></span><span class="annot"><a href="ZM.Parser.Doc.html#section"><span class="hs-identifier hs-type">section</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-type">Section</span></a></span><span>
+</span><span id="line-216"></span><span id="section"><span class="annot"><span class="annottext">section :: ParsecT Void String Identity Section
+</span><a href="ZM.Parser.Doc.html#section"><span class="hs-identifier hs-var hs-var">section</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Section
+</span><a href="ZM.Parser.Doc.html#Section"><span class="hs-identifier hs-var">Section</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String -&gt; Section)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (String -&gt; Section)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionName"><span class="hs-identifier hs-var">sectionName</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (String -&gt; Section)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity Section
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionBody"><span class="hs-identifier hs-var">sectionBody</span></a></span><span>
+</span><span id="line-217"></span><span>
+</span><span id="line-218"></span><span class="annot"><a href="ZM.Parser.Doc.html#sectionBody"><span class="hs-identifier hs-type">sectionBody</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-219"></span><span id="sectionBody"><span class="annot"><span class="annottext">sectionBody :: ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionBody"><span class="hs-identifier hs-var hs-var">sectionBody</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+-&gt; Parser () -&gt; ParsecT Void String Identity String
+forall (m :: * -&gt; *) a end. MonadPlus m =&gt; m a -&gt; m end -&gt; m [a]
+</span><span class="hs-identifier hs-var">manyTill</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+</span><a href="ZM.Parser.Doc.html#anyChar"><span class="hs-identifier hs-var">anyChar</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="ZM.Parser.Doc.html#sectionEnd"><span class="hs-identifier hs-var">sectionEnd</span></a></span><span>
+</span><span id="line-220"></span><span>
+</span><span id="line-221"></span><span class="annot"><a href="ZM.Parser.Doc.html#sectionEnd"><span class="hs-identifier hs-type">sectionEnd</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-222"></span><span id="sectionEnd"><span class="annot"><span class="annottext">sectionEnd :: Parser ()
+</span><a href="ZM.Parser.Doc.html#sectionEnd"><span class="hs-identifier hs-var hs-var">sectionEnd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser () -&gt; Parser ()
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">lookAhead</span></span><span> </span><span class="annot"><span class="annottext">(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser ()
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="annot"><span class="annottext">(Parser () -&gt; Parser ()) -&gt; Parser () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String -&gt; Parser ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Tokens s)
+</span><span class="hs-identifier hs-var">eol</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionName"><span class="hs-identifier hs-var">sectionName</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser () -&gt; Parser ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser ()
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m ()
+</span><span class="hs-identifier hs-var">eof</span></span><span>
+</span><span id="line-223"></span><span>
+</span><span id="line-224"></span><span class="hs-comment">-- parseMaybe elems &quot;adt Enum = A \n   | B\n | C&quot;</span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span id="elems"><span class="annot"><span class="annottext">elems :: ParsecT Void String Identity [Either String String]
+</span><a href="ZM.Parser.Doc.html#elems"><span class="hs-identifier hs-var hs-var">elems</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Either String String)
+-&gt; ParsecT Void String Identity [Either String String]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String String)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Either String String)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionName"><span class="hs-identifier hs-var">sectionName</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Either String String)
+-&gt; ParsecT Void String Identity (Either String String)
+-&gt; ParsecT Void String Identity (Either String String)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String String)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Either String String)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+-&gt; Parser () -&gt; ParsecT Void String Identity String
+forall (m :: * -&gt; *) a end. MonadPlus m =&gt; m a -&gt; m end -&gt; m [a]
+</span><span class="hs-identifier hs-var">manyTill</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+</span><a href="ZM.Parser.Doc.html#anyChar"><span class="hs-identifier hs-var">anyChar</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity String -&gt; Parser ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Tokens s)
+</span><span class="hs-identifier hs-var">eol</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-227"></span><span>
+</span><span id="line-228"></span><span class="hs-comment">-- ss = (eol &gt;&gt; sectionName) &lt;|&gt; eof</span><span>
+</span><span id="line-229"></span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- xx ss =</span><span>
+</span><span id="line-231"></span><span class="hs-comment">--     do</span><span>
+</span><span id="line-232"></span><span class="hs-comment">--         name &lt;-</span><span>
+</span><span id="line-233"></span><span class="hs-comment">--             (eol &gt;&gt; sectionName)</span><span>
+</span><span id="line-234"></span><span class="hs-comment">--         xx</span><span>
+</span><span id="line-235"></span><span class="hs-comment">--                 (name, &quot;&quot;) : ss</span><span>
+</span><span id="line-236"></span><span class="hs-comment">--         &lt;|&gt; do {x &lt;- anyChar;</span><span>
+</span><span id="line-237"></span><span class="hs-comment">--                 xs &lt;- xx ss ; return (x : xs)</span><span>
+</span><span id="line-238"></span><span>
+</span><span id="line-239"></span><span class="annot"><a href="ZM.Parser.Doc.html#anyChar"><span class="hs-identifier hs-type">anyChar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-240"></span><span id="anyChar"><span class="annot"><span class="annottext">anyChar :: ParsecT Void String Identity Char
+</span><a href="ZM.Parser.Doc.html#anyChar"><span class="hs-identifier hs-var hs-var">anyChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Token String -&gt; Bool)
+-&gt; ParsecT Void String Identity (Token String)
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+(Token s -&gt; Bool) -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Char -&gt; Bool
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">)</span><span>
+</span><span id="line-241"></span><span>
+</span><span id="line-242"></span><span class="hs-comment">-- x = foldr (\n@(c:cs) st -&gt; if isNameChar c then (n:[]) ) (False,[]) lines</span><span>
+</span><span id="line-243"></span><span>
+</span><span id="line-244"></span><span class="hs-comment">-- beg (c:_) = isNameChar c</span><span>
+</span><span id="line-245"></span><span>
+</span><span id="line-246"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe sectionName &quot; adt&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe sectionName &quot;adt&quot;
+Just &quot;adt&quot;
+
+&gt;&gt;&gt; parseMaybe sectionName &quot;-()[]{}&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe sectionName &quot;:+*/.@#$%?&gt;&lt;;&quot;
+Just &quot;:+*/.@#$%?&gt;&lt;;&quot;
+
+&gt;&gt;&gt; parseMaybe sectionName &quot;_&quot;
+
+&gt;&gt;&gt; parseMaybe sectionName &quot;{&quot;
+-}</span><span>
+</span><span id="line-263"></span><span class="annot"><a href="ZM.Parser.Doc.html#sectionName"><span class="hs-identifier hs-type">sectionName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-264"></span><span id="sectionName"><span class="annot"><span class="annottext">sectionName :: ParsecT Void String Identity String
+</span><a href="ZM.Parser.Doc.html#sectionName"><span class="hs-identifier hs-var hs-var">sectionName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token String -&gt; Bool)
+-&gt; ParsecT Void String Identity (Tokens String)
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><span class="hs-identifier hs-var">takeWhile1P</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;not white space or control&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+Token String -&gt; Bool
+</span><a href="ZM.Parser.Doc.html#isNameChar"><span class="hs-identifier hs-var">isNameChar</span></a></span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span id="isNameChar"><span class="annot"><span class="annottext">isNameChar :: Char -&gt; Bool
+</span><a href="ZM.Parser.Doc.html#isNameChar"><span class="hs-identifier hs-var hs-var">isNameChar</span></a></span></span><span> </span><span id="local-6989586621679167191"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679167191"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; Bool -&gt; Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679167191"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isControl</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679167191"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-267"></span><span>
+</span><span id="line-268"></span><span class="hs-comment">-- sectionName = identifier</span><span>
+</span><span id="line-269"></span><span>
+</span><span id="line-270"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe skipEmptyLines &quot;&quot;
+
+&gt;&gt;&gt; parseMaybe skipEmptyLines &quot;\n   \t  \n&quot;
+Just ()
+
+&gt;&gt;&gt; parseMaybe skipEmptyLines &quot;\n &quot;
+Nothing
+-}</span><span>
+</span><span id="line-279"></span><span class="annot"><a href="ZM.Parser.Doc.html#skipEmptyLines"><span class="hs-identifier hs-type">skipEmptyLines</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-280"></span><span id="skipEmptyLines"><span class="annot"><span class="annottext">skipEmptyLines :: Parser ()
+</span><a href="ZM.Parser.Doc.html#skipEmptyLines"><span class="hs-identifier hs-var hs-var">skipEmptyLines</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; Parser ()
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m ()
+</span><span class="hs-identifier hs-var">skipMany</span></span><span> </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="ZM.Parser.Doc.html#skipEmptyLine"><span class="hs-identifier hs-var">skipEmptyLine</span></a></span><span>
+</span><span id="line-281"></span><span>
+</span><span id="line-282"></span><span class="annot"><a href="ZM.Parser.Doc.html#skipEmptyLine"><span class="hs-identifier hs-type">skipEmptyLine</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-283"></span><span id="skipEmptyLine"><span class="annot"><span class="annottext">skipEmptyLine :: Parser ()
+</span><a href="ZM.Parser.Doc.html#skipEmptyLine"><span class="hs-identifier hs-var hs-var">skipEmptyLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><span class="hs-identifier hs-var">hspace</span></span><span> </span><span class="annot"><span class="annottext">Parser () -&gt; ParsecT Void String Identity String -&gt; Parser ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Tokens s)
+</span><span class="hs-identifier hs-var">eol</span></span><span>
+</span><span id="line-284"></span></pre></body></html>

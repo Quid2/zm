@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_EMU48xCJk293A8MsSWKqI0"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass    #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFoldable    #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveFunctor     #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric     #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.List</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.List.html#List"><span class="hs-identifier">List</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | A list</span><span>
+</span><span id="line-16"></span><span id="local-6989586621679159258"><span id="local-6989586621679159259"></span></span><span class="hs-keyword">data</span><span> </span><span id="List"><span class="annot"><a href="ZM.Type.List.html#List"><span class="hs-identifier hs-var">List</span></a></span></span><span> </span><span id="local-6989586621679159257"><span class="annot"><a href="#local-6989586621679159257"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Nil"><span class="annot"><a href="ZM.Type.List.html#Nil"><span class="hs-identifier hs-var">Nil</span></a></span></span><span>
+</span><span id="line-17"></span><span>             </span><span class="hs-glyph">|</span><span> </span><span id="Cons"><span class="annot"><a href="ZM.Type.List.html#Cons"><span class="hs-identifier hs-var">Cons</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679159257"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.List.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159257"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159251"><span id="local-6989586621679159253"><span class="annot"><span class="annottext">List a -&gt; List a -&gt; Bool
+(List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; Bool) -&gt; Eq (List a)
+forall a. Eq a =&gt; List a -&gt; List a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: List a -&gt; List a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; List a -&gt; List a -&gt; Bool
+== :: List a -&gt; List a -&gt; Bool
+$c== :: forall a. Eq a =&gt; List a -&gt; List a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159235"><span id="local-6989586621679159237"><span id="local-6989586621679159239"><span id="local-6989586621679159241"><span id="local-6989586621679159243"><span id="local-6989586621679159245"><span id="local-6989586621679159247"><span class="annot"><span class="annottext">Eq (List a)
+Eq (List a)
+-&gt; (List a -&gt; List a -&gt; Ordering)
+-&gt; (List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; Bool)
+-&gt; (List a -&gt; List a -&gt; List a)
+-&gt; (List a -&gt; List a -&gt; List a)
+-&gt; Ord (List a)
+List a -&gt; List a -&gt; Bool
+List a -&gt; List a -&gt; Ordering
+List a -&gt; List a -&gt; List a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (List a)
+forall a. Ord a =&gt; List a -&gt; List a -&gt; Bool
+forall a. Ord a =&gt; List a -&gt; List a -&gt; Ordering
+forall a. Ord a =&gt; List a -&gt; List a -&gt; List a
+min :: List a -&gt; List a -&gt; List a
+$cmin :: forall a. Ord a =&gt; List a -&gt; List a -&gt; List a
+max :: List a -&gt; List a -&gt; List a
+$cmax :: forall a. Ord a =&gt; List a -&gt; List a -&gt; List a
+&gt;= :: List a -&gt; List a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; List a -&gt; List a -&gt; Bool
+&gt; :: List a -&gt; List a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; List a -&gt; List a -&gt; Bool
+&lt;= :: List a -&gt; List a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; List a -&gt; List a -&gt; Bool
+&lt; :: List a -&gt; List a -&gt; Bool
+$c&lt; :: forall a. Ord a =&gt; List a -&gt; List a -&gt; Bool
+compare :: List a -&gt; List a -&gt; Ordering
+$ccompare :: forall a. Ord a =&gt; List a -&gt; List a -&gt; Ordering
+$cp1Ord :: forall a. Ord a =&gt; Eq (List a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159228"><span id="local-6989586621679159230"><span id="local-6989586621679159232"><span class="annot"><span class="annottext">Int -&gt; List a -&gt; ShowS
+[List a] -&gt; ShowS
+List a -&gt; String
+(Int -&gt; List a -&gt; ShowS)
+-&gt; (List a -&gt; String) -&gt; ([List a] -&gt; ShowS) -&gt; Show (List a)
+forall a. Show a =&gt; Int -&gt; List a -&gt; ShowS
+forall a. Show a =&gt; [List a] -&gt; ShowS
+forall a. Show a =&gt; List a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [List a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [List a] -&gt; ShowS
+show :: List a -&gt; String
+$cshow :: forall a. Show a =&gt; List a -&gt; String
+showsPrec :: Int -&gt; List a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; List a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159225"><span class="annot"><span class="annottext">List a -&gt; ()
+(List a -&gt; ()) -&gt; NFData (List a)
+forall a. NFData a =&gt; List a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: List a -&gt; ()
+$crnf :: forall a. NFData a =&gt; List a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. List a -&gt; Rep (List a) x)
+-&gt; (forall x. Rep (List a) x -&gt; List a) -&gt; Generic (List a)
+forall x. Rep (List a) x -&gt; List a
+forall x. List a -&gt; Rep (List a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (List a) x -&gt; List a
+forall a x. List a -&gt; Rep (List a) x
+$cto :: forall a x. Rep (List a) x -&gt; List a
+$cfrom :: forall a x. List a -&gt; Rep (List a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159217"><span id="local-6989586621679159219"><span class="annot"><span class="annottext">a -&gt; List b -&gt; List a
+(a -&gt; b) -&gt; List a -&gt; List b
+(forall a b. (a -&gt; b) -&gt; List a -&gt; List b)
+-&gt; (forall a b. a -&gt; List b -&gt; List a) -&gt; Functor List
+forall a b. a -&gt; List b -&gt; List a
+forall a b. (a -&gt; b) -&gt; List a -&gt; List b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; List b -&gt; List a
+$c&lt;$ :: forall a b. a -&gt; List b -&gt; List a
+fmap :: (a -&gt; b) -&gt; List a -&gt; List b
+$cfmap :: forall a b. (a -&gt; b) -&gt; List a -&gt; List b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159182"><span id="local-6989586621679159184"><span id="local-6989586621679159186"><span id="local-6989586621679159188"><span id="local-6989586621679159190"><span id="local-6989586621679159192"><span id="local-6989586621679159194"><span id="local-6989586621679159196"><span id="local-6989586621679159198"><span id="local-6989586621679159200"><span id="local-6989586621679159202"><span id="local-6989586621679159204"><span id="local-6989586621679159206"><span id="local-6989586621679159208"><span id="local-6989586621679159210"><span id="local-6989586621679159212"><span id="local-6989586621679159214"><span class="annot"><span class="annottext">List a -&gt; Bool
+(a -&gt; m) -&gt; List a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+(forall m. Monoid m =&gt; List m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; List a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; List a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; List a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; List a -&gt; a)
+-&gt; (forall a. List a -&gt; [a])
+-&gt; (forall a. List a -&gt; Bool)
+-&gt; (forall a. List a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; List a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; List a -&gt; a)
+-&gt; (forall a. Ord a =&gt; List a -&gt; a)
+-&gt; (forall a. Num a =&gt; List a -&gt; a)
+-&gt; (forall a. Num a =&gt; List a -&gt; a)
+-&gt; Foldable List
+forall a. Eq a =&gt; a -&gt; List a -&gt; Bool
+forall a. Num a =&gt; List a -&gt; a
+forall a. Ord a =&gt; List a -&gt; a
+forall m. Monoid m =&gt; List m -&gt; m
+forall a. List a -&gt; Bool
+forall a. List a -&gt; Int
+forall a. List a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; List a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; List a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: List a -&gt; a
+$cproduct :: forall a. Num a =&gt; List a -&gt; a
+sum :: List a -&gt; a
+$csum :: forall a. Num a =&gt; List a -&gt; a
+minimum :: List a -&gt; a
+$cminimum :: forall a. Ord a =&gt; List a -&gt; a
+maximum :: List a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; List a -&gt; a
+elem :: a -&gt; List a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; List a -&gt; Bool
+length :: List a -&gt; Int
+$clength :: forall a. List a -&gt; Int
+null :: List a -&gt; Bool
+$cnull :: forall a. List a -&gt; Bool
+toList :: List a -&gt; [a]
+$ctoList :: forall a. List a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; List a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; List a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; List a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; List a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; List a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; List a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; List a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; List a -&gt; m
+foldMap :: (a -&gt; m) -&gt; List a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; List a -&gt; m
+fold :: List m -&gt; m
+$cfold :: forall m. Monoid m =&gt; List m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159171"><span id="local-6989586621679159173"><span id="local-6989586621679159175"><span id="local-6989586621679159177"><span class="annot"><span class="annottext">Functor List
+Foldable List
+Functor List
+-&gt; Foldable List
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; List a -&gt; f (List b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    List (f a) -&gt; f (List a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; List a -&gt; m (List b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; List (m a) -&gt; m (List a))
+-&gt; Traversable List
+(a -&gt; f b) -&gt; List a -&gt; f (List b)
+forall (t :: * -&gt; *).
+Functor t
+-&gt; Foldable t
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; List (m a) -&gt; m (List a)
+forall (f :: * -&gt; *) a. Applicative f =&gt; List (f a) -&gt; f (List a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; List a -&gt; m (List b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; List a -&gt; f (List b)
+sequence :: List (m a) -&gt; m (List a)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; List (m a) -&gt; m (List a)
+mapM :: (a -&gt; m b) -&gt; List a -&gt; m (List b)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; List a -&gt; m (List b)
+sequenceA :: List (f a) -&gt; f (List a)
+$csequenceA :: forall (f :: * -&gt; *) a. Applicative f =&gt; List (f a) -&gt; f (List a)
+traverse :: (a -&gt; f b) -&gt; List a -&gt; f (List b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; List a -&gt; f (List b)
+$cp2Traversable :: Foldable List
+$cp1Traversable :: Functor List
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159164"><span id="local-6989586621679159166"><span id="local-6989586621679159168"><span class="annot"><span class="annottext">Get (List a)
+List a -&gt; Encoding
+List a -&gt; Int -&gt; Int
+(List a -&gt; Encoding)
+-&gt; Get (List a) -&gt; (List a -&gt; Int -&gt; Int) -&gt; Flat (List a)
+forall a. Flat a =&gt; Get (List a)
+forall a. Flat a =&gt; List a -&gt; Encoding
+forall a. Flat a =&gt; List a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: List a -&gt; Int -&gt; Int
+$csize :: forall a. Flat a =&gt; List a -&gt; Int -&gt; Int
+decode :: Get (List a)
+$cdecode :: forall a. Flat a =&gt; Get (List a)
+encode :: List a -&gt; Encoding
+$cencode :: forall a. Flat a =&gt; List a -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span id="local-6989586621679159162"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679159158"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159162"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.List.html#List"><span class="hs-identifier hs-type">List</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159162"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-21"></span></pre></body></html>

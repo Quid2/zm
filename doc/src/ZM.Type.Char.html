@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Char</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Type.Words.html"><span class="hs-identifier">ZM.Type.Words</span></a></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- |A Unicode Char</span><span>
+</span><span id="line-9"></span><span id="local-6989586621679161838"><span id="local-6989586621679161839"></span></span><span class="hs-keyword">data</span><span> </span><span id="Char"><span class="annot"><a href="ZM.Type.Char.html#Char"><span class="hs-identifier hs-var">Char</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Char"><span class="annot"><a href="ZM.Type.Char.html#Char"><span class="hs-identifier hs-var">Char</span></a></span></span><span> </span><span class="annot"><a href="ZM.Type.Words.html#Word32"><span class="hs-identifier hs-type">Word32</span></a></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161832"><span id="local-6989586621679161834"><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+(Char -&gt; Char -&gt; Bool) -&gt; (Char -&gt; Char -&gt; Bool) -&gt; Eq Char
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Char -&gt; Char -&gt; Bool
+$c/= :: Char -&gt; Char -&gt; Bool
+== :: Char -&gt; Char -&gt; Bool
+$c== :: Char -&gt; Char -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161816"><span id="local-6989586621679161818"><span id="local-6989586621679161820"><span id="local-6989586621679161822"><span id="local-6989586621679161824"><span id="local-6989586621679161826"><span id="local-6989586621679161828"><span class="annot"><span class="annottext">Eq Char
+Eq Char
+-&gt; (Char -&gt; Char -&gt; Ordering)
+-&gt; (Char -&gt; Char -&gt; Bool)
+-&gt; (Char -&gt; Char -&gt; Bool)
+-&gt; (Char -&gt; Char -&gt; Bool)
+-&gt; (Char -&gt; Char -&gt; Bool)
+-&gt; (Char -&gt; Char -&gt; Char)
+-&gt; (Char -&gt; Char -&gt; Char)
+-&gt; Ord Char
+Char -&gt; Char -&gt; Bool
+Char -&gt; Char -&gt; Ordering
+Char -&gt; Char -&gt; Char
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Char -&gt; Char -&gt; Char
+$cmin :: Char -&gt; Char -&gt; Char
+max :: Char -&gt; Char -&gt; Char
+$cmax :: Char -&gt; Char -&gt; Char
+&gt;= :: Char -&gt; Char -&gt; Bool
+$c&gt;= :: Char -&gt; Char -&gt; Bool
+&gt; :: Char -&gt; Char -&gt; Bool
+$c&gt; :: Char -&gt; Char -&gt; Bool
+&lt;= :: Char -&gt; Char -&gt; Bool
+$c&lt;= :: Char -&gt; Char -&gt; Bool
+&lt; :: Char -&gt; Char -&gt; Bool
+$c&lt; :: Char -&gt; Char -&gt; Bool
+compare :: Char -&gt; Char -&gt; Ordering
+$ccompare :: Char -&gt; Char -&gt; Ordering
+$cp1Ord :: Eq Char
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161809"><span id="local-6989586621679161811"><span id="local-6989586621679161813"><span class="annot"><span class="annottext">Int -&gt; Char -&gt; ShowS
+[Char] -&gt; ShowS
+Char -&gt; String
+(Int -&gt; Char -&gt; ShowS)
+-&gt; (Char -&gt; String) -&gt; ([Char] -&gt; ShowS) -&gt; Show Char
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Char] -&gt; ShowS
+$cshowList :: [Char] -&gt; ShowS
+show :: Char -&gt; String
+$cshow :: Char -&gt; String
+showsPrec :: Int -&gt; Char -&gt; ShowS
+$cshowsPrec :: Int -&gt; Char -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Char -&gt; Rep Char x)
+-&gt; (forall x. Rep Char x -&gt; Char) -&gt; Generic Char
+forall x. Rep Char x -&gt; Char
+forall x. Char -&gt; Rep Char x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Char x -&gt; Char
+$cfrom :: forall x. Char -&gt; Rep Char x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161801"><span class="annot"><span class="annottext">Typeable Char
+AsType (Ana Char)
+Typeable Char
+-&gt; AsType (Ana Char)
+-&gt; (Proxy Char -&gt; State Env HType)
+-&gt; Model Char
+Proxy Char -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy Char -&gt; State Env HType
+$cenvType :: Proxy Char -&gt; State Env HType
+$cp2Model :: AsType (Ana Char)
+$cp1Model :: Typeable Char
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span></pre></body></html>

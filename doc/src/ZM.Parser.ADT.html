@@ -1,0 +1,670 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FlexibleContexts          #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances         #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE NoMonomorphismRestriction #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes                #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables    ,CPP   #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-comment">{- Parse ZM ADT declarations and values -}</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Parser.ADT</span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#adts"><span class="hs-identifier">adts</span></a></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#adt"><span class="hs-identifier">adt</span></a></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#parType"><span class="hs-identifier">parType</span></a></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier">absReference</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#maybeNamedAbsRef"><span class="hs-identifier">maybeNamedAbsRef</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.ADT.html#namedOrAbsRef"><span class="hs-identifier">namedOrAbsRef</span></a></span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-comment">-- , absId</span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">fromMaybe</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.html"><span class="hs-identifier">ZM</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">convert</span></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>      </span><span class="annot"><span class="hs-identifier">prettyShow</span></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>      </span><span class="annot"><span class="hs-identifier">Convertible</span></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>      </span><span class="annot"><span class="hs-identifier">Fields</span></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>      </span><span class="annot"><span class="hs-identifier">Type</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>      </span><span class="annot"><span class="hs-identifier">Pretty</span></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>      </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier">Identifier</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>      </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier">AbsRef</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Parser.Lexer.html"><span class="hs-identifier">ZM.Parser.Lexer</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier">localId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier">symbol</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Lexer.html#shake"><span class="hs-identifier">shake</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html"><span class="hs-identifier">ZM.Parser.Types</span></a></span><span>
+</span><span id="line-32"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Label"><span class="hs-identifier">Label</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-33"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#AtAbsName"><span class="hs-identifier">AtAbsName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-34"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#AtId"><span class="hs-identifier">AtId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-35"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#Range"><span class="hs-identifier">Range</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-36"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#TypeName"><span class="hs-identifier">TypeName</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-37"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#ADTParts"><span class="hs-identifier">ADTParts</span></a></span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#ADTParts"><span class="hs-identifier">ADTParts</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-38"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier">Parser</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-39"></span><span>      </span><span class="annot"><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier">asTypeName</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Parser.Util.html"><span class="hs-identifier">ZM.Parser.Util</span></a></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Parser.Util.html#mkAt"><span class="hs-identifier">mkAt</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Util.html#cpars"><span class="hs-identifier">cpars</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Util.html#pars"><span class="hs-identifier">pars</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- &gt;&gt;&gt; import ZM.Parser.Util(parseDoc)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">{-|Parse a, possibly empty, group of ZM ADT declarations.
+
+&gt;&gt;&gt; parseMaybe adts &quot;&quot;
+Just []
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adts &quot;Void;&quot;
+Just [Void@(0:0-3) =]
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adts &quot;Void;Bool=False | True&quot;
+Just [Void@(0:0-3) =,
+      Bool@(0:5-8) = False@(0:10-14) | True@(0:18-21)]
+-}</span><span>
+</span><span id="line-57"></span><span class="annot"><a href="ZM.Parser.ADT.html#adts"><span class="hs-identifier hs-type">adts</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Parser.Types.html#ADTParts"><span class="hs-identifier hs-type">ADTParts</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-58"></span><span id="adts"><span class="annot"><span class="annottext">adts :: Parser [ADTParts]
+</span><a href="ZM.Parser.ADT.html#adts"><span class="hs-identifier hs-var hs-var">adts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ADTParts
+-&gt; ParsecT Void String Identity String -&gt; Parser [ADTParts]
+forall (m :: * -&gt; *) a sep. MonadPlus m =&gt; m a -&gt; m sep -&gt; m [a]
+</span><span class="hs-identifier hs-var">sepEndBy</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ADTParts
+</span><a href="ZM.Parser.ADT.html#adt"><span class="hs-identifier hs-var">adt</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">{-| Parse a ZM ADT declaration.
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;Void&quot;
+Just Void@(0:0-3) =
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;Bool.K306f1981b41c = False \n| True&quot;
+Just Bool.K306f1981b41c@(0:0-17) = False@(0:21-25) | True@(1:2-5)
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;&#26159;&#19981;&#26159; &#8801;   &#26159;\n                    | &#19981;&#26159;&quot;
+Just &#26159;&#19981;&#26159;@(0:0-2) = &#26159;@(0:8) | &#19981;&#26159;@(1:22-23)
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;A = A (A (B C D))&quot;
+Just A@(0:0) = A@(0:4) (A@(0:7) (B@(0:10) C@(0:12) D@(0:14)))
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;Msg = Msg {from:Name.K306f1981b41c,subject:String}&quot;
+Just Msg@(0:0-2) = Msg@(0:6-8) {from@(0:11-14) :: Name.K306f1981b41c@(0:16-33),
+                                subject@(0:35-41) :: String@(0:43-48)}
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseMaybe adt &quot;List a = Cons {head:a, tail:List a} | \nNil&quot;
+Just List@(0:0-3) a@(0:5) = Cons@(0:9-12) {head@(0:15-18) :: a@(0:20),
+                                           tail@(0:23-26) :: List@(0:28-31) a@(0:33)} | Nil@(1:0-2)
+
+
+Syntax Errors:
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseDoc adt &quot;Bool = | True&quot;
+Left &quot;unexpected '|' expecting end of input or letter&quot;@(0:7)
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseDoc adt &quot; = &quot;
+Left &quot;unexpected '=' expecting letter&quot;@(0:1)
+
+&gt;&gt;&gt; putStr $ prettyShow $ parseDoc adt &quot;a b.d e.f = c.f.a&quot;
+Left &quot;unexpected '.' expecting '=', '_', '\8801', alphanumeric character, end of input, or letter&quot;@(0:3)
+-}</span><span>
+</span><span id="line-94"></span><span class="annot"><a href="ZM.Parser.ADT.html#adt"><span class="hs-identifier hs-type">adt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#ADTParts"><span class="hs-identifier hs-type">ADTParts</span></a></span><span>
+</span><span id="line-95"></span><span id="adt"><span class="annot"><span class="annottext">adt :: ParsecT Void String Identity ADTParts
+</span><a href="ZM.Parser.ADT.html#adt"><span class="hs-identifier hs-var hs-var">adt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-96"></span><span>  </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679167383"><span class="annot"><span class="annottext">AtAbsName
+</span><a href="#local-6989586621679167383"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679167382"><span class="annot"><span class="annottext">[AtId]
+</span><a href="#local-6989586621679167382"><span class="hs-identifier hs-var">vars</span></a></span></span><span> </span><span id="local-6989586621679167381"><span class="annot"><span class="annottext">Maybe [(AtId, Fields AtId AtAbsName)]
+</span><a href="#local-6989586621679167381"><span class="hs-identifier hs-var">mcons</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">AtAbsName -&gt; [AtId] -&gt; [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts
+</span><a href="ZM.Parser.Types.html#ADTParts"><span class="hs-identifier hs-var">ADTParts</span></a></span><span> </span><span class="annot"><span class="annottext">AtAbsName
+</span><a href="#local-6989586621679167383"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">[AtId]
+</span><a href="#local-6989586621679167382"><span class="hs-identifier hs-var">vars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(AtId, Fields AtId AtAbsName)]
+-&gt; Maybe [(AtId, Fields AtId AtAbsName)]
+-&gt; [(AtId, Fields AtId AtAbsName)]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Maybe [(AtId, Fields AtId AtAbsName)]
+</span><a href="#local-6989586621679167381"><span class="hs-identifier hs-var">mcons</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="annottext">(AtAbsName
+ -&gt; [AtId] -&gt; Maybe [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts)
+-&gt; ParsecT Void String Identity AtAbsName
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     ([AtId] -&gt; Maybe [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity AtAbsName
+forall s e (m :: * -&gt; *) a2.
+(TraversableStream s, MonadParsec e s m, Pretty a2) =&gt;
+m a2 -&gt; m (Label Range a2)
+</span><a href="ZM.Parser.ADT.html#at"><span class="hs-identifier hs-var">at</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+</span><a href="ZM.Parser.ADT.html#namedMaybeAbsRef"><span class="hs-identifier hs-var">namedMaybeAbsRef</span></a></span><span> </span><span class="hs-comment">-- absIdAt</span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">ParsecT
+  Void
+  String
+  Identity
+  ([AtId] -&gt; Maybe [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts)
+-&gt; ParsecT Void String Identity [AtId]
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     (Maybe [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtId
+-&gt; ParsecT Void String Identity [AtId]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtId
+</span><a href="ZM.Parser.ADT.html#idAt"><span class="hs-identifier hs-var">idAt</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><span class="annottext">ParsecT
+  Void
+  String
+  Identity
+  (Maybe [(AtId, Fields AtId AtAbsName)] -&gt; ADTParts)
+-&gt; ParsecT
+     Void String Identity (Maybe [(AtId, Fields AtId AtAbsName)])
+-&gt; ParsecT Void String Identity ADTParts
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity [(AtId, Fields AtId AtAbsName)]
+-&gt; ParsecT
+     Void String Identity (Maybe [(AtId, Fields AtId AtAbsName)])
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8801;&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity [(AtId, Fields AtId AtAbsName)]
+-&gt; ParsecT Void String Identity [(AtId, Fields AtId AtAbsName)]
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (AtId, Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity [(AtId, Fields AtId AtAbsName)]
+forall (m :: * -&gt; *) a sep. MonadPlus m =&gt; m a -&gt; m sep -&gt; m [a]
+</span><span class="hs-identifier hs-var">sepBy</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (AtId, Fields AtId AtAbsName)
+</span><a href="ZM.Parser.ADT.html#constr"><span class="hs-identifier hs-var">constr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;|&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-comment">{-| Parse a constructor declaration (with either named or unnamed fields).
+
+&gt;&gt; prettyShow &lt;$&gt; parseMaybe constr &quot;False&quot;
+Just (ADTParts {name = &quot;Bool&quot;@(0,0), vars = [], constrs = [(&quot;False&quot;@(0,7),Left []),(&quot;True&quot;@(0,15),Left [])]})
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe constr &quot;Cons  a  ( List a  )&quot;
+Just &quot;Cons@(0:0-3) a@(0:6) (List@(0:11-14) a@(0:16))&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe constr &quot;Pos {}&quot;
+Just &quot;Pos@(0:0-2) {}&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe constr &quot;Cons {head:a, tail:List a}&quot;
+Just &quot;Cons@(0:0-3) {head@(0:6-9) :: a@(0:11),\n              tail@(0:14-17) :: List@(0:19-22) a@(0:24)}&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe constr &quot;V A B (C D)&quot;
+Just &quot;V@(0:0) A@(0:2) B@(0:4) (C@(0:7) D@(0:9))&quot;
+-}</span><span>
+</span><span id="line-118"></span><span class="annot"><a href="ZM.Parser.ADT.html#constr"><span class="hs-identifier hs-type">constr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#AtId"><span class="hs-identifier hs-type">AtId</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fields</span></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#AtId"><span class="hs-identifier hs-type">AtId</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#AtAbsName"><span class="hs-identifier hs-type">AtAbsName</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span id="constr"><span class="annot"><span class="annottext">constr :: ParsecT Void String Identity (AtId, Fields AtId AtAbsName)
+</span><a href="ZM.Parser.ADT.html#constr"><span class="hs-identifier hs-var hs-var">constr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">,</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(AtId -&gt; Fields AtId AtAbsName -&gt; (AtId, Fields AtId AtAbsName))
+-&gt; ParsecT Void String Identity AtId
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     (Fields AtId AtAbsName -&gt; (AtId, Fields AtId AtAbsName))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtId
+</span><a href="ZM.Parser.ADT.html#idAt"><span class="hs-identifier hs-var">idAt</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT
+  Void
+  String
+  Identity
+  (Fields AtId AtAbsName -&gt; (AtId, Fields AtId AtAbsName))
+-&gt; ParsecT Void String Identity (Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity (AtId, Fields AtId AtAbsName)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Fields AtId AtAbsName)
+</span><a href="#local-6989586621679167371"><span class="hs-identifier hs-var">flds</span></a></span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-comment">--flds = eitherP unnamedFlds namedFlds</span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-124"></span><span>  </span><span id="local-6989586621679167371"><span class="annot"><span class="annottext">flds :: ParsecT Void String Identity (Fields AtId AtAbsName)
+</span><a href="#local-6989586621679167371"><span class="hs-identifier hs-var hs-var">flds</span></a></span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(AtId, Type AtAbsName)] -&gt; Fields AtId AtAbsName
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">([(AtId, Type AtAbsName)] -&gt; Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity [(AtId, Type AtAbsName)]
+-&gt; ParsecT Void String Identity (Fields AtId AtAbsName)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity [(AtId, Type AtAbsName)]
+</span><a href="#local-6989586621679167370"><span class="hs-identifier hs-var">namedFlds</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity (Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity (Fields AtId AtAbsName)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Type AtAbsName] -&gt; Fields AtId AtAbsName
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">([Type AtAbsName] -&gt; Fields AtId AtAbsName)
+-&gt; ParsecT Void String Identity [Type AtAbsName]
+-&gt; ParsecT Void String Identity (Fields AtId AtAbsName)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity [Type AtAbsName]
+</span><a href="#local-6989586621679167369"><span class="hs-identifier hs-var">unnamedFlds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679167370"><span class="annot"><span class="annottext">namedFlds :: ParsecT Void String Identity [(AtId, Type AtAbsName)]
+</span><a href="#local-6989586621679167370"><span class="hs-identifier hs-var hs-var">namedFlds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity [(AtId, Type AtAbsName)]
+-&gt; ParsecT Void String Identity [(AtId, Type AtAbsName)]
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Util.html#cpars"><span class="hs-identifier hs-var">cpars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity (AtId, Type AtAbsName)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity [(AtId, Type AtAbsName)]
+forall (m :: * -&gt; *) a sep. MonadPlus m =&gt; m a -&gt; m sep -&gt; m [a]
+</span><span class="hs-identifier hs-var">sepBy</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (AtId, Type AtAbsName)
+</span><a href="#local-6989586621679167368"><span class="hs-identifier hs-var">namedConstrFld</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>  </span><span id="local-6989586621679167368"><span class="annot"><span class="annottext">namedConstrFld :: ParsecT Void String Identity (AtId, Type AtAbsName)
+</span><a href="#local-6989586621679167368"><span class="hs-identifier hs-var hs-var">namedConstrFld</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-127"></span><span>    </span><span class="hs-special">(</span><span class="hs-special">,</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(AtId -&gt; Type AtAbsName -&gt; (AtId, Type AtAbsName))
+-&gt; ParsecT Void String Identity AtId
+-&gt; ParsecT
+     Void String Identity (Type AtAbsName -&gt; (AtId, Type AtAbsName))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity AtId
+</span><a href="ZM.Parser.ADT.html#idAt"><span class="hs-identifier hs-var">idAt</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtId
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity AtId
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;::&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;:&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT
+  Void String Identity (Type AtAbsName -&gt; (AtId, Type AtAbsName))
+-&gt; ParsecT Void String Identity (Type AtAbsName)
+-&gt; ParsecT Void String Identity (AtId, Type AtAbsName)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtAbsName
+-&gt; ParsecT Void String Identity (Type AtAbsName)
+forall a. Parser a -&gt; Parser (Type a)
+</span><a href="ZM.Parser.ADT.html#parType"><span class="hs-identifier hs-var">parType</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtAbsName
+</span><a href="ZM.Parser.ADT.html#absIdAt"><span class="hs-identifier hs-var">absIdAt</span></a></span><span>
+</span><span id="line-128"></span><span>  </span><span id="local-6989586621679167369"><span class="annot"><span class="annottext">unnamedFlds :: ParsecT Void String Identity [Type AtAbsName]
+</span><a href="#local-6989586621679167369"><span class="hs-identifier hs-var hs-var">unnamedFlds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Type AtAbsName)
+-&gt; ParsecT Void String Identity [Type AtAbsName]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity AtAbsName
+-&gt; ParsecT Void String Identity (Type AtAbsName)
+forall a. Parser a -&gt; Parser (Type a)
+</span><a href="ZM.Parser.ADT.html#simpleType"><span class="hs-identifier hs-var">simpleType</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AtAbsName
+</span><a href="ZM.Parser.ADT.html#absIdAt"><span class="hs-identifier hs-var">absIdAt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- many typeAt</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- atyp = pos (typ name)</span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- typeAt = typ absIdAt</span><span>
+</span><span id="line-132"></span><span class="annot"><a href="ZM.Parser.ADT.html#absIdAt"><span class="hs-identifier hs-type">absIdAt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Label"><span class="hs-identifier hs-type">Label</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#TypeName"><span class="hs-identifier hs-type">TypeName</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span id="absIdAt"><span class="annot"><span class="annottext">absIdAt :: ParsecT Void String Identity AtAbsName
+</span><a href="ZM.Parser.ADT.html#absIdAt"><span class="hs-identifier hs-var hs-var">absIdAt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity AtAbsName
+forall s e (m :: * -&gt; *) a2.
+(TraversableStream s, MonadParsec e s m, Pretty a2) =&gt;
+m a2 -&gt; m (Label Range a2)
+</span><a href="ZM.Parser.ADT.html#at"><span class="hs-identifier hs-var">at</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+</span><a href="ZM.Parser.ADT.html#namedOrAbsRef"><span class="hs-identifier hs-var">namedOrAbsRef</span></a></span><span>
+</span><span id="line-134"></span><span>
+</span><span id="line-135"></span><span class="annot"><a href="ZM.Parser.ADT.html#idAt"><span class="hs-identifier hs-type">idAt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#AtId"><span class="hs-identifier hs-type">AtId</span></a></span><span>
+</span><span id="line-136"></span><span id="idAt"><span class="annot"><span class="annottext">idAt :: ParsecT Void String Identity AtId
+</span><a href="ZM.Parser.ADT.html#idAt"><span class="hs-identifier hs-var hs-var">idAt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Identifier
+-&gt; ParsecT Void String Identity AtId
+forall s e (m :: * -&gt; *) a2.
+(TraversableStream s, MonadParsec e s m, Pretty a2) =&gt;
+m a2 -&gt; m (Label Range a2)
+</span><a href="ZM.Parser.ADT.html#at"><span class="hs-identifier hs-var">at</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Identifier
+forall b. Convertible String b =&gt; Parser b
+</span><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-var">localIdentifier</span></a></span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span id="local-6989586621679167437"><span class="annot"><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-type">localIdentifier</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Convertible</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="#local-6989586621679167437"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167437"><span class="hs-identifier hs-type">b</span></a></span></span><span>
+</span><span id="line-139"></span><span id="localIdentifier"><span class="annot"><span class="annottext">localIdentifier :: Parser b
+</span><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-var hs-var">localIdentifier</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; b
+forall a b. Convertible a b =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">convert</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; b) -&gt; ParsecT Void String Identity String -&gt; Parser b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-var">localId</span></a></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span class="hs-comment">{- Add location information to the result of a parser.
+
+We assume that:
+* the parser does not parse initial space
+* the length of parsed text is equal to the length of the pretty-shown result
+* the parsed text is disposed on a single line
+-}</span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span id="local-6989586621679167461"><span id="local-6989586621679167463"><span id="local-6989586621679167464"><span id="local-6989586621679167466"><span class="annot"><a href="ZM.Parser.ADT.html#at"><span class="hs-identifier hs-type">at</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TraversableStream</span></span><span> </span><span class="annot"><a href="#local-6989586621679167466"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679167464"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167466"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167463"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="#local-6989586621679167461"><span class="hs-identifier hs-type">a2</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679167463"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167461"><span class="hs-identifier hs-type">a2</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679167463"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Label"><span class="hs-identifier hs-type">Label</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Range"><span class="hs-identifier hs-type">Range</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167461"><span class="hs-identifier hs-type">a2</span></a></span><span class="hs-special">)</span></span></span></span></span><span>
+</span><span id="line-150"></span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span id="at"><span class="annot"><span class="annottext">at :: m a2 -&gt; m (Label Range a2)
+</span><a href="ZM.Parser.ADT.html#at"><span class="hs-identifier hs-var hs-var">at</span></a></span></span><span> </span><span id="local-6989586621679167363"><span class="annot"><span class="annottext">m a2
+</span><a href="#local-6989586621679167363"><span class="hs-identifier hs-var">parser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-154"></span><span>  </span><span id="local-6989586621679167362"><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679167362"><span class="hs-identifier hs-var">pos</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m SourcePos
+forall s e (m :: * -&gt; *).
+(TraversableStream s, MonadParsec e s m) =&gt;
+m SourcePos
+</span><span class="hs-identifier hs-var">getSourcePos</span></span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679167360"><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679167360"><span class="hs-identifier hs-var">r</span></a></span></span><span>   </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m a2
+</span><a href="#local-6989586621679167363"><span class="hs-identifier hs-var">parser</span></a></span><span>
+</span><span id="line-156"></span><span>  </span><span class="annot"><span class="annottext">Label Range a2 -&gt; m (Label Range a2)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">(Label Range a2 -&gt; m (Label Range a2))
+-&gt; Label Range a2 -&gt; m (Label Range a2)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SourcePos -&gt; Int -&gt; a2 -&gt; Label Range a2
+forall a2. SourcePos -&gt; Int -&gt; a2 -&gt; Label Range a2
+</span><a href="ZM.Parser.Util.html#mkAt"><span class="hs-identifier hs-var">mkAt</span></a></span><span> </span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679167362"><span class="hs-identifier hs-var">pos</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a2 -&gt; String
+forall a. Pretty a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">prettyShow</span></span><span> </span><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679167360"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679167360"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-157"></span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- at parser = do</span><span>
+</span><span id="line-159"></span><span class="hs-comment">--   pos1 &lt;- getPosition</span><span>
+</span><span id="line-160"></span><span class="hs-comment">--   r &lt;- parser</span><span>
+</span><span id="line-161"></span><span class="hs-comment">--   (mr,ms) &lt;- match parser</span><span>
+</span><span id="line-162"></span><span class="hs-comment">--   let l = length . dropWhile (== ' ') . reverse $ ms</span><span>
+</span><span id="line-163"></span><span class="hs-comment">--   --pos2 &lt;- getPosition</span><span>
+</span><span id="line-164"></span><span class="hs-comment">--   -- when (sourceLine pos2 /= sourceLine pos1) $ fail &quot;at: unexpected multiline parser&quot;</span><span>
+</span><span id="line-165"></span><span class="hs-comment">--   --return $ At (mkRange pos1 (unPos (sourceColumn pos2) - unPos (sourceColumn pos1))) r</span><span>
+</span><span id="line-166"></span><span class="hs-comment">--   return $ At (mkRange pos1 l) rr</span><span>
+</span><span id="line-167"></span><span class="hs-comment">{-| Parse a type application, a type constructor with zero or more parameters
+
+&gt;&gt;&gt; parseMaybe (parType localId) &quot;a&quot;
+Just (TypeCon &quot;a&quot;)
+
+&gt;&gt;&gt; parseMaybe (parType localId) &quot;((a))&quot;
+Just (TypeCon &quot;a&quot;)
+
+&gt;&gt;&gt; parseMaybe (parType localId) &quot;a b&quot;
+Just (TypeApp (TypeCon &quot;a&quot;) (TypeCon &quot;b&quot;))
+
+&gt;&gt;&gt; parseMaybe (parType localId) &quot;(a) ((b)) c&quot;
+Just (TypeApp (TypeApp (TypeCon &quot;a&quot;) (TypeCon &quot;b&quot;)) (TypeCon &quot;c&quot;))
+
+&gt;&gt;&gt; typeN &lt;$&gt; parseMaybe (parType localId) &quot;(a b (c d (e f g))) z&quot;
+Just (TypeN &quot;a&quot; [TypeN &quot;b&quot; [],TypeN &quot;c&quot; [TypeN &quot;d&quot; [],TypeN &quot;e&quot; [TypeN &quot;f&quot; [],TypeN &quot;g&quot; []]],TypeN &quot;z&quot; []])
+
+&gt;&gt;&gt; parseMaybe (parType localId) &quot;(a b) c&quot;
+Just (TypeApp (TypeApp (TypeCon &quot;a&quot;) (TypeCon &quot;b&quot;)) (TypeCon &quot;c&quot;))
+-}</span><span>
+</span><span id="line-187"></span><span id="local-6989586621679167438"><span class="annot"><a href="ZM.Parser.ADT.html#parType"><span class="hs-identifier hs-type">parType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167438"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679167438"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-188"></span><span id="parType"><span class="annot"><span class="annottext">parType :: Parser a -&gt; Parser (Type a)
+</span><a href="ZM.Parser.ADT.html#parType"><span class="hs-identifier hs-var hs-var">parType</span></a></span></span><span> </span><span id="local-6989586621679167358"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167358"><span class="hs-identifier hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Type a -&gt; Type a -&gt; Type a) -&gt; [Type a] -&gt; Type a
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; a -&gt; a) -&gt; t a -&gt; a
+</span><span class="hs-identifier hs-var">foldl1</span></span><span> </span><span class="annot"><span class="annottext">Type a -&gt; Type a -&gt; Type a
+forall ref. Type ref -&gt; Type ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">TypeApp</span></span><span> </span><span class="annot"><span class="annottext">([Type a] -&gt; Type a)
+-&gt; ParsecT Void String Identity [Type a] -&gt; Parser (Type a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; ParsecT Void String Identity [Type a]
+forall ref. Parser ref -&gt; Parser [Type ref]
+</span><a href="ZM.Parser.ADT.html#types"><span class="hs-identifier hs-var">types</span></a></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679167358"><span class="hs-identifier hs-var">cons</span></a></span><span>
+</span><span id="line-189"></span><span>
+</span><span id="line-190"></span><span class="hs-comment">{-| Parse a simple type, either a type constructor or a type in parentheses
+&gt;&gt;&gt; parseMaybe (simpleType localId) &quot;a&quot;
+Just (TypeCon &quot;a&quot;)
+
+&gt;&gt;&gt; parseMaybe (simpleType localId) &quot;(a b c)&quot;
+Just (TypeApp (TypeApp (TypeCon &quot;a&quot;) (TypeCon &quot;b&quot;)) (TypeCon &quot;c&quot;))
+-}</span><span>
+</span><span id="line-197"></span><span id="local-6989586621679167354"><span class="annot"><a href="ZM.Parser.ADT.html#simpleType"><span class="hs-identifier hs-type">simpleType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167354"><span class="hs-identifier hs-type">ref</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679167354"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-198"></span><span id="simpleType"><span class="annot"><span class="annottext">simpleType :: Parser ref -&gt; Parser (Type ref)
+</span><a href="ZM.Parser.ADT.html#simpleType"><span class="hs-identifier hs-var hs-var">simpleType</span></a></span></span><span> </span><span id="local-6989586621679167353"><span class="annot"><span class="annottext">Parser ref
+</span><a href="#local-6989586621679167353"><span class="hs-identifier hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser (Type ref) -&gt; Parser (Type ref)
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Util.html#pars"><span class="hs-identifier hs-var">pars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser ref -&gt; Parser (Type ref)
+forall a. Parser a -&gt; Parser (Type a)
+</span><a href="ZM.Parser.ADT.html#parType"><span class="hs-identifier hs-var">parType</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ref
+</span><a href="#local-6989586621679167353"><span class="hs-identifier hs-var">cons</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Type ref) -&gt; Parser (Type ref) -&gt; Parser (Type ref)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ref -&gt; Type ref
+forall ref. ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">TypeCon</span></span><span> </span><span class="annot"><span class="annottext">(ref -&gt; Type ref) -&gt; Parser ref -&gt; Parser (Type ref)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser ref
+</span><a href="#local-6989586621679167353"><span class="hs-identifier hs-var">cons</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-199"></span><span>
+</span><span id="line-200"></span><span class="hs-comment">{-| Parse a non-empty sequence of types.
+&gt;&gt;&gt; parseMaybe (types localId) &quot;&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe (types localId) &quot;(a) ((b)) (c d) e&quot;
+Just [TypeCon &quot;a&quot;,TypeCon &quot;b&quot;,TypeApp (TypeCon &quot;c&quot;) (TypeCon &quot;d&quot;),TypeCon &quot;e&quot;]
+-}</span><span>
+</span><span id="line-207"></span><span id="local-6989586621679167414"><span class="annot"><a href="ZM.Parser.ADT.html#types"><span class="hs-identifier hs-type">types</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167414"><span class="hs-identifier hs-type">ref</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679167414"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-208"></span><span id="types"><span class="annot"><span class="annottext">types :: Parser ref -&gt; Parser [Type ref]
+</span><a href="ZM.Parser.ADT.html#types"><span class="hs-identifier hs-var hs-var">types</span></a></span></span><span> </span><span id="local-6989586621679167351"><span class="annot"><span class="annottext">Parser ref
+</span><a href="#local-6989586621679167351"><span class="hs-identifier hs-var">cons</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Type ref) -&gt; Parser [Type ref]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser ref -&gt; ParsecT Void String Identity (Type ref)
+forall a. Parser a -&gt; Parser (Type a)
+</span><a href="ZM.Parser.ADT.html#simpleType"><span class="hs-identifier hs-var">simpleType</span></a></span><span> </span><span class="annot"><span class="annottext">Parser ref
+</span><a href="#local-6989586621679167351"><span class="hs-identifier hs-var">cons</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-209"></span><span>
+</span><span id="line-210"></span><span class="hs-comment">-- typN :: Parser a -&gt; Parser (TypeN a)</span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- typN cons = pars (typN cons) &lt;|&gt; (TypeN &lt;$&gt; cons &lt;*&gt; many (typN cons))</span><span>
+</span><span id="line-212"></span><span class="hs-comment">{-| Parse a simple type name, possibly qualified with an absolute code.
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe namedOrAbsRef &quot;nil&quot;
+Just &quot;nil&quot;
+
+The . is required to distinguish a hash from a plain type name (remove this ambiguity?)
+
+This is a hash:
+
+&gt;&gt;&gt; parseMaybe namedOrAbsRef &quot;.K306f1981b41c&quot;
+Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
+
+And this is just a type name (NO actually we try to interpret it as an absolute reference first):
+
+&gt;&gt;&gt; parseMaybe namedOrAbsRef &quot;K306f1981b41c&quot;
+Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
+-}</span><span>
+</span><span id="line-229"></span><span class="hs-comment">-- absId :: Parser (TypeName Identifier)</span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- absId =</span><span>
+</span><span id="line-231"></span><span class="hs-comment">--   asTypeName Nothing . Just &lt;$&gt; dref &lt;|&gt;</span><span>
+</span><span id="line-232"></span><span class="hs-comment">--   asTypeName &lt;$&gt; (Just &lt;$&gt; localIdentifier) &lt;*&gt; optional dref</span><span>
+</span><span id="line-233"></span><span class="annot"><a href="ZM.Parser.ADT.html#namedOrAbsRef"><span class="hs-identifier hs-type">namedOrAbsRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#TypeName"><span class="hs-identifier hs-type">TypeName</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-234"></span><span id="namedOrAbsRef"><span class="annot"><span class="annottext">namedOrAbsRef :: ParsecT Void String Identity (TypeName Identifier)
+</span><a href="ZM.Parser.ADT.html#namedOrAbsRef"><span class="hs-identifier hs-var hs-var">namedOrAbsRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-235"></span><span>  </span><span class="annot"><span class="annottext">Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier
+forall a b. Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier hs-var">asTypeName</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Identifier
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-236"></span><span>    </span><span class="annot"><span class="annottext">(Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; (AbsRef -&gt; Maybe AbsRef) -&gt; AbsRef -&gt; TypeName Identifier
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span>   </span><span class="annot"><span class="annottext">AbsRef -&gt; Maybe AbsRef
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span>
+</span><span id="line-237"></span><span>    </span><span class="annot"><span class="annottext">(AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Maybe String)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe String)
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity AbsRef
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier hs-var">absReference</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-238"></span><span>    </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier
+forall a b. Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier hs-var">asTypeName</span></a></span><span>
+</span><span id="line-239"></span><span>    </span><span class="annot"><span class="annottext">(Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+-&gt; ParsecT
+     Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Identifier -&gt; Maybe Identifier
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Identifier -&gt; Maybe Identifier)
+-&gt; ParsecT Void String Identity Identifier
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Identifier
+forall b. Convertible String b =&gt; Parser b
+</span><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-var">localIdentifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-240"></span><span>    </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#dref"><span class="hs-identifier hs-var">dref</span></a></span><span>
+</span><span id="line-241"></span><span>
+</span><span id="line-242"></span><span class="annot"><a href="ZM.Parser.ADT.html#namedMaybeAbsRef"><span class="hs-identifier hs-type">namedMaybeAbsRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#TypeName"><span class="hs-identifier hs-type">TypeName</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-243"></span><span id="namedMaybeAbsRef"><span class="annot"><span class="annottext">namedMaybeAbsRef :: ParsecT Void String Identity (TypeName Identifier)
+</span><a href="ZM.Parser.ADT.html#namedMaybeAbsRef"><span class="hs-identifier hs-var hs-var">namedMaybeAbsRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier
+forall a b. Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier hs-var">asTypeName</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+-&gt; ParsecT
+     Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Identifier -&gt; Maybe Identifier
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Identifier -&gt; Maybe Identifier)
+-&gt; ParsecT Void String Identity Identifier
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Identifier
+forall b. Convertible String b =&gt; Parser b
+</span><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-var">localIdentifier</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#dref"><span class="hs-identifier hs-var">dref</span></a></span><span>
+</span><span id="line-244"></span><span>
+</span><span id="line-245"></span><span class="hs-comment">-- An absolute reference, plus optionally the data type name</span><span>
+</span><span id="line-246"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe maybeNamedAbsRef &quot;Bool.K306f1981b41c&quot;
+Just &quot;Bool.K306f1981b41c&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe maybeNamedAbsRef &quot;.K306f1981b41c&quot;
+Just &quot;.K306f1981b41c&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe maybeNamedAbsRef &quot;K306f1981b41c&quot;
+Just &quot;.K306f1981b41c&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe maybeNamedAbsRef &quot;Bool&quot;
+Nothing
+-}</span><span>
+</span><span id="line-259"></span><span class="annot"><a href="ZM.Parser.ADT.html#maybeNamedAbsRef"><span class="hs-identifier hs-type">maybeNamedAbsRef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#TypeName"><span class="hs-identifier hs-type">TypeName</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-260"></span><span id="maybeNamedAbsRef"><span class="annot"><span class="annottext">maybeNamedAbsRef :: ParsecT Void String Identity (TypeName Identifier)
+</span><a href="ZM.Parser.ADT.html#maybeNamedAbsRef"><span class="hs-identifier hs-var hs-var">maybeNamedAbsRef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-261"></span><span>  </span><span class="annot"><span class="annottext">Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier
+forall a b. Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier hs-var">asTypeName</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Identifier
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-262"></span><span>    </span><span class="annot"><span class="annottext">(Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; (AbsRef -&gt; Maybe AbsRef) -&gt; AbsRef -&gt; TypeName Identifier
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span>   </span><span class="annot"><span class="annottext">AbsRef -&gt; Maybe AbsRef
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span>
+</span><span id="line-263"></span><span>    </span><span class="annot"><span class="annottext">(AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Maybe String)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe String)
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity AbsRef
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier hs-var">absReference</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-264"></span><span>    </span><span class="annot"><span class="annottext">ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier
+forall a b. Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="ZM.Parser.Types.html#asTypeName"><span class="hs-identifier hs-var">asTypeName</span></a></span><span>
+</span><span id="line-265"></span><span>    </span><span class="annot"><span class="annottext">(Maybe Identifier -&gt; Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+-&gt; ParsecT
+     Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Identifier -&gt; Maybe Identifier
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Identifier -&gt; Maybe Identifier)
+-&gt; ParsecT Void String Identity Identifier
+-&gt; ParsecT Void String Identity (Maybe Identifier)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Identifier
+forall b. Convertible String b =&gt; Parser b
+</span><a href="ZM.Parser.ADT.html#localIdentifier"><span class="hs-identifier hs-var">localIdentifier</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-266"></span><span>    </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe AbsRef -&gt; TypeName Identifier)
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+-&gt; ParsecT Void String Identity (TypeName Identifier)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsRef -&gt; Maybe AbsRef
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(AbsRef -&gt; Maybe AbsRef)
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity (Maybe AbsRef)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#dref"><span class="hs-identifier hs-var">dref</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-267"></span><span>
+</span><span id="line-268"></span><span class="annot"><a href="ZM.Parser.ADT.html#dref"><span class="hs-identifier hs-type">dref</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-269"></span><span id="dref"><span class="annot"><span class="annottext">dref :: ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#dref"><span class="hs-identifier hs-var hs-var">dref</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity AbsRef
+-&gt; ParsecT Void String Identity AbsRef
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier hs-var">absReference</span></a></span><span>
+</span><span id="line-270"></span><span>
+</span><span id="line-271"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe absReference &quot;K306f1981b41c&quot;
+Just &quot;K306f1981b41c&quot;
+
+&gt;&gt;&gt; prettyShow &lt;$&gt; parseMaybe absReference &quot;KKK&quot;
+Nothing
+-}</span><span>
+</span><span id="line-278"></span><span class="annot"><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier hs-type">absReference</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>
+</span><span id="line-279"></span><span id="absReference"><span class="annot"><span class="annottext">absReference :: ParsecT Void String Identity AbsRef
+</span><a href="ZM.Parser.ADT.html#absReference"><span class="hs-identifier hs-var hs-var">absReference</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SHAKE128_48 AbsADT -&gt; AbsRef
+</span><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-var">AbsRef</span></a></span><span> </span><span class="annot"><span class="annottext">(SHAKE128_48 AbsADT -&gt; AbsRef)
+-&gt; ParsecT Void String Identity (SHAKE128_48 AbsADT)
+-&gt; ParsecT Void String Identity AbsRef
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (SHAKE128_48 AbsADT)
+forall a. Parser (SHAKE128_48 a)
+</span><a href="ZM.Parser.Lexer.html#shake"><span class="hs-identifier hs-var">shake</span></a></span><span>
+</span><span id="line-280"></span><span>
+</span><span id="line-281"></span></pre></body></html>

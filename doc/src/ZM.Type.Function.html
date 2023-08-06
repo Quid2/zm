@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_2NjCyN39iZJ8KjQy7C3iDE"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Function</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Types.html"><span class="hs-identifier">ZM.Types</span></a></span><span>                       </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier">SHAKE128_48</span></a></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Here we would need higher order types:</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- data Function f k r = Call f | Reply (k f) r deriving (Eq,Ord,Show,Generic,Flat)</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- instance (Model a,Model (b a),Model c) =&gt; Model (Function a b c)</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- data Function f k r = Call f | Reply k r deriving (Eq,Ord,Show,Generic,Flat)</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- instance (Model a,Model b,Model c) =&gt; Model (Function a b c)</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Or:</span><span>
+</span><span id="line-16"></span><span id="local-6989586621679163278"><span id="local-6989586621679163279"></span></span><span class="hs-keyword">data</span><span> </span><span id="Function"><span class="annot"><a href="ZM.Type.Function.html#Function"><span class="hs-identifier hs-var">Function</span></a></span></span><span> </span><span id="local-6989586621679163277"><span class="annot"><a href="#local-6989586621679163277"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679163276"><span class="annot"><a href="#local-6989586621679163276"><span class="hs-identifier hs-type">r</span></a></span></span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Call"><span class="annot"><a href="ZM.Type.Function.html#Call"><span class="hs-identifier hs-var">Call</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679163277"><span class="hs-identifier hs-type">f</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Reply"><span class="annot"><a href="ZM.Type.Function.html#Reply"><span class="hs-identifier hs-var">Reply</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163277"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679163276"><span class="hs-identifier hs-type">r</span></a></span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679163270"><span id="local-6989586621679163272"><span class="annot"><span class="annottext">Function f r -&gt; Function f r -&gt; Bool
+(Function f r -&gt; Function f r -&gt; Bool)
+-&gt; (Function f r -&gt; Function f r -&gt; Bool) -&gt; Eq (Function f r)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall f r. (Eq f, Eq r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+/= :: Function f r -&gt; Function f r -&gt; Bool
+$c/= :: forall f r. (Eq f, Eq r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+== :: Function f r -&gt; Function f r -&gt; Bool
+$c== :: forall f r. (Eq f, Eq r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679163254"><span id="local-6989586621679163256"><span id="local-6989586621679163258"><span id="local-6989586621679163260"><span id="local-6989586621679163262"><span id="local-6989586621679163264"><span id="local-6989586621679163266"><span class="annot"><span class="annottext">Eq (Function f r)
+Eq (Function f r)
+-&gt; (Function f r -&gt; Function f r -&gt; Ordering)
+-&gt; (Function f r -&gt; Function f r -&gt; Bool)
+-&gt; (Function f r -&gt; Function f r -&gt; Bool)
+-&gt; (Function f r -&gt; Function f r -&gt; Bool)
+-&gt; (Function f r -&gt; Function f r -&gt; Bool)
+-&gt; (Function f r -&gt; Function f r -&gt; Function f r)
+-&gt; (Function f r -&gt; Function f r -&gt; Function f r)
+-&gt; Ord (Function f r)
+Function f r -&gt; Function f r -&gt; Bool
+Function f r -&gt; Function f r -&gt; Ordering
+Function f r -&gt; Function f r -&gt; Function f r
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall f r. (Ord f, Ord r) =&gt; Eq (Function f r)
+forall f r. (Ord f, Ord r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+forall f r.
+(Ord f, Ord r) =&gt;
+Function f r -&gt; Function f r -&gt; Ordering
+forall f r.
+(Ord f, Ord r) =&gt;
+Function f r -&gt; Function f r -&gt; Function f r
+min :: Function f r -&gt; Function f r -&gt; Function f r
+$cmin :: forall f r.
+(Ord f, Ord r) =&gt;
+Function f r -&gt; Function f r -&gt; Function f r
+max :: Function f r -&gt; Function f r -&gt; Function f r
+$cmax :: forall f r.
+(Ord f, Ord r) =&gt;
+Function f r -&gt; Function f r -&gt; Function f r
+&gt;= :: Function f r -&gt; Function f r -&gt; Bool
+$c&gt;= :: forall f r. (Ord f, Ord r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+&gt; :: Function f r -&gt; Function f r -&gt; Bool
+$c&gt; :: forall f r. (Ord f, Ord r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+&lt;= :: Function f r -&gt; Function f r -&gt; Bool
+$c&lt;= :: forall f r. (Ord f, Ord r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+&lt; :: Function f r -&gt; Function f r -&gt; Bool
+$c&lt; :: forall f r. (Ord f, Ord r) =&gt; Function f r -&gt; Function f r -&gt; Bool
+compare :: Function f r -&gt; Function f r -&gt; Ordering
+$ccompare :: forall f r.
+(Ord f, Ord r) =&gt;
+Function f r -&gt; Function f r -&gt; Ordering
+$cp1Ord :: forall f r. (Ord f, Ord r) =&gt; Eq (Function f r)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679163247"><span id="local-6989586621679163249"><span id="local-6989586621679163251"><span class="annot"><span class="annottext">Int -&gt; Function f r -&gt; ShowS
+[Function f r] -&gt; ShowS
+Function f r -&gt; String
+(Int -&gt; Function f r -&gt; ShowS)
+-&gt; (Function f r -&gt; String)
+-&gt; ([Function f r] -&gt; ShowS)
+-&gt; Show (Function f r)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall f r. (Show f, Show r) =&gt; Int -&gt; Function f r -&gt; ShowS
+forall f r. (Show f, Show r) =&gt; [Function f r] -&gt; ShowS
+forall f r. (Show f, Show r) =&gt; Function f r -&gt; String
+showList :: [Function f r] -&gt; ShowS
+$cshowList :: forall f r. (Show f, Show r) =&gt; [Function f r] -&gt; ShowS
+show :: Function f r -&gt; String
+$cshow :: forall f r. (Show f, Show r) =&gt; Function f r -&gt; String
+showsPrec :: Int -&gt; Function f r -&gt; ShowS
+$cshowsPrec :: forall f r. (Show f, Show r) =&gt; Int -&gt; Function f r -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Function f r -&gt; Rep (Function f r) x)
+-&gt; (forall x. Rep (Function f r) x -&gt; Function f r)
+-&gt; Generic (Function f r)
+forall x. Rep (Function f r) x -&gt; Function f r
+forall x. Function f r -&gt; Rep (Function f r) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall f r x. Rep (Function f r) x -&gt; Function f r
+forall f r x. Function f r -&gt; Rep (Function f r) x
+$cto :: forall f r x. Rep (Function f r) x -&gt; Function f r
+$cfrom :: forall f r x. Function f r -&gt; Rep (Function f r) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679163237"><span id="local-6989586621679163239"><span id="local-6989586621679163241"><span class="annot"><span class="annottext">Get (Function f r)
+Function f r -&gt; Encoding
+Function f r -&gt; Int -&gt; Int
+(Function f r -&gt; Encoding)
+-&gt; Get (Function f r)
+-&gt; (Function f r -&gt; Int -&gt; Int)
+-&gt; Flat (Function f r)
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+forall f r. (Flat f, Flat r) =&gt; Get (Function f r)
+forall f r. (Flat f, Flat r) =&gt; Function f r -&gt; Encoding
+forall f r. (Flat f, Flat r) =&gt; Function f r -&gt; Int -&gt; Int
+size :: Function f r -&gt; Int -&gt; Int
+$csize :: forall f r. (Flat f, Flat r) =&gt; Function f r -&gt; Int -&gt; Int
+decode :: Get (Function f r)
+$cdecode :: forall f r. (Flat f, Flat r) =&gt; Get (Function f r)
+encode :: Function f r -&gt; Encoding
+$cencode :: forall f r. (Flat f, Flat r) =&gt; Function f r -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span id="local-6989586621679163234"><span id="local-6989586621679163235"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679163230"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679163235"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679163234"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Function.html#Function"><span class="hs-identifier hs-type">Function</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163235"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163234"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-22"></span></pre></body></html>

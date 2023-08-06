@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Unit</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- |The Unit type</span><span>
+</span><span id="line-7"></span><span id="local-6989586621679160459"><span id="local-6989586621679160460"></span></span><span class="hs-keyword">data</span><span> </span><span id="Unit"><span class="annot"><a href="ZM.Type.Unit.html#Unit"><span class="hs-identifier hs-var">Unit</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Unit"><span class="annot"><a href="ZM.Type.Unit.html#Unit"><span class="hs-identifier hs-var">Unit</span></a></span></span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679160454"><span id="local-6989586621679160456"><span class="annot"><span class="annottext">Unit -&gt; Unit -&gt; Bool
+(Unit -&gt; Unit -&gt; Bool) -&gt; (Unit -&gt; Unit -&gt; Bool) -&gt; Eq Unit
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Unit -&gt; Unit -&gt; Bool
+$c/= :: Unit -&gt; Unit -&gt; Bool
+== :: Unit -&gt; Unit -&gt; Bool
+$c== :: Unit -&gt; Unit -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679160438"><span id="local-6989586621679160440"><span id="local-6989586621679160442"><span id="local-6989586621679160444"><span id="local-6989586621679160446"><span id="local-6989586621679160448"><span id="local-6989586621679160450"><span class="annot"><span class="annottext">Eq Unit
+Eq Unit
+-&gt; (Unit -&gt; Unit -&gt; Ordering)
+-&gt; (Unit -&gt; Unit -&gt; Bool)
+-&gt; (Unit -&gt; Unit -&gt; Bool)
+-&gt; (Unit -&gt; Unit -&gt; Bool)
+-&gt; (Unit -&gt; Unit -&gt; Bool)
+-&gt; (Unit -&gt; Unit -&gt; Unit)
+-&gt; (Unit -&gt; Unit -&gt; Unit)
+-&gt; Ord Unit
+Unit -&gt; Unit -&gt; Bool
+Unit -&gt; Unit -&gt; Ordering
+Unit -&gt; Unit -&gt; Unit
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Unit -&gt; Unit -&gt; Unit
+$cmin :: Unit -&gt; Unit -&gt; Unit
+max :: Unit -&gt; Unit -&gt; Unit
+$cmax :: Unit -&gt; Unit -&gt; Unit
+&gt;= :: Unit -&gt; Unit -&gt; Bool
+$c&gt;= :: Unit -&gt; Unit -&gt; Bool
+&gt; :: Unit -&gt; Unit -&gt; Bool
+$c&gt; :: Unit -&gt; Unit -&gt; Bool
+&lt;= :: Unit -&gt; Unit -&gt; Bool
+$c&lt;= :: Unit -&gt; Unit -&gt; Bool
+&lt; :: Unit -&gt; Unit -&gt; Bool
+$c&lt; :: Unit -&gt; Unit -&gt; Bool
+compare :: Unit -&gt; Unit -&gt; Ordering
+$ccompare :: Unit -&gt; Unit -&gt; Ordering
+$cp1Ord :: Eq Unit
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679160431"><span id="local-6989586621679160433"><span id="local-6989586621679160435"><span class="annot"><span class="annottext">Int -&gt; Unit -&gt; ShowS
+[Unit] -&gt; ShowS
+Unit -&gt; String
+(Int -&gt; Unit -&gt; ShowS)
+-&gt; (Unit -&gt; String) -&gt; ([Unit] -&gt; ShowS) -&gt; Show Unit
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Unit] -&gt; ShowS
+$cshowList :: [Unit] -&gt; ShowS
+show :: Unit -&gt; String
+$cshow :: Unit -&gt; String
+showsPrec :: Int -&gt; Unit -&gt; ShowS
+$cshowsPrec :: Int -&gt; Unit -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Unit -&gt; Rep Unit x)
+-&gt; (forall x. Rep Unit x -&gt; Unit) -&gt; Generic Unit
+forall x. Rep Unit x -&gt; Unit
+forall x. Unit -&gt; Rep Unit x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Unit x -&gt; Unit
+$cfrom :: forall x. Unit -&gt; Rep Unit x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679160423"><span class="annot"><span class="annottext">Typeable Unit
+AsType (Ana Unit)
+Typeable Unit
+-&gt; AsType (Ana Unit)
+-&gt; (Proxy Unit -&gt; State Env HType)
+-&gt; Model Unit
+Proxy Unit -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy Unit -&gt; State Env HType
+$cenvType :: Proxy Unit -&gt; State Env HType
+$cp2Model :: AsType (Ana Unit)
+$cp1Model :: Typeable Unit
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span></pre></body></html>

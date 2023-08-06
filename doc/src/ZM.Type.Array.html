@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFoldable #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Array</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier">Array</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.Array.html#Bytes"><span class="hs-identifier">Bytes</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span>        </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">H</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat.Decoder</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat.Encoder</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.Generate.html"><span class="hs-identifier">ZM.Type.Generate</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.Prims.html"><span class="hs-identifier">ZM.Type.Prims</span></a></span><span>    </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-comment">{-|An Array.
+
+A sequence of sequences of up to to 255 values.
+@
+Array a  = A0
+         | A1 a (Array a)
+         | A2 a a (Array a)
+         ...
+         | A255 a ... (Array a)
+@
+-}</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="Array"><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-var">Array</span></a></span></span><span> </span><span id="local-6989586621679161337"><span class="annot"><a href="#local-6989586621679161337"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>  </span><span id="Array"><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-var">Array</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679161337"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161318"><span id="local-6989586621679161320"><span class="annot"><span class="annottext">Array a -&gt; Array a -&gt; Bool
+(Array a -&gt; Array a -&gt; Bool)
+-&gt; (Array a -&gt; Array a -&gt; Bool) -&gt; Eq (Array a)
+forall a. Eq a =&gt; Array a -&gt; Array a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Array a -&gt; Array a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Array a -&gt; Array a -&gt; Bool
+== :: Array a -&gt; Array a -&gt; Bool
+$c== :: forall a. Eq a =&gt; Array a -&gt; Array a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161302"><span id="local-6989586621679161304"><span id="local-6989586621679161306"><span id="local-6989586621679161308"><span id="local-6989586621679161310"><span id="local-6989586621679161312"><span id="local-6989586621679161314"><span class="annot"><span class="annottext">Eq (Array a)
+Eq (Array a)
+-&gt; (Array a -&gt; Array a -&gt; Ordering)
+-&gt; (Array a -&gt; Array a -&gt; Bool)
+-&gt; (Array a -&gt; Array a -&gt; Bool)
+-&gt; (Array a -&gt; Array a -&gt; Bool)
+-&gt; (Array a -&gt; Array a -&gt; Bool)
+-&gt; (Array a -&gt; Array a -&gt; Array a)
+-&gt; (Array a -&gt; Array a -&gt; Array a)
+-&gt; Ord (Array a)
+Array a -&gt; Array a -&gt; Bool
+Array a -&gt; Array a -&gt; Ordering
+Array a -&gt; Array a -&gt; Array a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (Array a)
+forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Bool
+forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Ordering
+forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Array a
+min :: Array a -&gt; Array a -&gt; Array a
+$cmin :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Array a
+max :: Array a -&gt; Array a -&gt; Array a
+$cmax :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Array a
+&gt;= :: Array a -&gt; Array a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Bool
+&gt; :: Array a -&gt; Array a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Bool
+&lt;= :: Array a -&gt; Array a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Bool
+&lt; :: Array a -&gt; Array a -&gt; Bool
+$c&lt; :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Bool
+compare :: Array a -&gt; Array a -&gt; Ordering
+$ccompare :: forall a. Ord a =&gt; Array a -&gt; Array a -&gt; Ordering
+$cp1Ord :: forall a. Ord a =&gt; Eq (Array a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161295"><span id="local-6989586621679161297"><span id="local-6989586621679161299"><span class="annot"><span class="annottext">Int -&gt; Array a -&gt; ShowS
+[Array a] -&gt; ShowS
+Array a -&gt; String
+(Int -&gt; Array a -&gt; ShowS)
+-&gt; (Array a -&gt; String) -&gt; ([Array a] -&gt; ShowS) -&gt; Show (Array a)
+forall a. Show a =&gt; Int -&gt; Array a -&gt; ShowS
+forall a. Show a =&gt; [Array a] -&gt; ShowS
+forall a. Show a =&gt; Array a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Array a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [Array a] -&gt; ShowS
+show :: Array a -&gt; String
+$cshow :: forall a. Show a =&gt; Array a -&gt; String
+showsPrec :: Int -&gt; Array a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Array a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161260"><span id="local-6989586621679161262"><span id="local-6989586621679161264"><span id="local-6989586621679161266"><span id="local-6989586621679161268"><span id="local-6989586621679161270"><span id="local-6989586621679161272"><span id="local-6989586621679161274"><span id="local-6989586621679161276"><span id="local-6989586621679161278"><span id="local-6989586621679161280"><span id="local-6989586621679161282"><span id="local-6989586621679161284"><span id="local-6989586621679161286"><span id="local-6989586621679161288"><span id="local-6989586621679161290"><span id="local-6989586621679161292"><span class="annot"><span class="annottext">Array a -&gt; Bool
+(a -&gt; m) -&gt; Array a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+(forall m. Monoid m =&gt; Array m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Array a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Array a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Array a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Array a -&gt; a)
+-&gt; (forall a. Array a -&gt; [a])
+-&gt; (forall a. Array a -&gt; Bool)
+-&gt; (forall a. Array a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Array a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Array a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Array a -&gt; a)
+-&gt; (forall a. Num a =&gt; Array a -&gt; a)
+-&gt; (forall a. Num a =&gt; Array a -&gt; a)
+-&gt; Foldable Array
+forall a. Eq a =&gt; a -&gt; Array a -&gt; Bool
+forall a. Num a =&gt; Array a -&gt; a
+forall a. Ord a =&gt; Array a -&gt; a
+forall m. Monoid m =&gt; Array m -&gt; m
+forall a. Array a -&gt; Bool
+forall a. Array a -&gt; Int
+forall a. Array a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Array a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Array a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: Array a -&gt; a
+$cproduct :: forall a. Num a =&gt; Array a -&gt; a
+sum :: Array a -&gt; a
+$csum :: forall a. Num a =&gt; Array a -&gt; a
+minimum :: Array a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Array a -&gt; a
+maximum :: Array a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; Array a -&gt; a
+elem :: a -&gt; Array a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; Array a -&gt; Bool
+length :: Array a -&gt; Int
+$clength :: forall a. Array a -&gt; Int
+null :: Array a -&gt; Bool
+$cnull :: forall a. Array a -&gt; Bool
+toList :: Array a -&gt; [a]
+$ctoList :: forall a. Array a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; Array a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Array a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; Array a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Array a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Array a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Array a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; Array a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Array a -&gt; m
+foldMap :: (a -&gt; m) -&gt; Array a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Array a -&gt; m
+fold :: Array m -&gt; m
+$cfold :: forall m. Monoid m =&gt; Array m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">--data Array a = Array (S.Seq (S.Seq a)) -- A sequence of non null sequences</span><span>
+</span><span id="line-35"></span><span id="local-6989586621679161258"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679161258"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-type">Array</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679161258"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>  </span><span id="local-6989586621679161253"><span class="annot"><span class="annottext">envType :: Proxy (Array a) -&gt; State Env HType
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">envType</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (ConTree String HTypeRef)
+-&gt; Proxy (Array a) -&gt; State Env HType
+forall a (proxy :: * -&gt; *).
+Typeable a =&gt;
+Maybe (ConTree String HTypeRef) -&gt; proxy a -&gt; State Env HType
+</span><span class="hs-identifier hs-var">useCT</span></span><span> </span><span class="annot"><span class="annottext">Maybe (ConTree String HTypeRef)
+</span><a href="ZM.Type.Generate.html#arrayCT"><span class="hs-identifier hs-var">arrayCT</span></a></span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="local-6989586621679161249"><span class="hs-keyword">instance</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="annot"><a href="#local-6989586621679161249"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Flat</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-type">Array</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679161249"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-comment">--encode (Array ss) = mapM_ enc ss where enc s = encode (fromIntegral (S.length s)::H.Word8) &gt;&gt; foldMap encode s</span><span>
+</span><span id="line-40"></span><span>                                                                                                                     </span><span class="hs-keyword">where</span><span>
+</span><span id="line-41"></span><span>  </span><span id="local-6989586621679161244"><span class="annot"><span class="annottext">encode :: Array a -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">encode</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-type">Array</span></a></span><span> </span><span id="local-6989586621679161242"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679161242"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Encoding) -&gt; [a] -&gt; Encoding
+forall t. (t -&gt; Encoding) -&gt; [t] -&gt; Encoding
+</span><span class="hs-identifier hs-var">encodeArrayWith</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span><span class="hs-identifier hs-var">encode</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679161242"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-42"></span><span>  </span><span id="local-6989586621679161240"><span class="annot"><span class="annottext">decode :: Get (Array a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">decode</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Array a
+forall a. [a] -&gt; Array a
+</span><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-var">Array</span></a></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Array a) -&gt; Get [a] -&gt; Get (Array a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Get a -&gt; Get [a]
+forall a. Get a -&gt; Get [a]
+</span><span class="hs-identifier hs-var">decodeArrayWith</span></span><span> </span><span class="annot"><span class="annottext">Get a
+forall a. Flat a =&gt; Get a
+</span><span class="hs-identifier hs-var">decode</span></span><span>
+</span><span id="line-43"></span><span>  </span><span id="local-6989586621679161236"><span class="annot"><span class="annottext">size :: Array a -&gt; Int -&gt; Int
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">size</span></span></span><span> </span><span id="local-6989586621679161234"><span class="annot"><span class="annottext">Array a
+</span><a href="#local-6989586621679161234"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679161233"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679161233"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; Int -&gt; Int) -&gt; Int -&gt; Array a -&gt; Int
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span><span class="hs-identifier hs-var">size</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679161233"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int
+</span><span class="hs-identifier hs-var">arrayBits</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Array a -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">Array a
+</span><a href="#local-6989586621679161234"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Array a
+</span><a href="#local-6989586621679161234"><span class="hs-identifier hs-var">l</span></a></span></span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- |A byte-aligned byte array</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- To encode and decode efficiently an Array of Bytes, we pre-align it to the nearest byte border.</span><span>
+</span><span id="line-47"></span><span id="local-6989586621679161227"><span id="local-6989586621679161228"></span></span><span class="hs-keyword">data</span><span> </span><span id="Bytes"><span class="annot"><a href="ZM.Type.Array.html#Bytes"><span class="hs-identifier hs-var">Bytes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-48"></span><span>  </span><span id="Bytes"><span class="annot"><a href="ZM.Type.Array.html#Bytes"><span class="hs-identifier hs-var">Bytes</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PreAligned</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.Array.html#Array"><span class="hs-identifier hs-type">Array</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">H.Word8</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- Could this be H.Word8?</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(forall x. Bytes -&gt; Rep Bytes x)
+-&gt; (forall x. Rep Bytes x -&gt; Bytes) -&gt; Generic Bytes
+forall x. Rep Bytes x -&gt; Bytes
+forall x. Bytes -&gt; Rep Bytes x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Bytes x -&gt; Bytes
+$cfrom :: forall x. Bytes -&gt; Rep Bytes x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161219"><span class="annot"><span class="annottext">Typeable Bytes
+AsType (Ana Bytes)
+Typeable Bytes
+-&gt; AsType (Ana Bytes)
+-&gt; (Proxy Bytes -&gt; State Env HType)
+-&gt; Model Bytes
+Proxy Bytes -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy Bytes -&gt; State Env HType
+$cenvType :: Proxy Bytes -&gt; State Env HType
+$cp2Model :: AsType (Ana Bytes)
+$cp1Model :: Typeable Bytes
+</span><a href="#local-6989586621679161219"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- instance Read Bytes where</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--   readPrec = Bytes . preAligned . Array . map Z.Word8 &lt;$&gt; readPrec</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679161215"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Filler</span></span></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span id="local-6989586621679161214"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679161210"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679161214"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">PreAligned</span></span><span> </span><span class="annot"><a href="#local-6989586621679161214"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-56"></span></pre></body></html>

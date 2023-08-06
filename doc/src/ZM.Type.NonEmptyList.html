@@ -1,0 +1,313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_2VjxoKwIppGBWtd27ZxSyy"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass    #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFoldable    #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveFunctor     #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric     #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.NonEmptyList</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier">NonEmptyList</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier">nonEmptyList</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- | A list that contains at least one element</span><span>
+</span><span id="line-17"></span><span id="local-6989586621679159465"><span id="local-6989586621679159466"></span></span><span class="hs-keyword">data</span><span> </span><span id="NonEmptyList"><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier hs-var">NonEmptyList</span></a></span></span><span> </span><span id="local-6989586621679159470"><span class="annot"><a href="#local-6989586621679159470"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Elem"><span class="annot"><a href="ZM.Type.NonEmptyList.html#Elem"><span class="hs-identifier hs-var">Elem</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679159470"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-18"></span><span>                    </span><span class="hs-glyph">|</span><span> </span><span id="Cons"><span class="annot"><a href="ZM.Type.NonEmptyList.html#Cons"><span class="hs-identifier hs-var">Cons</span></a></span></span><span> </span><span class="annot"><a href="#local-6989586621679159470"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier hs-type">NonEmptyList</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159470"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159459"><span id="local-6989586621679159461"><span class="annot"><span class="annottext">NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+(NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; Eq (NonEmptyList a)
+forall a. Eq a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+== :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c== :: forall a. Eq a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159443"><span id="local-6989586621679159445"><span id="local-6989586621679159447"><span id="local-6989586621679159449"><span id="local-6989586621679159451"><span id="local-6989586621679159453"><span id="local-6989586621679159455"><span class="annot"><span class="annottext">Eq (NonEmptyList a)
+Eq (NonEmptyList a)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Ordering)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a)
+-&gt; (NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a)
+-&gt; Ord (NonEmptyList a)
+NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+NonEmptyList a -&gt; NonEmptyList a -&gt; Ordering
+NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (NonEmptyList a)
+forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Ordering
+forall a.
+Ord a =&gt;
+NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+min :: NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+$cmin :: forall a.
+Ord a =&gt;
+NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+max :: NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+$cmax :: forall a.
+Ord a =&gt;
+NonEmptyList a -&gt; NonEmptyList a -&gt; NonEmptyList a
+&gt;= :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+&gt; :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+&lt;= :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+&lt; :: NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+$c&lt; :: forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Bool
+compare :: NonEmptyList a -&gt; NonEmptyList a -&gt; Ordering
+$ccompare :: forall a. Ord a =&gt; NonEmptyList a -&gt; NonEmptyList a -&gt; Ordering
+$cp1Ord :: forall a. Ord a =&gt; Eq (NonEmptyList a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159436"><span id="local-6989586621679159438"><span id="local-6989586621679159440"><span class="annot"><span class="annottext">Int -&gt; NonEmptyList a -&gt; ShowS
+[NonEmptyList a] -&gt; ShowS
+NonEmptyList a -&gt; String
+(Int -&gt; NonEmptyList a -&gt; ShowS)
+-&gt; (NonEmptyList a -&gt; String)
+-&gt; ([NonEmptyList a] -&gt; ShowS)
+-&gt; Show (NonEmptyList a)
+forall a. Show a =&gt; Int -&gt; NonEmptyList a -&gt; ShowS
+forall a. Show a =&gt; [NonEmptyList a] -&gt; ShowS
+forall a. Show a =&gt; NonEmptyList a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [NonEmptyList a] -&gt; ShowS
+$cshowList :: forall a. Show a =&gt; [NonEmptyList a] -&gt; ShowS
+show :: NonEmptyList a -&gt; String
+$cshow :: forall a. Show a =&gt; NonEmptyList a -&gt; String
+showsPrec :: Int -&gt; NonEmptyList a -&gt; ShowS
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; NonEmptyList a -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159433"><span class="annot"><span class="annottext">NonEmptyList a -&gt; ()
+(NonEmptyList a -&gt; ()) -&gt; NFData (NonEmptyList a)
+forall a. NFData a =&gt; NonEmptyList a -&gt; ()
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: NonEmptyList a -&gt; ()
+$crnf :: forall a. NFData a =&gt; NonEmptyList a -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. NonEmptyList a -&gt; Rep (NonEmptyList a) x)
+-&gt; (forall x. Rep (NonEmptyList a) x -&gt; NonEmptyList a)
+-&gt; Generic (NonEmptyList a)
+forall x. Rep (NonEmptyList a) x -&gt; NonEmptyList a
+forall x. NonEmptyList a -&gt; Rep (NonEmptyList a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (NonEmptyList a) x -&gt; NonEmptyList a
+forall a x. NonEmptyList a -&gt; Rep (NonEmptyList a) x
+$cto :: forall a x. Rep (NonEmptyList a) x -&gt; NonEmptyList a
+$cfrom :: forall a x. NonEmptyList a -&gt; Rep (NonEmptyList a) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159425"><span id="local-6989586621679159427"><span class="annot"><span class="annottext">a -&gt; NonEmptyList b -&gt; NonEmptyList a
+(a -&gt; b) -&gt; NonEmptyList a -&gt; NonEmptyList b
+(forall a b. (a -&gt; b) -&gt; NonEmptyList a -&gt; NonEmptyList b)
+-&gt; (forall a b. a -&gt; NonEmptyList b -&gt; NonEmptyList a)
+-&gt; Functor NonEmptyList
+forall a b. a -&gt; NonEmptyList b -&gt; NonEmptyList a
+forall a b. (a -&gt; b) -&gt; NonEmptyList a -&gt; NonEmptyList b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; NonEmptyList b -&gt; NonEmptyList a
+$c&lt;$ :: forall a b. a -&gt; NonEmptyList b -&gt; NonEmptyList a
+fmap :: (a -&gt; b) -&gt; NonEmptyList a -&gt; NonEmptyList b
+$cfmap :: forall a b. (a -&gt; b) -&gt; NonEmptyList a -&gt; NonEmptyList b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159390"><span id="local-6989586621679159392"><span id="local-6989586621679159394"><span id="local-6989586621679159396"><span id="local-6989586621679159398"><span id="local-6989586621679159400"><span id="local-6989586621679159402"><span id="local-6989586621679159404"><span id="local-6989586621679159406"><span id="local-6989586621679159408"><span id="local-6989586621679159410"><span id="local-6989586621679159412"><span id="local-6989586621679159414"><span id="local-6989586621679159416"><span id="local-6989586621679159418"><span id="local-6989586621679159420"><span id="local-6989586621679159422"><span class="annot"><span class="annottext">NonEmptyList a -&gt; Bool
+(a -&gt; m) -&gt; NonEmptyList a -&gt; m
+(a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+(forall m. Monoid m =&gt; NonEmptyList m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmptyList a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmptyList a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a)
+-&gt; (forall a. NonEmptyList a -&gt; [a])
+-&gt; (forall a. NonEmptyList a -&gt; Bool)
+-&gt; (forall a. NonEmptyList a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; NonEmptyList a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; NonEmptyList a -&gt; a)
+-&gt; (forall a. Ord a =&gt; NonEmptyList a -&gt; a)
+-&gt; (forall a. Num a =&gt; NonEmptyList a -&gt; a)
+-&gt; (forall a. Num a =&gt; NonEmptyList a -&gt; a)
+-&gt; Foldable NonEmptyList
+forall a. Eq a =&gt; a -&gt; NonEmptyList a -&gt; Bool
+forall a. Num a =&gt; NonEmptyList a -&gt; a
+forall a. Ord a =&gt; NonEmptyList a -&gt; a
+forall m. Monoid m =&gt; NonEmptyList m -&gt; m
+forall a. NonEmptyList a -&gt; Bool
+forall a. NonEmptyList a -&gt; Int
+forall a. NonEmptyList a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmptyList a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+product :: NonEmptyList a -&gt; a
+$cproduct :: forall a. Num a =&gt; NonEmptyList a -&gt; a
+sum :: NonEmptyList a -&gt; a
+$csum :: forall a. Num a =&gt; NonEmptyList a -&gt; a
+minimum :: NonEmptyList a -&gt; a
+$cminimum :: forall a. Ord a =&gt; NonEmptyList a -&gt; a
+maximum :: NonEmptyList a -&gt; a
+$cmaximum :: forall a. Ord a =&gt; NonEmptyList a -&gt; a
+elem :: a -&gt; NonEmptyList a -&gt; Bool
+$celem :: forall a. Eq a =&gt; a -&gt; NonEmptyList a -&gt; Bool
+length :: NonEmptyList a -&gt; Int
+$clength :: forall a. NonEmptyList a -&gt; Int
+null :: NonEmptyList a -&gt; Bool
+$cnull :: forall a. NonEmptyList a -&gt; Bool
+toList :: NonEmptyList a -&gt; [a]
+$ctoList :: forall a. NonEmptyList a -&gt; [a]
+foldl1 :: (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a
+foldr1 :: (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; NonEmptyList a -&gt; a
+foldl' :: (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+foldl :: (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+foldr' :: (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+foldr :: (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; NonEmptyList a -&gt; b
+foldMap' :: (a -&gt; m) -&gt; NonEmptyList a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmptyList a -&gt; m
+foldMap :: (a -&gt; m) -&gt; NonEmptyList a -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; NonEmptyList a -&gt; m
+fold :: NonEmptyList m -&gt; m
+$cfold :: forall m. Monoid m =&gt; NonEmptyList m -&gt; m
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159379"><span id="local-6989586621679159381"><span id="local-6989586621679159383"><span id="local-6989586621679159385"><span class="annot"><span class="annottext">Functor NonEmptyList
+Foldable NonEmptyList
+Functor NonEmptyList
+-&gt; Foldable NonEmptyList
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; NonEmptyList a -&gt; f (NonEmptyList b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    NonEmptyList (f a) -&gt; f (NonEmptyList a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; NonEmptyList a -&gt; m (NonEmptyList b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    NonEmptyList (m a) -&gt; m (NonEmptyList a))
+-&gt; Traversable NonEmptyList
+(a -&gt; f b) -&gt; NonEmptyList a -&gt; f (NonEmptyList b)
+forall (t :: * -&gt; *).
+Functor t
+-&gt; Foldable t
+-&gt; (forall (f :: * -&gt; *) a b.
+    Applicative f =&gt;
+    (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+NonEmptyList (m a) -&gt; m (NonEmptyList a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+NonEmptyList (f a) -&gt; f (NonEmptyList a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; NonEmptyList a -&gt; m (NonEmptyList b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; NonEmptyList a -&gt; f (NonEmptyList b)
+sequence :: NonEmptyList (m a) -&gt; m (NonEmptyList a)
+$csequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+NonEmptyList (m a) -&gt; m (NonEmptyList a)
+mapM :: (a -&gt; m b) -&gt; NonEmptyList a -&gt; m (NonEmptyList b)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; NonEmptyList a -&gt; m (NonEmptyList b)
+sequenceA :: NonEmptyList (f a) -&gt; f (NonEmptyList a)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+NonEmptyList (f a) -&gt; f (NonEmptyList a)
+traverse :: (a -&gt; f b) -&gt; NonEmptyList a -&gt; f (NonEmptyList b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; NonEmptyList a -&gt; f (NonEmptyList b)
+$cp2Traversable :: Foldable NonEmptyList
+$cp1Traversable :: Functor NonEmptyList
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159372"><span id="local-6989586621679159374"><span id="local-6989586621679159376"><span class="annot"><span class="annottext">Get (NonEmptyList a)
+NonEmptyList a -&gt; Encoding
+NonEmptyList a -&gt; Int -&gt; Int
+(NonEmptyList a -&gt; Encoding)
+-&gt; Get (NonEmptyList a)
+-&gt; (NonEmptyList a -&gt; Int -&gt; Int)
+-&gt; Flat (NonEmptyList a)
+forall a. Flat a =&gt; Get (NonEmptyList a)
+forall a. Flat a =&gt; NonEmptyList a -&gt; Encoding
+forall a. Flat a =&gt; NonEmptyList a -&gt; Int -&gt; Int
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: NonEmptyList a -&gt; Int -&gt; Int
+$csize :: forall a. Flat a =&gt; NonEmptyList a -&gt; Int -&gt; Int
+decode :: Get (NonEmptyList a)
+$cdecode :: forall a. Flat a =&gt; Get (NonEmptyList a)
+encode :: NonEmptyList a -&gt; Encoding
+$cencode :: forall a. Flat a =&gt; NonEmptyList a -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span id="local-6989586621679159370"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679159366"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679159370"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier hs-type">NonEmptyList</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159370"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- | Convert a list to a `NonEmptyList`, returns an error if the list is empty</span><span>
+</span><span id="line-24"></span><span id="local-6989586621679159469"><span class="annot"><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-type">nonEmptyList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679159469"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Type.NonEmptyList.html#NonEmptyList"><span class="hs-identifier hs-type">NonEmptyList</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679159469"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-25"></span><span id="nonEmptyList"><span class="annot"><span class="annottext">nonEmptyList :: [a] -&gt; NonEmptyList a
+</span><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-var hs-var">nonEmptyList</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; NonEmptyList a
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Cannot convert an empty list to NonEmptyList&quot;</span></span><span>
+</span><span id="line-26"></span><span class="annot"><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-var">nonEmptyList</span></a></span><span> </span><span class="hs-special">[</span><span id="local-6989586621679159363"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159363"><span class="hs-identifier hs-var">h</span></a></span></span><span>    </span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; NonEmptyList a
+forall a. a -&gt; NonEmptyList a
+</span><a href="ZM.Type.NonEmptyList.html#Elem"><span class="hs-identifier hs-var">Elem</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159363"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-27"></span><span class="annot"><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-var">nonEmptyList</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159362"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159362"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679159361"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679159361"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; NonEmptyList a -&gt; NonEmptyList a
+forall a. a -&gt; NonEmptyList a -&gt; NonEmptyList a
+</span><a href="ZM.Type.NonEmptyList.html#Cons"><span class="hs-identifier hs-var">Cons</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679159362"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[a] -&gt; NonEmptyList a
+forall a. [a] -&gt; NonEmptyList a
+</span><a href="ZM.Type.NonEmptyList.html#nonEmptyList"><span class="hs-identifier hs-var">nonEmptyList</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679159361"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span></pre></body></html>

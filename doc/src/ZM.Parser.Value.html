@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Parser.Value</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#value"><span class="hs-identifier">value</span></a></span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#pattern"><span class="hs-identifier">pattern</span></a></span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Parser.Lexer.html"><span class="hs-identifier">ZM.Parser.Lexer</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Parser.Types.html"><span class="hs-identifier">ZM.Parser.Types</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Value"><span class="hs-identifier">Value</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Parser.Util.html"><span class="hs-identifier">ZM.Parser.Util</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- |Generic ZM value, a constructor followed by optional, optionally named, fields.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- data Value = Value String ValueFields</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--   deriving (Show)</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- |Constructor fields</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- type ValueFields = Either [Value] [(String, Value)]</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">type</span><span> </span><span id="Value"><span class="annot"><a href="ZM.Parser.Value.html#Value"><span class="hs-identifier hs-var">Value</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Literal"><span class="hs-identifier hs-type">Literal</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Void</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- |Parse a document as a ZM value</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- valueD :: Parser Value</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- valueD = doc value</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- |A Pattern matches a subset of values of a ZM Type</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">type</span><span> </span><span id="Pattern"><span class="annot"><a href="ZM.Parser.Value.html#Pattern"><span class="hs-identifier hs-var">Pattern</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Literal"><span class="hs-identifier hs-type">Literal</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Binder"><span class="hs-identifier hs-type">Binder</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-comment">{-|
+Parse a plain ZM value.
+
+&gt;&gt;&gt; parseMaybe value &quot;&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe value &quot;_&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe value &quot;_bv&quot;
+Nothing
+
+Special syntax for numbers,chars,strings:
+&gt;&gt;&gt; parseMaybe value &quot;33&quot; == Just (VInteger 33)
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;-33&quot; == Just (VInteger (-33))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;-33.45&quot; == Just (VFloat (-33.45))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;3.3E-12&quot; == Just (VFloat (3.3e-12))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;-3.3E-12&quot; == Just (VFloat (-3.3e-12))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;'a'&quot; == Just (VChar 'a')
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;((\&quot;abc\&quot;))&quot; == Just (VString &quot;abc&quot;)
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;False&quot; == Just (Constr &quot;False&quot; (Left []))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;(Cons False (Cons True Nil))&quot; == Just (Constr &quot;Cons&quot; (Left [Constr &quot;False&quot; (Left []),Constr &quot;Cons&quot; (Left [Constr &quot;True&quot; (Left []),Constr &quot;Nil&quot; (Left [])])]))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;Flag {val=True}&quot; == Just (Constr &quot;Flag&quot; (Right [(&quot;val&quot;,Constr &quot;True&quot; (Left []))]))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;T False \&quot;abc\&quot; (True) (N {name='g'})&quot; == Just (Constr &quot;T&quot; (Left [Constr &quot;False&quot; (Left []),VString &quot;abc&quot;,Constr &quot;True&quot; (Left []),Constr &quot;N&quot; (Right [(&quot;name&quot;,VChar 'g')])]))
+True
+
+&gt;&gt;&gt; parseMaybe value &quot;T {left=False,right=X 'g' V0}&quot; == Just (Constr &quot;T&quot; (Right [(&quot;left&quot;,Constr &quot;False&quot; (Left [])),(&quot;right&quot;,Constr &quot;X&quot; (Left [VChar 'g',Constr &quot;V0&quot; (Left [])]))]))
+True
+
+No type annotations:
+BAD &gt;&gt;&gt; parseMaybe value &quot;False::Bool&quot;
+Nothing
+-}</span><span>
+</span><span id="line-77"></span><span class="annot"><a href="ZM.Parser.Value.html#value"><span class="hs-identifier hs-type">value</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#Value"><span class="hs-identifier hs-type">Value</span></a></span><span>
+</span><span id="line-78"></span><span id="value"><span class="annot"><span class="annottext">value :: Parser Value
+</span><a href="ZM.Parser.Value.html#value"><span class="hs-identifier hs-var hs-var">value</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Value -&gt; Parser Value
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var">valueV</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Value
+forall binder. Parser (Val Literal binder)
+</span><a href="ZM.Parser.Value.html#special"><span class="hs-identifier hs-var">special</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-comment">{-|
+Parse a pattern.
+
+A wildcard:
+
+&gt;&gt;&gt; parseMaybe pattern &quot;_ &quot; == Just PWild
+True
+
+A named variable (variables must start with an _):
+
+&gt;&gt;&gt; parseMaybe pattern &quot;_A&quot; == Just (PBind &quot;A&quot;)
+True
+
+No pattern matching on constructor, a variable corresponds to a full value:
+
+&gt;&gt;&gt; parseMaybe pattern &quot;_  Nil&quot;
+Nothing
+
+Variables can appear at any level:
+
+&gt;&gt;&gt; parse pattern &quot;&quot; &quot;(T _ (T2  _b 'N'))&quot; == Right (Constr &quot;T&quot; (Left [PWild,Constr &quot;T2&quot; (Left [PBind &quot;b&quot;,VChar 'N'])]))
+True
+-}</span><span>
+</span><span id="line-103"></span><span class="hs-comment">-- PROB: ambiguity between variable names and constructors, we require a '_' before variable name</span><span>
+</span><span id="line-104"></span><span class="annot"><a href="ZM.Parser.Value.html#pattern"><span class="hs-identifier hs-type">pattern</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#Pattern"><span class="hs-identifier hs-type">Pattern</span></a></span><span>
+</span><span id="line-105"></span><span id="pattern"><span class="annot"><span class="annottext">pattern :: Parser Pattern
+</span><a href="ZM.Parser.Value.html#pattern"><span class="hs-identifier hs-var hs-var">pattern</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Pattern -&gt; Parser Pattern
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var">valueV</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser Pattern
+forall binder. Parser (Val Literal binder)
+</span><a href="ZM.Parser.Value.html#special"><span class="hs-identifier hs-var">special</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Pattern -&gt; Parser Pattern -&gt; Parser Pattern
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Pattern
+forall (lit :: * -&gt; *). Parser (Val lit Binder)
+</span><a href="ZM.Parser.Value.html#binds"><span class="hs-identifier hs-var">binds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span id="local-6989586621679167179"><span id="local-6989586621679167180"><span class="annot"><a href="ZM.Parser.Value.html#constr"><span class="hs-identifier hs-type">constr</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-type">valueV</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167180"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167179"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167180"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167179"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-108"></span><span id="valueV"><span class="annot"><span class="annottext">valueV :: Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var hs-var">valueV</span></a></span></span><span> </span><span id="local-6989586621679167096"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167096"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Util.html#pars"><span class="hs-identifier hs-var">pars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var">valueV</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167096"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167096"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#constr"><span class="hs-identifier hs-var">constr</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167096"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span id="constr"><span class="annot"><span class="annottext">constr :: Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#constr"><span class="hs-identifier hs-var hs-var">constr</span></a></span></span><span> </span><span id="local-6989586621679167094"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167094"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+-&gt; Val lit binder
+forall (lit :: * -&gt; *) binder.
+String
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+-&gt; Val lit binder
+</span><a href="ZM.Parser.Types.html#Constr"><span class="hs-identifier hs-var">Constr</span></a></span><span> </span><span class="annot"><span class="annottext">(String
+ -&gt; Either [Val lit binder] [(String, Val lit binder)]
+ -&gt; Val lit binder)
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     (Either [Val lit binder] [(String, Val lit binder)]
+      -&gt; Val lit binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-var">localId</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT
+  Void
+  String
+  Identity
+  (Either [Val lit binder] [(String, Val lit binder)]
+   -&gt; Val lit binder)
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     (Either [Val lit binder] [(String, Val lit binder)])
+-&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; ParsecT
+     Void
+     String
+     Identity
+     (Either [Val lit binder] [(String, Val lit binder)])
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#fieldsV"><span class="hs-identifier hs-var">fieldsV</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167094"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span id="local-6989586621679167176"><span class="annot"><a href="ZM.Parser.Value.html#special"><span class="hs-identifier hs-type">special</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Literal"><span class="hs-identifier hs-type">Literal</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167176"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-113"></span><span id="special"><span class="annot"><span class="annottext">special :: Parser (Val Literal binder)
+</span><a href="ZM.Parser.Value.html#special"><span class="hs-identifier hs-var hs-var">special</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="annottext">Parser (Val Literal binder) -&gt; Parser (Val Literal binder)
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Integer -&gt; Val Literal binder
+forall binder. Integer -&gt; Val Literal binder
+</span><a href="ZM.Parser.Types.html#VInteger"><span class="hs-identifier hs-var">VInteger</span></a></span><span> </span><span class="annot"><span class="annottext">(Integer -&gt; Val Literal binder)
+-&gt; ParsecT Void String Identity Integer
+-&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Integer
+forall a. Integral a =&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#signed"><span class="hs-identifier hs-var">signed</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>    </span><span class="annot"><span class="annottext">Parser (Val Literal binder)
+-&gt; Parser (Val Literal binder) -&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Val Literal binder
+forall binder. Double -&gt; Val Literal binder
+</span><a href="ZM.Parser.Types.html#VFloat"><span class="hs-identifier hs-var">VFloat</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Val Literal binder)
+-&gt; ParsecT Void String Identity Double
+-&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Double
+forall a. RealFloat a =&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#float"><span class="hs-identifier hs-var">float</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>    </span><span class="annot"><span class="annottext">Parser (Val Literal binder)
+-&gt; Parser (Val Literal binder) -&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Val Literal binder
+forall binder. Char -&gt; Val Literal binder
+</span><a href="ZM.Parser.Types.html#VChar"><span class="hs-identifier hs-var">VChar</span></a></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Val Literal binder)
+-&gt; ParsecT Void String Identity Char -&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+</span><a href="ZM.Parser.Lexer.html#charLiteral"><span class="hs-identifier hs-var">charLiteral</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span>    </span><span class="annot"><span class="annottext">Parser (Val Literal binder)
+-&gt; Parser (Val Literal binder) -&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Val Literal binder
+forall binder. String -&gt; Val Literal binder
+</span><a href="ZM.Parser.Types.html#VString"><span class="hs-identifier hs-var">VString</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Val Literal binder)
+-&gt; ParsecT Void String Identity String
+-&gt; Parser (Val Literal binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#stringLiteral"><span class="hs-identifier hs-var">stringLiteral</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- TODO: Add VArray</span><span>
+</span><span id="line-120"></span><span id="local-6989586621679167171"><span class="annot"><a href="ZM.Parser.Value.html#binds"><span class="hs-identifier hs-type">binds</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167171"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Binder"><span class="hs-identifier hs-type">Binder</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-121"></span><span id="binds"><span class="annot"><span class="annottext">binds :: Parser (Val lit Binder)
+</span><a href="ZM.Parser.Value.html#binds"><span class="hs-identifier hs-var hs-var">binds</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Val lit Binder
+-&gt; (String -&gt; Val lit Binder) -&gt; Maybe String -&gt; Val lit Binder
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">Val lit Binder
+forall (lit :: * -&gt; *). Val lit Binder
+</span><a href="ZM.Parser.Types.html#PWild"><span class="hs-identifier hs-var">PWild</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Val lit Binder
+forall (lit :: * -&gt; *). String -&gt; Val lit Binder
+</span><a href="ZM.Parser.Types.html#PBind"><span class="hs-identifier hs-var">PBind</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe String -&gt; Val lit Binder)
+-&gt; ParsecT Void String Identity (Maybe String)
+-&gt; Parser (Val lit Binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Maybe String)
+</span><a href="ZM.Parser.Lexer.html#var"><span class="hs-identifier hs-var">var</span></a></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span id="local-6989586621679167075"><span id="local-6989586621679167076"><span class="annot"><a href="ZM.Parser.Value.html#nestedValue"><span class="hs-identifier hs-type">nestedValue</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167076"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167075"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167076"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167075"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-124"></span><span id="nestedValue"><span class="annot"><span class="annottext">nestedValue :: Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#nestedValue"><span class="hs-identifier hs-var hs-var">nestedValue</span></a></span></span><span> </span><span id="local-6989586621679167073"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167073"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Util.html#pars"><span class="hs-identifier hs-var">pars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var">valueV</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167073"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167073"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679167072"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167072"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+-&gt; Val lit binder
+forall (lit :: * -&gt; *) binder.
+String
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+-&gt; Val lit binder
+</span><a href="ZM.Parser.Types.html#Constr"><span class="hs-identifier hs-var">Constr</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167072"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Val lit binder]
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Val lit binder)
+-&gt; ParsecT Void String Identity String -&gt; Parser (Val lit binder)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-var">localId</span></a></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-comment">-- fields :: Parser ValueFields</span><span>
+</span><span id="line-128"></span><span id="fieldsV"><span class="annot"><span class="annottext">fieldsV :: Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#fieldsV"><span class="hs-identifier hs-var hs-var">fieldsV</span></a></span></span><span> </span><span id="local-6989586621679167071"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167071"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#namedFields"><span class="hs-identifier hs-var">namedFields</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167071"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Either [Val lit binder] [(String, Val lit binder)])
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#unnamedFields"><span class="hs-identifier hs-var">unnamedFields</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167071"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-comment">-- |Parse unnamed fields</span><span>
+</span><span id="line-131"></span><span id="local-6989586621679167151"><span id="local-6989586621679167152"><span class="annot"><a href="ZM.Parser.Value.html#fieldsV"><span class="hs-identifier hs-type">fieldsV</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Value.html#unnamedFields"><span class="hs-identifier hs-type">unnamedFields</span></a></span><span>
+</span><span id="line-132"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167152"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167151"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167152"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167151"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167152"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167151"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-134"></span><span id="unnamedFields"><span class="annot"><span class="annottext">unnamedFields :: Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#unnamedFields"><span class="hs-identifier hs-var hs-var">unnamedFields</span></a></span></span><span> </span><span id="local-6989586621679167068"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167068"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Val lit binder]
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">([Val lit binder]
+ -&gt; Either [Val lit binder] [(String, Val lit binder)])
+-&gt; ParsecT Void String Identity [Val lit binder]
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; ParsecT Void String Identity [Val lit binder]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#nestedValue"><span class="hs-identifier hs-var">nestedValue</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167068"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span class="hs-comment">{-| Parse a set of named fields
+
+$setup
+&gt;&gt;&gt; let pflds = parseMaybe (namedFields value)
+
+&gt;&gt;&gt; pflds &quot;{}&quot;
+Just (Right [])
+
+Fields can be separated by commas:
+
+&gt;&gt;&gt; pflds &quot;{a=False,b=True}&quot; == Just (Right [(&quot;a&quot;,Constr &quot;False&quot; (Left [])),(&quot;b&quot;,Constr &quot;True&quot; (Left []))])
+True
+
+Or just by spaces, but you might need to use parenthesis to avoid ambiguity.
+
+This might be interpreted as 'False b' and so it fails:
+
+&gt;&gt;&gt; pflds &quot;{a=False b=True}&quot;
+Nothing
+
+&gt;&gt;&gt; pflds &quot;{a=(False) b=True}&quot; == Just (Right [(&quot;a&quot;,Constr &quot;False&quot; (Left [])),(&quot;b&quot;,Constr &quot;True&quot; (Left []))])
+True
+
+&gt;&gt;&gt; pflds &quot;{a= Msg {from=Joe} b=True}&quot;
+Just (Right [(&quot;a&quot;,Fix (ConstrF &quot;Msg&quot; (Right [(&quot;from&quot;,Fix (ConstrF &quot;Joe&quot; (Left [])))]))),(&quot;b&quot;,Fix (ConstrF &quot;True&quot; (Left [])))])
+
+Haskell style comments are allowed:
+
+&gt;&gt;&gt; pflds &quot;{ l1  = cons false {- we are in the middle of a Constr ()-} nil , l2=  nil } -- named fields are completed&quot; == Just (Right [(&quot;l1&quot;,Constr &quot;cons&quot; (Left [Constr &quot;false&quot; (Left []),Constr &quot;nil&quot; (Left [])])),(&quot;l2&quot;,Constr &quot;nil&quot; (Left []))])
+True
+-}</span><span>
+</span><span id="line-167"></span><span id="local-6989586621679167065"><span id="local-6989586621679167066"><span class="annot"><a href="ZM.Parser.Value.html#namedFields"><span class="hs-identifier hs-type">namedFields</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167066"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167065"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167066"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167065"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167066"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167065"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-170"></span><span id="namedFields"><span class="annot"><span class="annottext">namedFields :: Parser (Val lit binder)
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+</span><a href="ZM.Parser.Value.html#namedFields"><span class="hs-identifier hs-var hs-var">namedFields</span></a></span></span><span> </span><span id="local-6989586621679167064"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167064"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String, Val lit binder)]
+-&gt; Either [Val lit binder] [(String, Val lit binder)]
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">([(String, Val lit binder)]
+ -&gt; Either [Val lit binder] [(String, Val lit binder)])
+-&gt; ParsecT Void String Identity [(String, Val lit binder)]
+-&gt; Parser (Either [Val lit binder] [(String, Val lit binder)])
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity [(String, Val lit binder)]
+-&gt; ParsecT Void String Identity [(String, Val lit binder)]
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Util.html#cpars"><span class="hs-identifier hs-var">cpars</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity (String, Val lit binder)
+-&gt; ParsecT Void String Identity (Maybe String)
+-&gt; ParsecT Void String Identity [(String, Val lit binder)]
+forall (m :: * -&gt; *) a sep. MonadPlus m =&gt; m a -&gt; m sep -&gt; m [a]
+</span><span class="hs-identifier hs-var">sepBy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser (Val lit binder)
+-&gt; ParsecT Void String Identity (String, Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (String, Val lit binder)
+</span><a href="ZM.Parser.Value.html#namedField"><span class="hs-identifier hs-var">namedField</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167064"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Maybe String)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">(ParsecT Void String Identity String
+ -&gt; ParsecT Void String Identity (Maybe String))
+-&gt; ParsecT Void String Identity String
+-&gt; ParsecT Void String Identity (Maybe String)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-171"></span><span>
+</span><span id="line-172"></span><span id="local-6989586621679167115"><span id="local-6989586621679167116"><span class="annot"><a href="ZM.Parser.Value.html#namedField"><span class="hs-identifier hs-type">namedField</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167116"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167115"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167116"><span class="hs-identifier hs-type">lit</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679167115"><span class="hs-identifier hs-type">binder</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-173"></span><span id="namedField"><span class="annot"><span class="annottext">namedField :: Parser (Val lit binder) -&gt; Parser (String, Val lit binder)
+</span><a href="ZM.Parser.Value.html#namedField"><span class="hs-identifier hs-var hs-var">namedField</span></a></span></span><span> </span><span id="local-6989586621679167058"><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167058"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-174"></span><span>  </span><span id="local-6989586621679167057"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167057"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-var">localId</span></a></span><span>
+</span><span id="line-175"></span><span>  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span>    </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT Void String Identity String
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;=&quot;</span></span><span>
+</span><span id="line-176"></span><span>  </span><span id="local-6989586621679167056"><span class="annot"><span class="annottext">Val lit binder
+</span><a href="#local-6989586621679167056"><span class="hs-identifier hs-var">v</span></a></span></span><span>    </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder) -&gt; Parser (Val lit binder)
+forall (lit :: * -&gt; *) binder.
+Parser (Val lit binder) -&gt; Parser (Val lit binder)
+</span><a href="ZM.Parser.Value.html#valueV"><span class="hs-identifier hs-var">valueV</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (Val lit binder)
+</span><a href="#local-6989586621679167058"><span class="hs-identifier hs-var">v</span></a></span><span>
+</span><span id="line-177"></span><span>  </span><span class="annot"><span class="annottext">(String, Val lit binder) -&gt; Parser (String, Val lit binder)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679167057"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Val lit binder
+</span><a href="#local-6989586621679167056"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span></pre></body></html>

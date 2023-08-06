@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE NoMonomorphismRestriction #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |Utilities to operate on the absolute type model</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Transform</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Saturated ADTs</span></span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#MapTypeTree"><span class="hs-identifier">MapTypeTree</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#typeTree"><span class="hs-identifier">typeTree</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#solvedADT"><span class="hs-identifier">solvedADT</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Dependencies</span></span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#typeDefinition"><span class="hs-identifier">typeDefinition</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#adtDefinition"><span class="hs-identifier">adtDefinition</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#innerReferences"><span class="hs-identifier">innerReferences</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="ZM.Transform.html#references"><span class="hs-identifier">references</span></a></span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.Monad.Trans.State</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span>             </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">toList</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Map</span></span><span>                  </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">M</span></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-20"></span><span class="hs-comment">--import           Data.Model.Util           (transitiveClosure)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Abs.html"><span class="hs-identifier">ZM.Abs</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Pretty.html"><span class="hs-identifier">ZM.Pretty</span></a></span><span>                 </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Types.html"><span class="hs-identifier">ZM.Types</span></a></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Util.html"><span class="hs-identifier">ZM.Util</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- |A map of fully applied types to the corresponding saturated constructor tree</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">type</span><span> </span><span id="MapTypeTree"><span class="annot"><a href="ZM.Transform.html#MapTypeTree"><span class="hs-identifier hs-var">MapTypeTree</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">M.Map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ConTree</span></span><span> </span><span class="annot"><a href="ZM.Types.html#Identifier"><span class="hs-identifier hs-type">Identifier</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- |Return the map of types to saturated constructor trees corresponding to the type model</span><span>
+</span><span id="line-30"></span><span class="annot"><a href="ZM.Transform.html#typeTree"><span class="hs-identifier hs-type">typeTree</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsTypeModel"><span class="hs-identifier hs-type">AbsTypeModel</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Transform.html#MapTypeTree"><span class="hs-identifier hs-type">MapTypeTree</span></a></span><span>
+</span><span id="line-31"></span><span id="typeTree"><span class="annot"><span class="annottext">typeTree :: AbsTypeModel -&gt; MapTypeTree
+</span><a href="ZM.Transform.html#typeTree"><span class="hs-identifier hs-var hs-var">typeTree</span></a></span></span><span> </span><span id="local-6989586621679164456"><span class="annot"><span class="annottext">AbsTypeModel
+</span><a href="#local-6989586621679164456"><span class="hs-identifier hs-var">tm</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">State MapTypeTree () -&gt; MapTypeTree
+forall k a1 a. State (Map k a1) a -&gt; Map k a1
+</span><a href="ZM.Util.html#execEnv"><span class="hs-identifier hs-var">execEnv</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; Type AbsRef -&gt; State MapTypeTree ()
+forall (m :: * -&gt; *) t name name.
+(Monad m, Ord t, Show t) =&gt;
+Map t (ADT name name (ADTRef t))
+-&gt; Type t -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+</span><a href="#local-6989586621679164454"><span class="hs-identifier hs-var">addType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsTypeModel
+-&gt; Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+forall adtName consName inRef exRef.
+TypeModel adtName consName inRef exRef
+-&gt; TypeEnv adtName consName inRef exRef
+</span><span class="hs-identifier hs-var hs-var">typeEnv</span></span><span> </span><span class="annot"><span class="annottext">AbsTypeModel
+</span><a href="#local-6989586621679164456"><span class="hs-identifier hs-var">tm</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AbsTypeModel -&gt; Type AbsRef
+forall adtName consName inRef exRef.
+TypeModel adtName consName inRef exRef -&gt; Type exRef
+</span><span class="hs-identifier hs-var hs-var">typeName</span></span><span> </span><span class="annot"><span class="annottext">AbsTypeModel
+</span><a href="#local-6989586621679164456"><span class="hs-identifier hs-var">tm</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-33"></span><span>   </span><span class="hs-comment">-- |Insert in the env the saturated constructor trees corresponding to the passed type</span><span>
+</span><span id="line-34"></span><span>   </span><span class="hs-comment">-- and any type nested in its definition</span><span>
+</span><span id="line-35"></span><span>   </span><span id="local-6989586621679164454"><span class="annot"><span class="annottext">addType :: Map t (ADT name name (ADTRef t))
+-&gt; Type t -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+</span><a href="#local-6989586621679164454"><span class="hs-identifier hs-var hs-var">addType</span></a></span></span><span> </span><span id="local-6989586621679164451"><span class="annot"><span class="annottext">Map t (ADT name name (ADTRef t))
+</span><a href="#local-6989586621679164451"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679164450"><span class="annot"><span class="annottext">Type t
+</span><a href="#local-6989586621679164450"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-36"></span><span>     </span><span id="local-6989586621679164449"><span class="annot"><span class="annottext">Maybe (ConTree name t)
+</span><a href="#local-6989586621679164449"><span class="hs-identifier hs-var">mct</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Type t -&gt; Map (Type t) (ConTree name t) -&gt; Maybe (ConTree name t)
+forall k a. Ord k =&gt; k -&gt; Map k a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">M.lookup</span></span><span> </span><span class="annot"><span class="annottext">Type t
+</span><a href="#local-6989586621679164450"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">(Map (Type t) (ConTree name t) -&gt; Maybe (ConTree name t))
+-&gt; StateT
+     (Map (Type t) (ConTree name t)) m (Map (Type t) (ConTree name t))
+-&gt; StateT
+     (Map (Type t) (ConTree name t)) m (Maybe (ConTree name t))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">StateT
+  (Map (Type t) (ConTree name t)) m (Map (Type t) (ConTree name t))
+forall (m :: * -&gt; *) s. Monad m =&gt; StateT s m s
+</span><span class="hs-identifier hs-var">get</span></span><span>
+</span><span id="line-37"></span><span>     </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Maybe (ConTree name t)
+</span><a href="#local-6989586621679164449"><span class="hs-identifier hs-var">mct</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-38"></span><span>       </span><span class="annot"><span class="annottext">Maybe (ConTree name t)
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-39"></span><span>         </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ADT name name t -&gt; Maybe (ConTree name t)
+forall name consName ref.
+ADT name consName ref -&gt; Maybe (ConTree consName ref)
+</span><span class="hs-identifier hs-var hs-var">declCons</span></span><span> </span><span class="annot"><span class="annottext">(ADT name name t -&gt; Maybe (ConTree name t))
+-&gt; ADT name name t -&gt; Maybe (ConTree name t)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Map t (ADT name name (ADTRef t)) -&gt; Type t -&gt; ADT name name t
+forall ref name consName.
+(Ord ref, Show ref) =&gt;
+Map ref (ADT name consName (ADTRef ref))
+-&gt; Type ref -&gt; ADT name consName ref
+</span><a href="ZM.Transform.html#solvedADT"><span class="hs-identifier hs-var">solvedADT</span></a></span><span> </span><span class="annot"><span class="annottext">Map t (ADT name name (ADTRef t))
+</span><a href="#local-6989586621679164451"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">Type t
+</span><a href="#local-6989586621679164450"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-40"></span><span>           </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679164444"><span class="annot"><span class="annottext">ConTree name t
+</span><a href="#local-6989586621679164444"><span class="hs-identifier hs-var">ct</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-41"></span><span>             </span><span class="annot"><span class="annottext">(Map (Type t) (ConTree name t) -&gt; Map (Type t) (ConTree name t))
+-&gt; StateT (Map (Type t) (ConTree name t)) m ()
+forall (m :: * -&gt; *) s. Monad m =&gt; (s -&gt; s) -&gt; StateT s m ()
+</span><span class="hs-identifier hs-var">modify</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Type t
+-&gt; ConTree name t
+-&gt; Map (Type t) (ConTree name t)
+-&gt; Map (Type t) (ConTree name t)
+forall k a. Ord k =&gt; k -&gt; a -&gt; Map k a -&gt; Map k a
+</span><span class="hs-identifier hs-var">M.insert</span></span><span> </span><span class="annot"><span class="annottext">Type t
+</span><a href="#local-6989586621679164450"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">ConTree name t
+</span><a href="#local-6989586621679164444"><span class="hs-identifier hs-var">ct</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>             </span><span class="hs-comment">-- Recursively on all saturated types inside the contructor tree</span><span>
+</span><span id="line-43"></span><span>             </span><span class="annot"><span class="annottext">(Type t -&gt; StateT (Map (Type t) (ConTree name t)) m ())
+-&gt; [Type t] -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Map t (ADT name name (ADTRef t))
+-&gt; Type t -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+</span><a href="#local-6989586621679164454"><span class="hs-identifier hs-var">addType</span></a></span><span> </span><span class="annot"><span class="annottext">Map t (ADT name name (ADTRef t))
+</span><a href="#local-6989586621679164451"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ConTree name t -&gt; [Type t]
+forall name t. ConTree name t -&gt; [Type t]
+</span><span class="hs-identifier hs-var">conTreeTypeList</span></span><span> </span><span class="annot"><span class="annottext">ConTree name t
+</span><a href="#local-6989586621679164444"><span class="hs-identifier hs-var">ct</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>           </span><span class="annot"><span class="annottext">Maybe (ConTree name t)
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>       </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><span class="annottext">ConTree name t
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; StateT (Map (Type t) (ConTree name t)) m ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- | Return all the ADTs referred, directly or indirectly, by the provided type, and defined in the provided environment</span><span>
+</span><span id="line-48"></span><span class="annot"><a href="ZM.Transform.html#typeDefinition"><span class="hs-identifier hs-type">typeDefinition</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsEnv"><span class="hs-identifier hs-type">AbsEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-type">AbsType</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier hs-type">ZMError</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-49"></span><span id="typeDefinition"><span class="annot"><span class="annottext">typeDefinition :: Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; Type AbsRef
+-&gt; Either
+     [ZMError AbsRef] [ADT Identifier Identifier (ADTRef AbsRef)]
+</span><a href="ZM.Transform.html#typeDefinition"><span class="hs-identifier hs-var hs-var">typeDefinition</span></a></span></span><span> </span><span id="local-6989586621679164436"><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164436"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679164435"><span class="annot"><span class="annottext">Type AbsRef
+</span><a href="#local-6989586621679164435"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; [AbsRef] -&gt; [ADT Identifier Identifier (ADTRef AbsRef)]
+forall k b. (Ord k, Show k) =&gt; Map k b -&gt; [k] -&gt; [b]
+</span><a href="ZM.Transform.html#mapSolve"><span class="hs-identifier hs-var">mapSolve</span></a></span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164436"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; [ADT Identifier Identifier (ADTRef AbsRef)])
+-&gt; ([[AbsRef]] -&gt; [AbsRef])
+-&gt; [[AbsRef]]
+-&gt; [ADT Identifier Identifier (ADTRef AbsRef)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[AbsRef] -&gt; [AbsRef]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; [AbsRef])
+-&gt; ([[AbsRef]] -&gt; [AbsRef]) -&gt; [[AbsRef]] -&gt; [AbsRef]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[[AbsRef]] -&gt; [AbsRef]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([[AbsRef]] -&gt; [ADT Identifier Identifier (ADTRef AbsRef)])
+-&gt; Either [ZMError AbsRef] [[AbsRef]]
+-&gt; Either
+     [ZMError AbsRef] [ADT Identifier Identifier (ADTRef AbsRef)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(AbsRef -&gt; Either [ZMError AbsRef] [AbsRef])
+-&gt; [AbsRef] -&gt; Either [ZMError AbsRef] [[AbsRef]]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m (t b)
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; AbsRef -&gt; Either [ZMError AbsRef] [AbsRef]
+</span><a href="ZM.Transform.html#absRecDeps"><span class="hs-identifier hs-var">absRecDeps</span></a></span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164436"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; Either [ZMError AbsRef] [[AbsRef]])
+-&gt; (Type AbsRef -&gt; [AbsRef])
+-&gt; Type AbsRef
+-&gt; Either [ZMError AbsRef] [[AbsRef]]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Type AbsRef -&gt; [AbsRef]
+</span><a href="ZM.Transform.html#references"><span class="hs-identifier hs-var">references</span></a></span><span> </span><span class="annot"><span class="annottext">(Type AbsRef -&gt; Either [ZMError AbsRef] [[AbsRef]])
+-&gt; Type AbsRef -&gt; Either [ZMError AbsRef] [[AbsRef]]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Type AbsRef
+</span><a href="#local-6989586621679164435"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- | Return all the ADTs referred, directly or indirectly, by the ADT identified by the provided reference, and defined in the provided environment</span><span>
+</span><span id="line-52"></span><span class="annot"><a href="ZM.Transform.html#adtDefinition"><span class="hs-identifier hs-type">adtDefinition</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsEnv"><span class="hs-identifier hs-type">AbsEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier hs-type">ZMError</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-53"></span><span id="adtDefinition"><span class="annot"><span class="annottext">adtDefinition :: Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; AbsRef
+-&gt; Either
+     [ZMError AbsRef] [ADT Identifier Identifier (ADTRef AbsRef)]
+</span><a href="ZM.Transform.html#adtDefinition"><span class="hs-identifier hs-var hs-var">adtDefinition</span></a></span></span><span> </span><span id="local-6989586621679164428"><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164428"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679164427"><span class="annot"><span class="annottext">AbsRef
+</span><a href="#local-6989586621679164427"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; [AbsRef] -&gt; [ADT Identifier Identifier (ADTRef AbsRef)]
+forall k b. (Ord k, Show k) =&gt; Map k b -&gt; [k] -&gt; [b]
+</span><a href="ZM.Transform.html#mapSolve"><span class="hs-identifier hs-var">mapSolve</span></a></span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164428"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; [ADT Identifier Identifier (ADTRef AbsRef)])
+-&gt; Either [ZMError AbsRef] [AbsRef]
+-&gt; Either
+     [ZMError AbsRef] [ADT Identifier Identifier (ADTRef AbsRef)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; AbsRef -&gt; Either [ZMError AbsRef] [AbsRef]
+</span><a href="ZM.Transform.html#absRecDeps"><span class="hs-identifier hs-var">absRecDeps</span></a></span><span> </span><span class="annot"><span class="annottext">Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+</span><a href="#local-6989586621679164428"><span class="hs-identifier hs-var">env</span></a></span><span> </span><span class="annot"><span class="annottext">AbsRef
+</span><a href="#local-6989586621679164427"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- |Return the list of references found in the ADT definition</span><span>
+</span><span id="line-56"></span><span class="annot"><a href="ZM.Transform.html#innerReferences"><span class="hs-identifier hs-type">innerReferences</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-57"></span><span id="innerReferences"><span class="annot"><span class="annottext">innerReferences :: ADT Identifier Identifier (ADTRef AbsRef) -&gt; [AbsRef]
+</span><a href="ZM.Transform.html#innerReferences"><span class="hs-identifier hs-var hs-var">innerReferences</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[AbsRef] -&gt; [AbsRef]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; [AbsRef])
+-&gt; (ADT Identifier Identifier (ADTRef AbsRef) -&gt; [AbsRef])
+-&gt; ADT Identifier Identifier (ADTRef AbsRef)
+-&gt; [AbsRef]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(ADTRef AbsRef -&gt; Maybe AbsRef) -&gt; [ADTRef AbsRef] -&gt; [AbsRef]
+forall a b. (a -&gt; Maybe b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">mapMaybe</span></span><span> </span><span class="annot"><span class="annottext">ADTRef AbsRef -&gt; Maybe AbsRef
+forall a. ADTRef a -&gt; Maybe a
+</span><a href="ZM.Types.html#getADTRef"><span class="hs-identifier hs-var">getADTRef</span></a></span><span> </span><span class="annot"><span class="annottext">([ADTRef AbsRef] -&gt; [AbsRef])
+-&gt; (ADT Identifier Identifier (ADTRef AbsRef) -&gt; [ADTRef AbsRef])
+-&gt; ADT Identifier Identifier (ADTRef AbsRef)
+-&gt; [AbsRef]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[ADTRef AbsRef] -&gt; [ADTRef AbsRef]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="annot"><span class="annottext">([ADTRef AbsRef] -&gt; [ADTRef AbsRef])
+-&gt; (ADT Identifier Identifier (ADTRef AbsRef) -&gt; [ADTRef AbsRef])
+-&gt; ADT Identifier Identifier (ADTRef AbsRef)
+-&gt; [ADTRef AbsRef]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ADT Identifier Identifier (ADTRef AbsRef) -&gt; [ADTRef AbsRef]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">toList</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- |Return the list of references found in the absolute type</span><span>
+</span><span id="line-60"></span><span class="annot"><a href="ZM.Transform.html#references"><span class="hs-identifier hs-type">references</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsType"><span class="hs-identifier hs-type">AbsType</span></a></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-61"></span><span id="references"><span class="annot"><span class="annottext">references :: Type AbsRef -&gt; [AbsRef]
+</span><a href="ZM.Transform.html#references"><span class="hs-identifier hs-var hs-var">references</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[AbsRef] -&gt; [AbsRef]
+forall a. Eq a =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">nub</span></span><span> </span><span class="annot"><span class="annottext">([AbsRef] -&gt; [AbsRef])
+-&gt; (Type AbsRef -&gt; [AbsRef]) -&gt; Type AbsRef -&gt; [AbsRef]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Type AbsRef -&gt; [AbsRef]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; [a]
+</span><span class="hs-identifier hs-var">toList</span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-comment">--absRecDeps :: AbsEnv -&gt; AbsRef -&gt; Either String [AbsRef]</span><span>
+</span><span id="line-64"></span><span class="hs-comment">--absRecDeps env ref = either (Left . unlines . map prettyShow) Right $ transitiveClosure getADTRef env ref</span><span>
+</span><span id="line-65"></span><span class="annot"><a href="ZM.Transform.html#absRecDeps"><span class="hs-identifier hs-type">absRecDeps</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsEnv"><span class="hs-identifier hs-type">AbsEnv</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier hs-type">ZMError</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-66"></span><span id="absRecDeps"><span class="annot"><span class="annottext">absRecDeps :: Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; AbsRef -&gt; Either [ZMError AbsRef] [AbsRef]
+</span><a href="ZM.Transform.html#absRecDeps"><span class="hs-identifier hs-var hs-var">absRecDeps</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ADTRef AbsRef -&gt; Maybe AbsRef)
+-&gt; Map AbsRef (ADT Identifier Identifier (ADTRef AbsRef))
+-&gt; AbsRef
+-&gt; Either [ZMError AbsRef] [AbsRef]
+forall (t :: * -&gt; *) r a.
+(Foldable t, Ord r) =&gt;
+(a -&gt; Maybe r) -&gt; Map r (t a) -&gt; r -&gt; Either [ZMError r] [r]
+</span><a href="ZM.Abs.html#transitiveClosure"><span class="hs-identifier hs-var">transitiveClosure</span></a></span><span> </span><span class="annot"><span class="annottext">ADTRef AbsRef -&gt; Maybe AbsRef
+forall a. ADTRef a -&gt; Maybe a
+</span><a href="ZM.Types.html#getADTRef"><span class="hs-identifier hs-var">getADTRef</span></a></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span id="local-6989586621679164509"><span id="local-6989586621679164510"><span class="annot"><a href="ZM.Transform.html#mapSolve"><span class="hs-identifier hs-type">mapSolve</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679164510"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679164510"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">M.Map</span></span><span> </span><span class="annot"><a href="#local-6989586621679164510"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164509"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679164510"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679164509"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-69"></span><span id="mapSolve"><span class="annot"><span class="annottext">mapSolve :: Map k b -&gt; [k] -&gt; [b]
+</span><a href="ZM.Transform.html#mapSolve"><span class="hs-identifier hs-var hs-var">mapSolve</span></a></span></span><span> </span><span id="local-6989586621679164423"><span class="annot"><span class="annottext">Map k b
+</span><a href="#local-6989586621679164423"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k -&gt; b) -&gt; [k] -&gt; [b]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k -&gt; Map k b -&gt; b
+forall k a. (Ord k, Show k) =&gt; k -&gt; Map k a -&gt; a
+</span><span class="hs-operator hs-var">`solve`</span></span><span> </span><span class="annot"><span class="annottext">Map k b
+</span><a href="#local-6989586621679164423"><span class="hs-identifier hs-var">env</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- stringADT :: AbsEnv -&gt; AbsADT -&gt; ADT LocalName Identifier (TypeRef LocalName)</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- stringADT env adt =</span><span>
+</span><span id="line-73"></span><span class="hs-comment">--   let name = declName adt</span><span>
+</span><span id="line-74"></span><span class="hs-comment">--   in ADT (LocalName name) (declNumParameters adt) ((solveS name &lt;$&gt;) &lt;$&gt; declCons adt)</span><span>
+</span><span id="line-75"></span><span class="hs-comment">--    where solveS _ (Var n) = TypVar n</span><span>
+</span><span id="line-76"></span><span class="hs-comment">--          solveS _ (Ext k) = TypRef . LocalName . declName . solve k $ env</span><span>
+</span><span id="line-77"></span><span class="hs-comment">--          solveS name Rec  = TypRef $ LocalName name</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- |Convert a type to an equivalent concrete ADT whose variables have been substituted by the type parameters (e.g. Maybe Bool -&gt; Maybe = Nothing | Just Bool)</span><span>
+</span><span id="line-80"></span><span id="local-6989586621679164524"><span id="local-6989586621679164525"><span id="local-6989586621679164526"><span class="annot"><a href="ZM.Transform.html#solvedADT"><span class="hs-identifier hs-type">solvedADT</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">M.Map</span></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="#local-6989586621679164525"><span class="hs-identifier hs-type">name</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164524"><span class="hs-identifier hs-type">consName</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ADT</span></span><span> </span><span class="annot"><a href="#local-6989586621679164525"><span class="hs-identifier hs-type">name</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164524"><span class="hs-identifier hs-type">consName</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164526"><span class="hs-identifier hs-type">ref</span></a></span></span></span></span><span>
+</span><span id="line-81"></span><span id="solvedADT"><span class="annot"><span class="annottext">solvedADT :: Map ref (ADT name consName (ADTRef ref))
+-&gt; Type ref -&gt; ADT name consName ref
+</span><a href="ZM.Transform.html#solvedADT"><span class="hs-identifier hs-var hs-var">solvedADT</span></a></span></span><span> </span><span id="local-6989586621679164421"><span class="annot"><span class="annottext">Map ref (ADT name consName (ADTRef ref))
+</span><a href="#local-6989586621679164421"><span class="hs-identifier hs-var">env</span></a></span></span><span> </span><span id="local-6989586621679164420"><span class="annot"><span class="annottext">Type ref
+</span><a href="#local-6989586621679164420"><span class="hs-identifier hs-var">at</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-82"></span><span>   </span><span class="hs-keyword">let</span><span>
+</span><span id="line-83"></span><span>     </span><span class="annot"><span class="hs-identifier hs-type">TypeN</span></span><span> </span><span id="local-6989586621679164418"><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164418"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679164417"><span class="annot"><span class="annottext">[TypeN ref]
+</span><a href="#local-6989586621679164417"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type ref -&gt; TypeN ref
+forall r. Type r -&gt; TypeN r
+</span><span class="hs-identifier hs-var">typeN</span></span><span> </span><span class="annot"><span class="annottext">Type ref
+</span><a href="#local-6989586621679164420"><span class="hs-identifier hs-var">at</span></a></span><span>
+</span><span id="line-84"></span><span>     </span><span id="local-6989586621679164415"><span class="annot"><span class="annottext">as :: [Type ref]
+</span><a href="#local-6989586621679164415"><span class="hs-keyword hs-var hs-var">as</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(TypeN ref -&gt; Type ref) -&gt; [TypeN ref] -&gt; [Type ref]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">TypeN ref -&gt; Type ref
+forall ref. TypeN ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">typeA</span></span><span> </span><span class="annot"><span class="annottext">[TypeN ref]
+</span><a href="#local-6989586621679164417"><span class="hs-identifier hs-var">ts</span></a></span><span>
+</span><span id="line-85"></span><span>     </span><span id="local-6989586621679164413"><span class="annot"><span class="annottext">adt :: ADT name consName (ADTRef ref)
+</span><a href="#local-6989586621679164413"><span class="hs-identifier hs-var hs-var">adt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ref
+-&gt; Map ref (ADT name consName (ADTRef ref))
+-&gt; ADT name consName (ADTRef ref)
+forall k a. (Ord k, Show k) =&gt; k -&gt; Map k a -&gt; a
+</span><span class="hs-identifier hs-var">solve</span></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164418"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Map ref (ADT name consName (ADTRef ref))
+</span><a href="#local-6989586621679164421"><span class="hs-identifier hs-var">env</span></a></span><span>
+</span><span id="line-86"></span><span>     </span><span id="local-6989586621679164412"><span class="annot"><span class="annottext">name :: name
+</span><a href="#local-6989586621679164412"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ADT name consName (ADTRef ref) -&gt; name
+forall name consName ref. ADT name consName ref -&gt; name
+</span><span class="hs-identifier hs-var hs-var">declName</span></span><span> </span><span class="annot"><span class="annottext">ADT name consName (ADTRef ref)
+</span><a href="#local-6989586621679164413"><span class="hs-identifier hs-var">adt</span></a></span><span>
+</span><span id="line-87"></span><span>   </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">name
+-&gt; Word8 -&gt; Maybe (ConTree consName ref) -&gt; ADT name consName ref
+forall name consName ref.
+name
+-&gt; Word8 -&gt; Maybe (ConTree consName ref) -&gt; ADT name consName ref
+</span><span class="hs-identifier hs-var">ADT</span></span><span> </span><span class="annot"><span class="annottext">name
+</span><a href="#local-6989586621679164412"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Type (ADTRef ref) -&gt; Type ref)
+-&gt; ConTree consName (ADTRef ref) -&gt; ConTree consName ref
+forall t ref name.
+(Type t -&gt; Type ref) -&gt; ConTree name t -&gt; ConTree name ref
+</span><span class="hs-identifier hs-var">conTreeTypeMap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+forall ref. ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+</span><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164418"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164415"><span class="hs-keyword hs-var">as</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ConTree consName (ADTRef ref) -&gt; ConTree consName ref)
+-&gt; Maybe (ConTree consName (ADTRef ref))
+-&gt; Maybe (ConTree consName ref)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ADT name consName (ADTRef ref)
+-&gt; Maybe (ConTree consName (ADTRef ref))
+forall name consName ref.
+ADT name consName ref -&gt; Maybe (ConTree consName ref)
+</span><span class="hs-identifier hs-var hs-var">declCons</span></span><span> </span><span class="annot"><span class="annottext">ADT name consName (ADTRef ref)
+</span><a href="#local-6989586621679164413"><span class="hs-identifier hs-var">adt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- |Substitute variables in a type with the provided types</span><span>
+</span><span id="line-90"></span><span id="local-6989586621679164469"><span class="annot"><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-type">saturate</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679164469"><span class="hs-identifier hs-type">ref</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679164469"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ADTRef"><span class="hs-identifier hs-type">ADTRef</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679164469"><span class="hs-identifier hs-type">ref</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Type</span></span><span> </span><span class="annot"><a href="#local-6989586621679164469"><span class="hs-identifier hs-type">ref</span></a></span></span><span>
+</span><span id="line-91"></span><span id="saturate"><span class="annot"><span class="annottext">saturate :: ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+</span><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var hs-var">saturate</span></a></span></span><span> </span><span id="local-6989586621679164407"><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164407"><span class="hs-identifier hs-var">ref</span></a></span></span><span> </span><span id="local-6989586621679164406"><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164406"><span class="hs-identifier hs-var">vs</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeApp</span></span><span> </span><span id="local-6989586621679164404"><span class="annot"><span class="annottext">Type (ADTRef ref)
+</span><a href="#local-6989586621679164404"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679164403"><span class="annot"><span class="annottext">Type (ADTRef ref)
+</span><a href="#local-6989586621679164403"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type ref -&gt; Type ref -&gt; Type ref
+forall ref. Type ref -&gt; Type ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">TypeApp</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+forall ref. ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+</span><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164407"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164406"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">Type (ADTRef ref)
+</span><a href="#local-6989586621679164404"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+forall ref. ref -&gt; [Type ref] -&gt; Type (ADTRef ref) -&gt; Type ref
+</span><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164407"><span class="hs-identifier hs-var">ref</span></a></span><span> </span><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164406"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">Type (ADTRef ref)
+</span><a href="#local-6989586621679164403"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span class="annot"><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span class="annot"><span class="annottext">ref
+</span><span class="hs-identifier">_</span></span><span>   </span><span id="local-6989586621679164402"><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164402"><span class="hs-identifier hs-var">vs</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeCon</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Var"><span class="hs-identifier hs-type">Var</span></a></span><span> </span><span id="local-6989586621679164399"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679164399"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Type ref]
+</span><a href="#local-6989586621679164402"><span class="hs-identifier hs-var">vs</span></a></span><span> </span><span class="annot"><span class="annottext">[Type ref] -&gt; Int -&gt; Type ref
+forall a. [a] -&gt; Int -&gt; a
+</span><span class="hs-operator hs-var">!!</span></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679164399"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-comment">-- Different!</span><span>
+</span><span id="line-93"></span><span class="annot"><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span class="annot"><span class="annottext">ref
+</span><span class="hs-identifier">_</span></span><span>    </span><span class="annot"><span class="annottext">[Type ref]
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeCon</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#Ext"><span class="hs-identifier hs-type">Ext</span></a></span><span> </span><span id="local-6989586621679164396"><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164396"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ref -&gt; Type ref
+forall ref. ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">TypeCon</span></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164396"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-94"></span><span class="annot"><a href="ZM.Transform.html#saturate"><span class="hs-identifier hs-var">saturate</span></a></span><span> </span><span id="local-6989586621679164395"><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164395"><span class="hs-identifier hs-var">selfRef</span></a></span></span><span> </span><span class="annot"><span class="annottext">[Type ref]
+</span><span class="hs-identifier">_</span></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TypeCon</span></span><span> </span><span class="annot"><span class="annottext">ADTRef ref
+</span><a href="ZM.Types.html#Rec"><span class="hs-identifier hs-var">Rec</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ref -&gt; Type ref
+forall ref. ref -&gt; Type ref
+</span><span class="hs-identifier hs-var">TypeCon</span></span><span> </span><span class="annot"><span class="annottext">ref
+</span><a href="#local-6989586621679164395"><span class="hs-identifier hs-var">selfRef</span></a></span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- saturate2 :: ref -&gt; [ref] -&gt; Type (ADTRef ref) -&gt; Type ref</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- saturate2 ref vs t = subs ref vs &lt;$&gt; t</span><span>
+</span><span id="line-98"></span><span class="hs-comment">--   where</span><span>
+</span><span id="line-99"></span><span class="hs-comment">--     subs _       vars (Var n) = vars !! fromIntegral n</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--     subs selfRef _    Rec     = selfRef</span><span>
+</span><span id="line-101"></span><span class="hs-comment">--     subs _       _    (Ext r) = r</span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span></pre></body></html>

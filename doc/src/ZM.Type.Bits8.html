@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Bits8</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html"><span class="hs-identifier">ZM.Type.Bit</span></a></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span id="local-6989586621679159063"><span id="local-6989586621679159064"></span></span><span class="hs-keyword">data</span><span> </span><span id="Bits8"><span class="annot"><a href="ZM.Type.Bits8.html#Bits8"><span class="hs-identifier hs-var">Bits8</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-9"></span><span>       </span><span id="Bits8"><span class="annot"><a href="ZM.Type.Bits8.html#Bits8"><span class="hs-identifier hs-var">Bits8</span></a></span></span><span>
+</span><span id="line-10"></span><span>         </span><span class="hs-special">{</span><span> </span><span id="bit0"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit0"><span class="hs-identifier hs-var hs-var">bit0</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-11"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit1"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit1"><span class="hs-identifier hs-var hs-var">bit1</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-12"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit2"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit2"><span class="hs-identifier hs-var hs-var">bit2</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-13"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit3"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit3"><span class="hs-identifier hs-var hs-var">bit3</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-14"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit4"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit4"><span class="hs-identifier hs-var hs-var">bit4</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-15"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit5"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit5"><span class="hs-identifier hs-var hs-var">bit5</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-16"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit6"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit6"><span class="hs-identifier hs-var hs-var">bit6</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-17"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit7"><span class="annot"><span class="annottext">Bits8 -&gt; Bit
+</span><a href="ZM.Type.Bits8.html#bit7"><span class="hs-identifier hs-var hs-var">bit7</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-18"></span><span>         </span><span class="hs-special">}</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679159050"><span id="local-6989586621679159052"><span class="annot"><span class="annottext">Bits8 -&gt; Bits8 -&gt; Bool
+(Bits8 -&gt; Bits8 -&gt; Bool) -&gt; (Bits8 -&gt; Bits8 -&gt; Bool) -&gt; Eq Bits8
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Bits8 -&gt; Bits8 -&gt; Bool
+$c/= :: Bits8 -&gt; Bits8 -&gt; Bool
+== :: Bits8 -&gt; Bits8 -&gt; Bool
+$c== :: Bits8 -&gt; Bits8 -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159034"><span id="local-6989586621679159036"><span id="local-6989586621679159038"><span id="local-6989586621679159040"><span id="local-6989586621679159042"><span id="local-6989586621679159044"><span id="local-6989586621679159046"><span class="annot"><span class="annottext">Eq Bits8
+Eq Bits8
+-&gt; (Bits8 -&gt; Bits8 -&gt; Ordering)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bool)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bool)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bool)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bool)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bits8)
+-&gt; (Bits8 -&gt; Bits8 -&gt; Bits8)
+-&gt; Ord Bits8
+Bits8 -&gt; Bits8 -&gt; Bool
+Bits8 -&gt; Bits8 -&gt; Ordering
+Bits8 -&gt; Bits8 -&gt; Bits8
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Bits8 -&gt; Bits8 -&gt; Bits8
+$cmin :: Bits8 -&gt; Bits8 -&gt; Bits8
+max :: Bits8 -&gt; Bits8 -&gt; Bits8
+$cmax :: Bits8 -&gt; Bits8 -&gt; Bits8
+&gt;= :: Bits8 -&gt; Bits8 -&gt; Bool
+$c&gt;= :: Bits8 -&gt; Bits8 -&gt; Bool
+&gt; :: Bits8 -&gt; Bits8 -&gt; Bool
+$c&gt; :: Bits8 -&gt; Bits8 -&gt; Bool
+&lt;= :: Bits8 -&gt; Bits8 -&gt; Bool
+$c&lt;= :: Bits8 -&gt; Bits8 -&gt; Bool
+&lt; :: Bits8 -&gt; Bits8 -&gt; Bool
+$c&lt; :: Bits8 -&gt; Bits8 -&gt; Bool
+compare :: Bits8 -&gt; Bits8 -&gt; Ordering
+$ccompare :: Bits8 -&gt; Bits8 -&gt; Ordering
+$cp1Ord :: Eq Bits8
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159027"><span id="local-6989586621679159029"><span id="local-6989586621679159031"><span class="annot"><span class="annottext">Int -&gt; Bits8 -&gt; ShowS
+[Bits8] -&gt; ShowS
+Bits8 -&gt; String
+(Int -&gt; Bits8 -&gt; ShowS)
+-&gt; (Bits8 -&gt; String) -&gt; ([Bits8] -&gt; ShowS) -&gt; Show Bits8
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Bits8] -&gt; ShowS
+$cshowList :: [Bits8] -&gt; ShowS
+show :: Bits8 -&gt; String
+$cshow :: Bits8 -&gt; String
+showsPrec :: Int -&gt; Bits8 -&gt; ShowS
+$cshowsPrec :: Int -&gt; Bits8 -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Bits8 -&gt; Rep Bits8 x)
+-&gt; (forall x. Rep Bits8 x -&gt; Bits8) -&gt; Generic Bits8
+forall x. Rep Bits8 x -&gt; Bits8
+forall x. Bits8 -&gt; Rep Bits8 x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Bits8 x -&gt; Bits8
+$cfrom :: forall x. Bits8 -&gt; Rep Bits8 x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159017"><span id="local-6989586621679159019"><span id="local-6989586621679159021"><span class="annot"><span class="annottext">Get Bits8
+Bits8 -&gt; Encoding
+Bits8 -&gt; Int -&gt; Int
+(Bits8 -&gt; Encoding)
+-&gt; Get Bits8 -&gt; (Bits8 -&gt; Int -&gt; Int) -&gt; Flat Bits8
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: Bits8 -&gt; Int -&gt; Int
+$csize :: Bits8 -&gt; Int -&gt; Int
+decode :: Get Bits8
+$cdecode :: Get Bits8
+encode :: Bits8 -&gt; Encoding
+$cencode :: Bits8 -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679159012"><span class="annot"><span class="annottext">Typeable Bits8
+AsType (Ana Bits8)
+Typeable Bits8
+-&gt; AsType (Ana Bits8)
+-&gt; (Proxy Bits8 -&gt; State Env HType)
+-&gt; Model Bits8
+Proxy Bits8 -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy Bits8 -&gt; State Env HType
+$cenvType :: Proxy Bits8 -&gt; State Env HType
+$cp2Model :: AsType (Ana Bits8)
+$cp1Model :: Typeable Bits8
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span></pre></body></html>

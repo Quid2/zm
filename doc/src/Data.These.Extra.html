@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.These.Extra</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">These</span></span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-comment">-- , equivalent</span><span>
+</span><span id="line-4"></span><span>    </span><span class="annot"><a href="Data.These.Extra.html#aThese"><span class="hs-identifier">aThese</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.These.Extra.html#both"><span class="hs-identifier">both</span></a></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.These.Extra.html#hasThis"><span class="hs-identifier">hasThis</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.These.Extra.html#hasThat"><span class="hs-identifier">hasThat</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.These.Extra.html#fromThis"><span class="hs-identifier">fromThis</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.These.Extra.html#fromThat"><span class="hs-identifier">fromThat</span></a></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fromJust</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">isJust</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.These</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- |A data type that represents either a value of type `this`, or a value of type `that`, or both.</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- data These this that</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--   = This this</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--   | That that</span><span>
+</span><span id="line-19"></span><span class="hs-comment">--   | These this that</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--   deriving (Eq,Ord, Read, Show)</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-comment">{-
+Does not satisfy extensionality:
+f (This _) = 0
+f (That _) = 1
+f (These _ _) = 2
+
+prop&gt; \(x::These Bool Bool) -&gt; x == x
+
+&gt;&gt;&gt; This 'a' == These 'a' False
+True
+
+&gt;&gt;&gt; This 'b' == These 'a' False
+False
+
+&gt;&gt;&gt; That False == These 'a' False
+True
+
+&gt;&gt;&gt; These 'a' False == That False
+True
+
+&gt;&gt;&gt; These 'a' False == That False
+True
+
+&gt;&gt;&gt; This 'a'== That 'a'
+True
+-}</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- |Constructor function, from Maybes</span><span>
+</span><span id="line-50"></span><span id="local-6989586621679158566"><span id="local-6989586621679158567"><span class="annot"><a href="Data.These.Extra.html#aThese"><span class="hs-identifier hs-type">aThese</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679158567"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679158566"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158567"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158566"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-51"></span><span id="aThese"><span class="annot"><span class="annottext">aThese :: Maybe a -&gt; Maybe b -&gt; These a b
+</span><a href="Data.These.Extra.html#aThese"><span class="hs-identifier hs-var hs-var">aThese</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">Maybe b
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">[Char] -&gt; These a b
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;aThese:you must provide either this or that or both&quot;</span></span><span>
+</span><span id="line-53"></span><span class="annot"><a href="Data.These.Extra.html#aThese"><span class="hs-identifier hs-var">aThese</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679158564"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158564"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; These a b
+forall a b. b -&gt; These a b
+</span><span class="hs-identifier hs-var">That</span></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158564"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-54"></span><span class="annot"><a href="Data.These.Extra.html#aThese"><span class="hs-identifier hs-var">aThese</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679158562"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158562"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe b
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; These a b
+forall a b. a -&gt; These a b
+</span><span class="hs-identifier hs-var">This</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158562"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-55"></span><span class="annot"><a href="Data.These.Extra.html#aThese"><span class="hs-identifier hs-var">aThese</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679158560"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158560"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679158559"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158559"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; b -&gt; These a b
+forall a b. a -&gt; b -&gt; These a b
+</span><span class="hs-identifier hs-var">These</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158560"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158559"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-56"></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- ??? use a different kind of eq?</span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- instance (Eq a, Eq b) =&gt; Eq (These a b) where</span><span>
+</span><span id="line-60"></span><span class="hs-comment">--   t1 == t2 =</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- equivalent :: (Eq a1, Eq a) =&gt; These a1 a -&gt; These a1 a -&gt; Bool</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- t1 `equivalent` t2 =</span><span>
+</span><span id="line-63"></span><span class="hs-comment">--     (maybeThis t1 `meq` maybeThis t2) &amp;&amp; (maybeThat t1 `meq` maybeThat t2)</span><span>
+</span><span id="line-64"></span><span class="hs-comment">--     where</span><span>
+</span><span id="line-65"></span><span class="hs-comment">--       meq Nothing _         = True</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--       meq _ Nothing         = True</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--       meq (Just a) (Just b) = a == b</span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- This a1 == This a2 = a1 == a2</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- This a1 == These a2 _ = a1 == a2</span><span>
+</span><span id="line-71"></span><span class="hs-comment">-- That b1 == That b2 = b1 == b2</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- That b1 == These _ b2 = b1 == b2</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- These a1 b1 == These a2 b2 = a1 == a2 &amp;&amp; b1 == b2</span><span>
+</span><span id="line-74"></span><span class="hs-comment">-- These a1 _ == This a2 = a1 == a2</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- These _ b1 == That b2 = b1 == b2</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- _ == _ = False</span><span>
+</span><span id="line-77"></span><span id="local-6989586621679158556"><span id="local-6989586621679158557"><span class="annot"><a href="Data.These.Extra.html#hasThis"><span class="hs-identifier hs-type">hasThis</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158557"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158556"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span></span><span>
+</span><span id="line-78"></span><span id="hasThis"><span class="annot"><span class="annottext">hasThis :: These a b -&gt; Bool
+</span><a href="Data.These.Extra.html#hasThis"><span class="hs-identifier hs-var hs-var">hasThis</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">(Maybe a -&gt; Bool) -&gt; (These a b -&gt; Maybe a) -&gt; These a b -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">These a b -&gt; Maybe a
+forall a b. These a b -&gt; Maybe a
+</span><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-var">maybeThis</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span id="local-6989586621679158552"><span id="local-6989586621679158553"><span class="annot"><a href="Data.These.Extra.html#hasThat"><span class="hs-identifier hs-type">hasThat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158553"><span class="hs-identifier hs-type">a1</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158552"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span></span><span>
+</span><span id="line-81"></span><span id="hasThat"><span class="annot"><span class="annottext">hasThat :: These a1 a -&gt; Bool
+</span><a href="Data.These.Extra.html#hasThat"><span class="hs-identifier hs-var hs-var">hasThat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a -&gt; Bool
+forall a. Maybe a -&gt; Bool
+</span><span class="hs-identifier hs-var">isJust</span></span><span> </span><span class="annot"><span class="annottext">(Maybe a -&gt; Bool) -&gt; (These a1 a -&gt; Maybe a) -&gt; These a1 a -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">These a1 a -&gt; Maybe a
+forall a1 a2. These a1 a2 -&gt; Maybe a2
+</span><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-var">maybeThat</span></a></span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span id="local-6989586621679158549"><span id="local-6989586621679158550"><span class="annot"><a href="Data.These.Extra.html#fromThis"><span class="hs-identifier hs-type">fromThis</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158550"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158549"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158550"><span class="hs-identifier hs-type">c</span></a></span></span></span><span>
+</span><span id="line-84"></span><span id="fromThis"><span class="annot"><span class="annottext">fromThis :: These c b -&gt; c
+</span><a href="Data.These.Extra.html#fromThis"><span class="hs-identifier hs-var hs-var">fromThis</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe c -&gt; c
+forall a. HasCallStack =&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromJust</span></span><span> </span><span class="annot"><span class="annottext">(Maybe c -&gt; c) -&gt; (These c b -&gt; Maybe c) -&gt; These c b -&gt; c
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">These c b -&gt; Maybe c
+forall a b. These a b -&gt; Maybe a
+</span><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-var">maybeThis</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span id="local-6989586621679158547"><span id="local-6989586621679158548"><span class="annot"><a href="Data.These.Extra.html#fromThat"><span class="hs-identifier hs-type">fromThat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158548"><span class="hs-identifier hs-type">a1</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158547"><span class="hs-identifier hs-type">c</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158547"><span class="hs-identifier hs-type">c</span></a></span></span></span><span>
+</span><span id="line-87"></span><span id="fromThat"><span class="annot"><span class="annottext">fromThat :: These a1 c -&gt; c
+</span><a href="Data.These.Extra.html#fromThat"><span class="hs-identifier hs-var hs-var">fromThat</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe c -&gt; c
+forall a. HasCallStack =&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromJust</span></span><span> </span><span class="annot"><span class="annottext">(Maybe c -&gt; c) -&gt; (These a1 c -&gt; Maybe c) -&gt; These a1 c -&gt; c
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">These a1 c -&gt; Maybe c
+forall a1 a2. These a1 a2 -&gt; Maybe a2
+</span><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-var">maybeThat</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span id="local-6989586621679158597"><span id="local-6989586621679158598"><span class="annot"><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-type">maybeThis</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158598"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158597"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679158598"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-90"></span><span id="maybeThis"><span class="annot"><span class="annottext">maybeThis :: These a b -&gt; Maybe a
+</span><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-var hs-var">maybeThis</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">This</span></span><span> </span><span id="local-6989586621679158546"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158546"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158546"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-var">maybeThis</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span id="local-6989586621679158545"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158545"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158545"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-92"></span><span class="annot"><a href="Data.These.Extra.html#maybeThis"><span class="hs-identifier hs-var">maybeThis</span></a></span><span> </span><span class="annot"><span class="annottext">These a b
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span id="local-6989586621679158593"><span id="local-6989586621679158594"><span class="annot"><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-type">maybeThat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158594"><span class="hs-identifier hs-type">a1</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158593"><span class="hs-identifier hs-type">a2</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679158593"><span class="hs-identifier hs-type">a2</span></a></span></span></span><span>
+</span><span id="line-95"></span><span id="maybeThat"><span class="annot"><span class="annottext">maybeThat :: These a1 a2 -&gt; Maybe a2
+</span><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-var hs-var">maybeThat</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">That</span></span><span> </span><span id="local-6989586621679158544"><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679158544"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a2 -&gt; Maybe a2
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679158544"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-96"></span><span class="annot"><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-var">maybeThat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><span class="annottext">a1
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679158543"><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679158543"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a2 -&gt; Maybe a2
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">a2
+</span><a href="#local-6989586621679158543"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-97"></span><span class="annot"><a href="Data.These.Extra.html#maybeThat"><span class="hs-identifier hs-var">maybeThat</span></a></span><span> </span><span class="annot"><span class="annottext">These a1 a2
+</span><span class="hs-identifier">_</span></span><span>           </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe a2
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span class="hs-comment">{-
+Eliminator function
+
+&gt;&gt;&gt; both ((:[]) . not) ((:[]) . (&gt;0)) $ These False (3::Int)
+[True,True]
+
+&gt;&gt;&gt; both ((:[]) . not) (:[]) $ This False
+[True]
+-}</span><span>
+</span><span id="line-109"></span><span id="local-6989586621679158540"><span id="local-6989586621679158541"><span id="local-6989586621679158542"><span class="annot"><a href="Data.These.Extra.html#both"><span class="hs-identifier hs-type">both</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="#local-6989586621679158542"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679158541"><span class="hs-identifier hs-type">t1</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158542"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679158540"><span class="hs-identifier hs-type">t2</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158542"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">These</span></span><span> </span><span class="annot"><a href="#local-6989586621679158541"><span class="hs-identifier hs-type">t1</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679158540"><span class="hs-identifier hs-type">t2</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158542"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-110"></span><span id="both"><span class="annot"><span class="annottext">both :: (t1 -&gt; a) -&gt; (t2 -&gt; a) -&gt; These t1 t2 -&gt; a
+</span><a href="Data.These.Extra.html#both"><span class="hs-identifier hs-var hs-var">both</span></a></span></span><span> </span><span id="local-6989586621679158539"><span class="annot"><span class="annottext">t1 -&gt; a
+</span><a href="#local-6989586621679158539"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679158538"><span class="annot"><span class="annottext">t2 -&gt; a
+</span><a href="#local-6989586621679158538"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>  </span><span class="annot"><span class="annottext">(t1 -&gt; a) -&gt; (t2 -&gt; a) -&gt; (t1 -&gt; t2 -&gt; a) -&gt; These t1 t2 -&gt; a
+forall a c b.
+(a -&gt; c) -&gt; (b -&gt; c) -&gt; (a -&gt; b -&gt; c) -&gt; These a b -&gt; c
+</span><span class="hs-identifier hs-var">these</span></span><span> </span><span class="annot"><span class="annottext">t1 -&gt; a
+</span><a href="#local-6989586621679158539"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">t2 -&gt; a
+</span><a href="#local-6989586621679158538"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679158536"><span class="annot"><span class="annottext">t1
+</span><a href="#local-6989586621679158536"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679158535"><span class="annot"><span class="annottext">t2
+</span><a href="#local-6989586621679158535"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">t1 -&gt; a
+</span><a href="#local-6989586621679158539"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">t1
+</span><a href="#local-6989586621679158536"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">t2 -&gt; a
+</span><a href="#local-6989586621679158538"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">t2
+</span><a href="#local-6989586621679158535"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span></pre></body></html>

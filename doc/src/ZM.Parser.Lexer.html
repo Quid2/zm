@@ -1,0 +1,870 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE NoMonomorphismRestriction #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Parser.Lexer</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-5"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#sc"><span class="hs-identifier">sc</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>    </span><span class="annot"><span class="hs-identifier">eof</span></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>    </span><span class="annot"><span class="hs-comment">-- $lexemes</span></span><span>
+</span><span id="line-8"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#var"><span class="hs-identifier">var</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#identifier"><span class="hs-identifier">identifier</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#sym"><span class="hs-identifier">sym</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier">localId</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier">symbol</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#float"><span class="hs-identifier">float</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#charLiteral"><span class="hs-identifier">charLiteral</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#stringLiteral"><span class="hs-identifier">stringLiteral</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#shake"><span class="hs-identifier">shake</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#signed"><span class="hs-identifier">signed</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><a href="ZM.Parser.Lexer.html#unsigned"><span class="hs-identifier">unsigned</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- TODO: CHECK WHY IT FAILS WITH EVAL PLUGIN</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- import Data.Word</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">C</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Scientific</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec.Char</span></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec.Char.Lexer</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">L</span></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.html"><span class="hs-identifier">ZM</span></a></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html"><span class="hs-identifier">ZM.Parser.Types</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier">Parser</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-comment">{- $lexemes
+Lexemes remove any trailing space, including comments:
+
+&gt;&gt;&gt; parseMaybe float &quot;3.3  -- a nice float&quot;
+Just 3.3
+
+but do not remove initial space:
+
+&gt;&gt;&gt; parseMaybe float &quot;  3.3&quot;
+Nothing
+-}</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe charLiteral &quot;''&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot; 'a'&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot;'a' -- a comment&quot;
+Just 'a'
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot;'a'&quot;
+Just 'a'
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot;'\n'&quot;
+Just '\n'
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot;'&#37329;'&quot;
+Just '\37329'
+
+&gt;&gt;&gt; parseMaybe charLiteral &quot;'\37329'&quot;
+Just '\37329'
+-}</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="ZM.Parser.Lexer.html#charLiteral"><span class="hs-identifier hs-type">charLiteral</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-68"></span><span id="charLiteral"><span class="annot"><span class="annottext">charLiteral :: Parser Char
+</span><a href="ZM.Parser.Lexer.html#charLiteral"><span class="hs-identifier hs-var hs-var">charLiteral</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">(Parser Char -&gt; Parser Char) -&gt; Parser Char -&gt; Parser Char
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) open close a.
+Applicative m =&gt;
+m open -&gt; m close -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">between</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'\''</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'\''</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m Char
+</span><span class="hs-identifier hs-var">L.charLiteral</span></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe stringLiteral &quot;\&quot;\&quot;&quot;
+Just &quot;&quot;
+
+&gt;&gt;&gt; parseMaybe stringLiteral &quot;\&quot;abc\n&#37329;\37329\&quot; &quot;
+Just &quot;abc\n\37329\37329&quot;
+-}</span><span>
+</span><span id="line-77"></span><span class="annot"><a href="ZM.Parser.Lexer.html#stringLiteral"><span class="hs-identifier hs-type">stringLiteral</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-78"></span><span id="stringLiteral"><span class="annot"><span class="annottext">stringLiteral :: Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#stringLiteral"><span class="hs-identifier hs-var hs-var">stringLiteral</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser [Char] -&gt; Parser [Char]
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">(Parser [Char] -&gt; Parser [Char]) -&gt; Parser [Char] -&gt; Parser [Char]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'&quot;'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser [Char] -&gt; Parser [Char]
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser [Char]
+forall (m :: * -&gt; *) a end. MonadPlus m =&gt; m a -&gt; m end -&gt; m [a]
+</span><span class="hs-identifier hs-var">manyTill</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m Char
+</span><span class="hs-identifier hs-var">L.charLiteral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-comment">{- |
+Parse signed floats or integers (as floats)
+
+&gt;&gt;&gt; parseMaybe float &quot;3&quot;
+Just 3.0
+
+&gt;&gt;&gt; parseMaybe (float :: Parser Float)  &quot;+3&quot;
+Just 3.0
+
+&gt;&gt;&gt; parseMaybe (float :: Parser Double) &quot;-3&quot;
+Just (-3.0)
+
+&gt;&gt;&gt; parseMaybe float &quot;3.6E+11&quot;
+Just 3.6e11
+
+&gt;&gt;&gt; parseMaybe float &quot;-3.6E-11&quot;
+Just (-3.6e-11)
+
+&gt;&gt;&gt; parseMaybe float &quot;-1E99999999&quot;
+Just (-Infinity)
+
+Note: the decimal dot is not required
+
+&gt;&gt;&gt; parseMaybe float &quot;35&quot;
+Just 35.0
+-}</span><span>
+</span><span id="line-106"></span><span id="local-6989586621679166796"><span class="annot"><a href="ZM.Parser.Lexer.html#float"><span class="hs-identifier hs-type">float</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RealFloat</span></span><span> </span><span class="annot"><a href="#local-6989586621679166796"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166796"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-107"></span><span id="float"><span class="annot"><span class="annottext">float :: Parser a
+</span><a href="ZM.Parser.Lexer.html#float"><span class="hs-identifier hs-var hs-var">float</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Scientific -&gt; a
+forall a. RealFloat a =&gt; Scientific -&gt; a
+</span><span class="hs-identifier hs-var">toRealFloat</span></span><span> </span><span class="annot"><span class="annottext">(Scientific -&gt; a)
+-&gt; ParsecT Void [Char] Identity Scientific -&gt; Parser a
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+-&gt; ParsecT Void [Char] Identity Scientific
+-&gt; ParsecT Void [Char] Identity Scientific
+forall e s (m :: * -&gt; *) a.
+(MonadParsec e s m, Token s ~ Char, Num a) =&gt;
+m () -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">L.signed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">() -&gt; ParsecT Void [Char] Identity ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity Scientific
+-&gt; ParsecT Void [Char] Identity Scientific
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity Scientific
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m Scientific
+</span><span class="hs-identifier hs-var">L.scientific</span></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- TODO: add binary</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- unsigned = char '0' ( char 'x' &gt;&gt; L.hexadecimal &lt;|&gt;  char' 'b' &gt;&gt; L.binary)</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-comment">{- |
+@setup
+&gt;&gt;&gt; import Data.Word
+&gt;&gt;&gt; import Numeric.Natural
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;11&quot; :: Maybe Word8
+Just 11
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;11.&quot; :: Maybe Word8
+Nothing
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;33455&quot; :: Maybe Word8
+Just 175
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;33455&quot; :: Maybe Word16
+Just 33455
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;33455&quot; :: Maybe Word32
+Just 33455
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;33455&quot; :: Maybe Word64
+Just 33455
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;33455&quot; :: Maybe Word
+Just 33455
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;334559923200232302133331312313131231231231231231231&quot; :: Maybe Natural
+Just 334559923200232302133331312313131231231231231231231
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;+334559923200232302133331312313131231231231231231231&quot; :: Maybe Natural
+Nothing
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;-334559923200232302133331312313131231231231231231231&quot; :: Maybe Natural
+Nothing
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;0xFF&quot; :: Maybe Word8
+Just 255
+
+&gt;&gt;&gt; parseMaybe unsigned &quot;0XFF&quot;
+Just 255
+
+TO ADD:
+parseMaybe unsigned &quot;334559923200232302131231321312312310103334045535353&quot; :: Maybe Z.Word
+Just 334559923200232302131231321312312310103334045535353
+
+parseMaybe unsigned &quot;0&quot; :: Maybe Word7
+Just 0
+
+parseMaybe unsigned &quot;0X7F&quot; :: Maybe Word7
+Just 127
+
+parseMaybe unsigned &quot;0XFF&quot; :: Maybe Word7
+Nothing
+-}</span><span>
+</span><span id="line-166"></span><span id="local-6989586621679166791"><span class="annot"><a href="ZM.Parser.Lexer.html#unsigned"><span class="hs-identifier hs-type">unsigned</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679166791"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166791"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-167"></span><span id="unsigned"><span class="annot"><span class="annottext">unsigned :: Parser a
+</span><a href="ZM.Parser.Lexer.html#unsigned"><span class="hs-identifier hs-var hs-var">unsigned</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'0'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'x'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'X'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser a -&gt; Parser a
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; m b -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser a
+forall e s (m :: * -&gt; *) a.
+(MonadParsec e s m, Token s ~ Char, Num a) =&gt;
+m a
+</span><span class="hs-identifier hs-var">L.hexadecimal</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; Parser a -&gt; Parser a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser a
+forall a. Integral a =&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#integral"><span class="hs-identifier hs-var">integral</span></a></span><span>
+</span><span id="line-168"></span><span>
+</span><span id="line-169"></span><span class="hs-comment">{- |
+@setup
+&gt;&gt;&gt; import Data.Int
+
+&gt;&gt;&gt; parseMaybe signed &quot;55&quot; :: Maybe Int8
+Just 55
+
+&gt;&gt;&gt; parseMaybe signed &quot;+55&quot; :: Maybe Int8
+Just 55
+
+&gt;&gt;&gt; parseMaybe signed &quot;-55&quot; :: Maybe Int8
+Just (-55)
+
+&gt;&gt;&gt; parseMaybe signed &quot;+ 55&quot; :: Maybe Int8
+Nothing
+
+&gt;&gt;&gt; parseMaybe signed &quot;- 55&quot; :: Maybe Int8
+Nothing
+
+&gt;&gt;&gt; parseMaybe signed &quot;3455&quot; :: Maybe Int16
+Just 3455
+
+&gt;&gt;&gt; parseMaybe signed &quot;-4433455&quot; :: Maybe Int32
+Just (-4433455)
+
+&gt;&gt;&gt; parseMaybe signed &quot;+231231231233455&quot; :: Maybe Int64
+Just 231231231233455
+
+&gt;&gt;&gt; parseMaybe signed &quot;-12312312&quot; :: Maybe Int
+Just (-12312312)
+
+&gt;&gt;&gt; parseMaybe signed &quot;0xFF&quot; :: Maybe Int8
+Nothing
+
+&gt;&gt;&gt; parseMaybe signed &quot;334559923200232302133331312313131231231231231231231&quot; :: Maybe Integer
+Just 334559923200232302133331312313131231231231231231231
+
+&gt;&gt;&gt; parseMaybe signed &quot;+334559923200232302133331312313131231231231231231231&quot; :: Maybe Integer
+Just 334559923200232302133331312313131231231231231231231
+
+&gt;&gt;&gt; parseMaybe signed &quot;-334559923200232302133331312313131231231231231231231&quot; :: Maybe Integer
+Just (-334559923200232302133331312313131231231231231231231)
+-}</span><span>
+</span><span id="line-212"></span><span id="local-6989586621679166787"><span class="annot"><a href="ZM.Parser.Lexer.html#signed"><span class="hs-identifier hs-type">signed</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679166787"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166787"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-213"></span><span id="signed"><span class="annot"><span class="annottext">signed :: Parser a
+</span><a href="ZM.Parser.Lexer.html#signed"><span class="hs-identifier hs-var hs-var">signed</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity () -&gt; Parser a -&gt; Parser a
+forall e s (m :: * -&gt; *) a.
+(MonadParsec e s m, Token s ~ Char, Num a) =&gt;
+m () -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">L.signed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">() -&gt; ParsecT Void [Char] Identity ()
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser a -&gt; Parser a
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">Parser a
+forall a. Integral a =&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#integral"><span class="hs-identifier hs-var">integral</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-214"></span><span>
+</span><span id="line-215"></span><span id="local-6989586621679166880"><span class="annot"><a href="ZM.Parser.Lexer.html#integral"><span class="hs-identifier hs-type">integral</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integral</span></span><span> </span><span class="annot"><a href="#local-6989586621679166880"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166880"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-216"></span><span id="integral"><span class="annot"><span class="annottext">integral :: Parser a
+</span><a href="ZM.Parser.Lexer.html#integral"><span class="hs-identifier hs-var hs-var">integral</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-217"></span><span>    </span><span id="local-6989586621679166786"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679166786"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser a
+forall e s (m :: * -&gt; *) a.
+(MonadParsec e s m, Token s ~ Char, Num a) =&gt;
+m a
+</span><span class="hs-identifier hs-var">L.decimal</span></span><span>
+</span><span id="line-218"></span><span>    </span><span class="annot"><span class="annottext">Parser Char -&gt; ParsecT Void [Char] Identity ()
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m ()
+</span><span class="hs-identifier hs-var">notFollowedBy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'.'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-219"></span><span>    </span><span class="annot"><span class="annottext">a -&gt; Parser a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679166786"><span class="hs-identifier hs-var">d</span></a></span><span>
+</span><span id="line-220"></span><span>
+</span><span id="line-221"></span><span class="hs-comment">-- TODO:add check on</span><span>
+</span><span id="line-222"></span><span class="hs-comment">-- withPredicate</span><span>
+</span><span id="line-223"></span><span class="hs-comment">--   :: (a -&gt; Bool)       -- ^ The check to perform on parsed input</span><span>
+</span><span id="line-224"></span><span class="hs-comment">--   -&gt; String            -- ^ Message to print when the check fails</span><span>
+</span><span id="line-225"></span><span class="hs-comment">--   -&gt; Parser a          -- ^ Parser to run</span><span>
+</span><span id="line-226"></span><span class="hs-comment">--   -&gt; Parser a          -- ^ Resulting parser that performs the check</span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- withPredicate f msg p = do</span><span>
+</span><span id="line-228"></span><span class="hs-comment">--   o &lt;- getOffset</span><span>
+</span><span id="line-229"></span><span class="hs-comment">--   r &lt;- p</span><span>
+</span><span id="line-230"></span><span class="hs-comment">--   if f r</span><span>
+</span><span id="line-231"></span><span class="hs-comment">--     then return r</span><span>
+</span><span id="line-232"></span><span class="hs-comment">--     else do</span><span>
+</span><span id="line-233"></span><span class="hs-comment">--       setOffset o</span><span>
+</span><span id="line-234"></span><span class="hs-comment">--       fail msg</span><span>
+</span><span id="line-235"></span><span>
+</span><span id="line-236"></span><span class="hs-comment">{- |
+Parse a ZM localId (a unicode letter followed by zero or more unicode alphanumeric characters or '_')
+
+&gt;&gt;&gt; parseMaybe localId &quot;*&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe localId &quot;1&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe localId &quot;A&quot;
+Just &quot;A&quot;
+
+&gt;&gt;&gt; parseMaybe localId &quot;Gold&#37329;en&quot;
+Just &quot;Gold\37329en&quot;
+
+&gt;&gt;&gt; parseMaybe localId &quot;&#26159;&#19981;&#26159;&quot;
+Just &quot;\26159\19981\26159&quot;
+
+&gt;&gt;&gt; parseMaybe localId &quot;Bool -- a bool&quot;
+Just &quot;Bool&quot;
+
+&gt;&gt;&gt; parseMaybe localId &quot;ant_13_&quot;
+Just &quot;ant_13_&quot;
+-}</span><span>
+</span><span id="line-260"></span><span class="annot"><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-type">localId</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-261"></span><span id="localId"><span class="annot"><span class="annottext">localId :: Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#localId"><span class="hs-identifier hs-var hs-var">localId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser [Char] -&gt; Parser [Char]
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#name"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-262"></span><span>
+</span><span id="line-263"></span><span class="annot"><a href="ZM.Parser.Lexer.html#identifier"><span class="hs-identifier hs-type">identifier</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-264"></span><span id="identifier"><span class="annot"><span class="annottext">identifier :: Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#identifier"><span class="hs-identifier hs-var hs-var">identifier</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser [Char] -&gt; Parser [Char]
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#name"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Parser [Char] -&gt; Parser [Char] -&gt; Parser [Char]
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#sym"><span class="hs-identifier hs-var">sym</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-265"></span><span>
+</span><span id="line-266"></span><span class="annot"><a href="ZM.Parser.Lexer.html#name"><span class="hs-identifier hs-type">name</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-267"></span><span id="name"><span class="annot"><span class="annottext">name :: Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#name"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">:</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; [Char] -&gt; [Char])
+-&gt; Parser Char -&gt; ParsecT Void [Char] Identity ([Char] -&gt; [Char])
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">letterChar</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ([Char] -&gt; [Char])
+-&gt; Parser [Char] -&gt; Parser [Char]
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser [Char]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">alphaNumChar</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'_'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-268"></span><span>
+</span><span id="line-269"></span><span class="annot"><a href="ZM.Parser.Lexer.html#sym"><span class="hs-identifier hs-type">sym</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-270"></span><span id="sym"><span class="annot"><span class="annottext">sym :: Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#sym"><span class="hs-identifier hs-var hs-var">sym</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser [Char]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><a href="ZM.Parser.Lexer.html#symChar"><span class="hs-identifier hs-var">symChar</span></a></span><span>
+</span><span id="line-271"></span><span>
+</span><span id="line-272"></span><span class="hs-comment">-- TODO: spell out allowed categories</span><span>
+</span><span id="line-273"></span><span id="local-6989586621679166775"><span id="local-6989586621679166776"><span id="local-6989586621679166777"><span class="annot"><a href="ZM.Parser.Lexer.html#symChar"><span class="hs-identifier hs-type">symChar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679166777"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166776"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166775"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Token</span></span><span> </span><span class="annot"><a href="#local-6989586621679166776"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-glyph hs-type">~</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679166775"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Token</span></span><span> </span><span class="annot"><a href="#local-6989586621679166776"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-274"></span><span id="symChar"><span class="annot"><span class="annottext">symChar :: m (Token s)
+</span><a href="ZM.Parser.Lexer.html#symChar"><span class="hs-identifier hs-var hs-var">symChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Token s -&gt; Bool) -&gt; m (Token s)
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+(Token s -&gt; Bool) -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679166773"><span class="annot"><span class="annottext">Token s
+</span><a href="#local-6989586621679166773"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">C.isSymbol</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token s
+</span><a href="#local-6989586621679166773"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">GeneralCategory -&gt; [GeneralCategory] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">elem</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; GeneralCategory
+</span><span class="hs-identifier hs-var">C.generalCategory</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token s
+</span><a href="#local-6989586621679166773"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">C.OtherPunctuation</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">C.CurrencySymbol</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m Char -&gt; [Char] -&gt; m Char
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; [Char] -&gt; m a
+</span><span class="hs-operator hs-var">&lt;?&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;sym&quot;</span></span><span>
+</span><span id="line-275"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="ZM.Parser.Lexer.html#symChar"><span class="hs-pragma hs-type">symChar</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-276"></span><span>
+</span><span id="line-277"></span><span class="hs-comment">{- |
+&gt;&gt;&gt; parseMaybe var &quot;&#26159;&#19981;&#26159;&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe var &quot;_&quot;
+Just Nothing
+
+&gt;&gt;&gt; parseMaybe var &quot;_a&quot;
+Just (Just &quot;a&quot;)
+
+&gt;&gt;&gt; parseMaybe var &quot;_&#26159;&#19981;&#26159;&quot;
+Just (Just &quot;\26159\19981\26159&quot;)
+-}</span><span>
+</span><span id="line-290"></span><span class="annot"><a href="ZM.Parser.Lexer.html#var"><span class="hs-identifier hs-type">var</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-291"></span><span id="var"><span class="annot"><span class="annottext">var :: Parser (Maybe [Char])
+</span><a href="ZM.Parser.Lexer.html#var"><span class="hs-identifier hs-var hs-var">var</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser (Maybe [Char]) -&gt; Parser (Maybe [Char])
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token [Char] -&gt; ParsecT Void [Char] Identity (Token [Char])
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token [Char]
+</span><span class="hs-char">'_'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser (Maybe [Char]) -&gt; Parser (Maybe [Char])
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser [Char] -&gt; Parser (Maybe [Char])
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#name"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-292"></span><span>
+</span><span id="line-293"></span><span class="hs-comment">{- |
+Parse a specific string
+
+&gt;&gt;&gt; parseMaybe (symbol &quot;=&quot;) &quot;&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe (symbol &quot;=&quot;) &quot;*&quot;
+Nothing
+
+&gt;&gt;&gt; parseMaybe (symbol &quot;=&quot;) &quot;= -- an equal sign&quot;
+Just &quot;=&quot;
+
+&gt;&gt;&gt; parseMaybe (symbol &quot;if then&quot;) &quot;if then&quot;
+Just &quot;if then&quot;
+
+&gt;&gt;&gt; parseMaybe (symbol &quot;Gold&#37329;en&quot;) &quot;Gold&#37329;en&quot;
+Just &quot;Gold\37329en&quot;
+-}</span><span>
+</span><span id="line-311"></span><span class="annot"><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-type">symbol</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-312"></span><span id="symbol"><span class="annot"><span class="annottext">symbol :: [Char] -&gt; Parser [Char]
+</span><a href="ZM.Parser.Lexer.html#symbol"><span class="hs-identifier hs-var hs-var">symbol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+-&gt; Tokens [Char] -&gt; ParsecT Void [Char] Identity (Tokens [Char])
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+m () -&gt; Tokens s -&gt; m (Tokens s)
+</span><span class="hs-identifier hs-var">L.symbol</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+</span><a href="ZM.Parser.Lexer.html#sc"><span class="hs-identifier hs-var">sc</span></a></span><span>
+</span><span id="line-313"></span><span>
+</span><span id="line-314"></span><span class="hs-comment">{- |
+Parse absolute reference's compact string format
+
+&gt;&gt;&gt; parseMaybe shake &quot;Ke45682c11f7b&quot;
+Just (SHAKE128_48 228 86 130 193 31 123)
+
+&gt;&gt;&gt; parseMaybe shake &quot;KE45682C11F7B &quot;
+Just (SHAKE128_48 228 86 130 193 31 123)
+-}</span><span>
+</span><span id="line-323"></span><span id="local-6989586621679166763"><span class="annot"><a href="ZM.Parser.Lexer.html#shake"><span class="hs-identifier hs-type">shake</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166763"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-324"></span><span id="shake"><span class="annot"><span class="annottext">shake :: Parser (SHAKE128_48 a)
+</span><a href="ZM.Parser.Lexer.html#shake"><span class="hs-identifier hs-var hs-var">shake</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser (SHAKE128_48 a) -&gt; Parser (SHAKE128_48 a)
+forall a. Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">Parser (SHAKE128_48 a)
+forall e s (f :: * -&gt; *) a.
+(MonadParsec e s f, Token s ~ Char) =&gt;
+f (SHAKE128_48 a)
+</span><a href="#local-6989586621679166762"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-325"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-326"></span><span>    </span><span id="local-6989586621679166762"><span class="annot"><span class="annottext">k :: f (SHAKE128_48 a)
+</span><a href="#local-6989586621679166762"><span class="hs-identifier hs-var hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-327"></span><span>        </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679166761"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166761"><span class="hs-identifier hs-var">k0</span></a></span></span><span> </span><span id="local-6989586621679166760"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166760"><span class="hs-identifier hs-var">k1</span></a></span></span><span> </span><span id="local-6989586621679166759"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166759"><span class="hs-identifier hs-var">k2</span></a></span></span><span> </span><span id="local-6989586621679166758"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166758"><span class="hs-identifier hs-var">k3</span></a></span></span><span> </span><span id="local-6989586621679166757"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166757"><span class="hs-identifier hs-var">k4</span></a></span></span><span> </span><span id="local-6989586621679166756"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166756"><span class="hs-identifier hs-var">k5</span></a></span></span><span> </span><span id="local-6989586621679166755"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166755"><span class="hs-identifier hs-var">k6</span></a></span></span><span> </span><span id="local-6989586621679166754"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166754"><span class="hs-identifier hs-var">k7</span></a></span></span><span> </span><span id="local-6989586621679166753"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166753"><span class="hs-identifier hs-var">k8</span></a></span></span><span> </span><span id="local-6989586621679166752"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166752"><span class="hs-identifier hs-var">k9</span></a></span></span><span> </span><span id="local-6989586621679166751"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166751"><span class="hs-identifier hs-var">k10</span></a></span></span><span> </span><span id="local-6989586621679166750"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166750"><span class="hs-identifier hs-var">k11</span></a></span></span><span> </span><span id="local-6989586621679166749"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166749"><span class="hs-identifier hs-var">k12</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-328"></span><span>            </span><span class="annot"><span class="annottext">[Char] -&gt; SHAKE128_48 a
+forall a. [Char] -&gt; SHAKE128_48 a
+</span><a href="ZM.Pretty.html#unPrettyRef"><span class="hs-identifier hs-var">unPrettyRef</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166761"><span class="hs-identifier hs-var">k0</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166760"><span class="hs-identifier hs-var">k1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166759"><span class="hs-identifier hs-var">k2</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166758"><span class="hs-identifier hs-var">k3</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166757"><span class="hs-identifier hs-var">k4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166756"><span class="hs-identifier hs-var">k5</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166755"><span class="hs-identifier hs-var">k6</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166754"><span class="hs-identifier hs-var">k7</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166753"><span class="hs-identifier hs-var">k8</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166752"><span class="hs-identifier hs-var">k9</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166751"><span class="hs-identifier hs-var">k10</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166750"><span class="hs-identifier hs-var">k11</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679166749"><span class="hs-identifier hs-var">k12</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-329"></span><span>        </span><span class="hs-special">)</span><span>
+</span><span id="line-330"></span><span>            </span><span class="annot"><span class="annottext">(Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; Char
+ -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Token s -&gt; f (Token s)
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Token s -&gt; m (Token s)
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+Token s
+</span><span class="hs-char">'K'</span></span><span>
+</span><span id="line-331"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-332"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-333"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-334"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; Char
+      -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-335"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; Char
+   -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-336"></span><span>            </span><span class="annot"><span class="annottext">f (Char
+   -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char
+      -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-337"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char
+-&gt; f (Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-338"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char -&gt; f (Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-339"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char -&gt; f (Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-340"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char -&gt; f (Char -&gt; Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-341"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; Char -&gt; SHAKE128_48 a)
+-&gt; f Char -&gt; f (Char -&gt; SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-342"></span><span>            </span><span class="annot"><span class="annottext">f (Char -&gt; SHAKE128_48 a) -&gt; f Char -&gt; f (SHAKE128_48 a)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">f Char
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">hexDigitChar</span></span><span>
+</span><span id="line-343"></span><span>
+</span><span id="line-344"></span><span class="hs-comment">{- |Space consumer
+ |Removes spaces and haskell style line and block comments &quot;--..&quot; &quot;{\- ..-\}&quot;
+-}</span><span>
+</span><span id="line-347"></span><span class="annot"><a href="ZM.Parser.Lexer.html#sc"><span class="hs-identifier hs-type">sc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-348"></span><span id="sc"><span class="annot"><span class="annottext">sc :: ParsecT Void [Char] Identity ()
+</span><a href="ZM.Parser.Lexer.html#sc"><span class="hs-identifier hs-var hs-var">sc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+-&gt; ParsecT Void [Char] Identity ()
+-&gt; ParsecT Void [Char] Identity ()
+-&gt; ParsecT Void [Char] Identity ()
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+m () -&gt; m () -&gt; m () -&gt; m ()
+</span><span class="hs-identifier hs-var">L.space</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><span class="hs-identifier hs-var">space1</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char, Tokens s ~ [Char]) =&gt;
+m ()
+</span><a href="#local-6989586621679166744"><span class="hs-identifier hs-var">lineComment</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char, Tokens s ~ [Char]) =&gt;
+m ()
+</span><a href="#local-6989586621679166743"><span class="hs-identifier hs-var">blockComment</span></a></span><span>
+</span><span id="line-349"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-350"></span><span>    </span><span id="local-6989586621679166744"><span class="annot"><span class="annottext">lineComment :: m ()
+</span><a href="#local-6989586621679166744"><span class="hs-identifier hs-var hs-var">lineComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Tokens s -&gt; m ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Tokens s -&gt; m ()
+</span><span class="hs-identifier hs-var">L.skipLineComment</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+Tokens s
+</span><span class="hs-string">&quot;--&quot;</span></span><span>
+</span><span id="line-351"></span><span>
+</span><span id="line-352"></span><span>    </span><span id="local-6989586621679166743"><span class="annot"><span class="annottext">blockComment :: m ()
+</span><a href="#local-6989586621679166743"><span class="hs-identifier hs-var hs-var">blockComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Tokens s -&gt; Tokens s -&gt; m ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+Tokens s -&gt; Tokens s -&gt; m ()
+</span><span class="hs-identifier hs-var">L.skipBlockComment</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+Tokens s
+</span><span class="hs-string">&quot;{-&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+Tokens s
+</span><span class="hs-string">&quot;-}&quot;</span></span><span>
+</span><span id="line-353"></span><span>
+</span><span id="line-354"></span><span class="hs-comment">--end parser = (&lt;* eof)</span><span>
+</span><span id="line-355"></span><span class="hs-comment">--doc = between sc (sc &gt;&gt; eof)</span><span>
+</span><span id="line-356"></span><span>
+</span><span id="line-357"></span><span class="hs-comment">-- |Add trailing space removal to a parser</span><span>
+</span><span id="line-358"></span><span id="local-6989586621679166928"><span class="annot"><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-type">lexeme</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166928"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="ZM.Parser.Types.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679166928"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-359"></span><span id="lexeme"><span class="annot"><span class="annottext">lexeme :: Parser a -&gt; Parser a
+</span><a href="ZM.Parser.Lexer.html#lexeme"><span class="hs-identifier hs-var hs-var">lexeme</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity () -&gt; Parser a -&gt; Parser a
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m () -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">L.lexeme</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void [Char] Identity ()
+</span><a href="ZM.Parser.Lexer.html#sc"><span class="hs-identifier hs-var">sc</span></a></span><span>
+</span><span id="line-360"></span></pre></body></html>

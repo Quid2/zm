@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="%24con2tag_ZtyAeaPTg51sSO2I3jqZJ"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass    #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric     #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Repo0</span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.Repo0.html#RepoProtocol"><span class="hs-identifier">RepoProtocol</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>                 </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier">String</span></span><span> </span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.html"><span class="hs-identifier">ZM</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-comment">{-|
+A (simplistic) protocol to permanently store and retrieve ADT definitions.
+-}</span><span>
+</span><span id="line-17"></span><span id="local-6989586621679165297"><span id="local-6989586621679165298"></span></span><span class="hs-keyword">data</span><span> </span><span id="RepoProtocol"><span class="annot"><a href="ZM.Type.Repo0.html#RepoProtocol"><span class="hs-identifier hs-var">RepoProtocol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Record"><span class="annot"><a href="ZM.Type.Repo0.html#Record"><span class="hs-identifier hs-var">Record</span></a></span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span>                      </span><span class="hs-comment">-- ^Permanently record an absolute type</span><span>
+</span><span id="line-18"></span><span>                  </span><span class="hs-glyph">|</span><span> </span><span id="Solve"><span class="annot"><a href="ZM.Type.Repo0.html#Solve"><span class="hs-identifier hs-var">Solve</span></a></span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span>                       </span><span class="hs-comment">-- ^Retrieve the absolute type</span><span>
+</span><span id="line-19"></span><span>                  </span><span class="hs-glyph">|</span><span> </span><span id="Solved"><span class="annot"><a href="ZM.Type.Repo0.html#Solved"><span class="hs-identifier hs-var">Solved</span></a></span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span>               </span><span class="hs-comment">-- ^Return the absolute type identified by an absolute reference</span><span>
+</span><span id="line-20"></span><span>                  </span><span class="hs-glyph">|</span><span> </span><span id="AskDataTypes"><span class="annot"><a href="ZM.Type.Repo0.html#AskDataTypes"><span class="hs-identifier hs-var">AskDataTypes</span></a></span></span><span>                       </span><span class="hs-comment">-- ^Request the list of all known data types</span><span>
+</span><span id="line-21"></span><span>                  </span><span class="hs-glyph">|</span><span> </span><span id="KnownDataTypes"><span class="annot"><a href="ZM.Type.Repo0.html#KnownDataTypes"><span class="hs-identifier hs-var">KnownDataTypes</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Types.html#AbsADT"><span class="hs-identifier hs-type">AbsADT</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>  </span><span class="hs-comment">-- ^Return the list of all known data types</span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679165286"><span id="local-6989586621679165288"><span class="annot"><span class="annottext">RepoProtocol -&gt; RepoProtocol -&gt; Bool
+(RepoProtocol -&gt; RepoProtocol -&gt; Bool)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Bool) -&gt; Eq RepoProtocol
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c/= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+== :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c== :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679165270"><span id="local-6989586621679165272"><span id="local-6989586621679165274"><span id="local-6989586621679165276"><span id="local-6989586621679165278"><span id="local-6989586621679165280"><span id="local-6989586621679165282"><span class="annot"><span class="annottext">Eq RepoProtocol
+Eq RepoProtocol
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Ordering)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Bool)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Bool)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Bool)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; Bool)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol)
+-&gt; (RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol)
+-&gt; Ord RepoProtocol
+RepoProtocol -&gt; RepoProtocol -&gt; Bool
+RepoProtocol -&gt; RepoProtocol -&gt; Ordering
+RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol
+$cmin :: RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol
+max :: RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol
+$cmax :: RepoProtocol -&gt; RepoProtocol -&gt; RepoProtocol
+&gt;= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c&gt;= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+&gt; :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c&gt; :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+&lt;= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c&lt;= :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+&lt; :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+$c&lt; :: RepoProtocol -&gt; RepoProtocol -&gt; Bool
+compare :: RepoProtocol -&gt; RepoProtocol -&gt; Ordering
+$ccompare :: RepoProtocol -&gt; RepoProtocol -&gt; Ordering
+$cp1Ord :: Eq RepoProtocol
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679165263"><span id="local-6989586621679165265"><span id="local-6989586621679165267"><span class="annot"><span class="annottext">Int -&gt; RepoProtocol -&gt; ShowS
+[RepoProtocol] -&gt; ShowS
+RepoProtocol -&gt; String
+(Int -&gt; RepoProtocol -&gt; ShowS)
+-&gt; (RepoProtocol -&gt; String)
+-&gt; ([RepoProtocol] -&gt; ShowS)
+-&gt; Show RepoProtocol
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [RepoProtocol] -&gt; ShowS
+$cshowList :: [RepoProtocol] -&gt; ShowS
+show :: RepoProtocol -&gt; String
+$cshow :: RepoProtocol -&gt; String
+showsPrec :: Int -&gt; RepoProtocol -&gt; ShowS
+$cshowsPrec :: Int -&gt; RepoProtocol -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. RepoProtocol -&gt; Rep RepoProtocol x)
+-&gt; (forall x. Rep RepoProtocol x -&gt; RepoProtocol)
+-&gt; Generic RepoProtocol
+forall x. Rep RepoProtocol x -&gt; RepoProtocol
+forall x. RepoProtocol -&gt; Rep RepoProtocol x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep RepoProtocol x -&gt; RepoProtocol
+$cfrom :: forall x. RepoProtocol -&gt; Rep RepoProtocol x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679165253"><span id="local-6989586621679165255"><span id="local-6989586621679165257"><span class="annot"><span class="annottext">Get RepoProtocol
+RepoProtocol -&gt; Encoding
+RepoProtocol -&gt; Int -&gt; Int
+(RepoProtocol -&gt; Encoding)
+-&gt; Get RepoProtocol
+-&gt; (RepoProtocol -&gt; Int -&gt; Int)
+-&gt; Flat RepoProtocol
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: RepoProtocol -&gt; Int -&gt; Int
+$csize :: RepoProtocol -&gt; Int -&gt; Int
+decode :: Get RepoProtocol
+$cdecode :: Get RepoProtocol
+encode :: RepoProtocol -&gt; Encoding
+$cencode :: RepoProtocol -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679165248"><span class="annot"><span class="annottext">Typeable RepoProtocol
+AsType (Ana RepoProtocol)
+Typeable RepoProtocol
+-&gt; AsType (Ana RepoProtocol)
+-&gt; (Proxy RepoProtocol -&gt; State Env HType)
+-&gt; Model RepoProtocol
+Proxy RepoProtocol -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy RepoProtocol -&gt; State Env HType
+$cenvType :: Proxy RepoProtocol -&gt; State Env HType
+$cp2Model :: AsType (Ana RepoProtocol)
+$cp1Model :: Typeable RepoProtocol
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span></pre></body></html>

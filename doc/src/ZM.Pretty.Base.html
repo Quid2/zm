@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Pretty.Base</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Pretty.Base.html#prettyWords"><span class="hs-identifier">prettyWords</span></a></span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Pretty.Base.html#hex"><span class="hs-identifier">hex</span></a></span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Word</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.PrettyPrint.HughesPJClass</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Text.PrettyPrint.HughesPJClass</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">P</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Text.Printf</span></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Types.html"><span class="hs-identifier">ZM.Types</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span id="local-6989586621679163377"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679163372"><span id="local-6989586621679163375"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="#local-6989586621679163377"><span class="hs-identifier hs-type">t</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#ZMError"><span class="hs-identifier hs-type">ZMError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163377"><span class="hs-identifier hs-type">t</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>  </span><span id="local-6989586621679163370"><span class="annot"><span class="annottext">pPrint :: ZMError t -&gt; Doc
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pPrint</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#UnknownType"><span class="hs-identifier hs-type">UnknownType</span></a></span><span> </span><span id="local-6989586621679163367"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679163367"><span class="hs-identifier hs-var">t</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Reference to unknown type: &quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><span class="hs-operator hs-var">P.&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">t -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679163367"><span class="hs-identifier hs-var">t</span></a></span><span>
+</span><span id="line-15"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#WrongKind"><span class="hs-identifier hs-type">WrongKind</span></a></span><span> </span><span id="local-6989586621679163363"><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679163363"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679163362"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679163362"><span class="hs-identifier hs-var">expPars</span></a></span></span><span> </span><span id="local-6989586621679163361"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679163361"><span class="hs-identifier hs-var">actPars</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><span class="annottext">[Doc] -&gt; Doc
+</span><span class="hs-identifier hs-var">hsep</span></span><span>
+</span><span id="line-17"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Incorrect application of&quot;</span></span><span>
+</span><span id="line-18"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">t -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="annot"><span class="annottext">t
+</span><a href="#local-6989586621679163363"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><span class="hs-operator hs-var">P.&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;, should have&quot;</span></span><span>
+</span><span id="line-19"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc) -&gt; String -&gt; Doc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679163362"><span class="hs-identifier hs-var">expPars</span></a></span><span>
+</span><span id="line-20"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;parameters but has&quot;</span></span><span>
+</span><span id="line-21"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc) -&gt; String -&gt; Doc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679163361"><span class="hs-identifier hs-var">actPars</span></a></span><span>
+</span><span id="line-22"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-23"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#MutuallyRecursive"><span class="hs-identifier hs-type">MutuallyRecursive</span></a></span><span> </span><span id="local-6989586621679163357"><span class="annot"><span class="annottext">[t]
+</span><a href="#local-6989586621679163357"><span class="hs-identifier hs-var">ts</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Found mutually recursive types: &quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><span class="hs-operator hs-var">P.&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[t] -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="annot"><span class="annottext">[t]
+</span><a href="#local-6989586621679163357"><span class="hs-identifier hs-var">ts</span></a></span></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679163352"><span id="local-6989586621679163355"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>  </span><span id="local-6989586621679163351"><span class="annot"><span class="annottext">pPrint :: AbsRef -&gt; Doc
+</span><a href="#local-6989586621679163351"><span class="hs-identifier hs-var hs-var hs-var hs-var">pPrint</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#AbsRef"><span class="hs-identifier hs-type">AbsRef</span></a></span><span> </span><span id="local-6989586621679163349"><span class="annot"><span class="annottext">SHAKE128_48 AbsADT
+</span><a href="#local-6989586621679163349"><span class="hs-identifier hs-var">sha3</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SHAKE128_48 AbsADT -&gt; Doc
+forall a. Pretty a =&gt; a -&gt; Doc
+</span><span class="hs-identifier hs-var">pPrint</span></span><span> </span><span class="annot"><span class="annottext">SHAKE128_48 AbsADT
+</span><a href="#local-6989586621679163349"><span class="hs-identifier hs-var">sha3</span></a></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span id="local-6989586621679163348"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679163343"><span id="local-6989586621679163346"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier hs-type">SHA3_256_6</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163348"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-30"></span><span>  </span><span id="local-6989586621679163342"><span class="annot"><span class="annottext">pPrint :: SHA3_256_6 a -&gt; Doc
+</span><a href="#local-6989586621679163342"><span class="hs-identifier hs-var hs-var hs-var hs-var">pPrint</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHA3_256_6"><span class="hs-identifier hs-type">SHA3_256_6</span></a></span><span> </span><span id="local-6989586621679163340"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163340"><span class="hs-identifier hs-var">k1</span></a></span></span><span> </span><span id="local-6989586621679163339"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163339"><span class="hs-identifier hs-var">k2</span></a></span></span><span> </span><span id="local-6989586621679163338"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163338"><span class="hs-identifier hs-var">k3</span></a></span></span><span> </span><span id="local-6989586621679163337"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163337"><span class="hs-identifier hs-var">k4</span></a></span></span><span> </span><span id="local-6989586621679163336"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163336"><span class="hs-identifier hs-var">k5</span></a></span></span><span> </span><span id="local-6989586621679163335"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163335"><span class="hs-identifier hs-var">k6</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Doc
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'S'</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><span class="hs-operator hs-var">P.&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Word8] -&gt; Doc
+</span><a href="ZM.Pretty.Base.html#prettyWords"><span class="hs-identifier hs-var">prettyWords</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163340"><span class="hs-identifier hs-var">k1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163339"><span class="hs-identifier hs-var">k2</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163338"><span class="hs-identifier hs-var">k3</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163337"><span class="hs-identifier hs-var">k4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163336"><span class="hs-identifier hs-var">k5</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163335"><span class="hs-identifier hs-var">k6</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span id="local-6989586621679163333"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679163328"><span id="local-6989586621679163331"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679163333"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-34"></span><span>  </span><span id="local-6989586621679163327"><span class="annot"><span class="annottext">pPrint :: SHAKE128_48 a -&gt; Doc
+</span><a href="#local-6989586621679163327"><span class="hs-identifier hs-var hs-var hs-var hs-var">pPrint</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Types.html#SHAKE128_48"><span class="hs-identifier hs-type">SHAKE128_48</span></a></span><span> </span><span id="local-6989586621679163325"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163325"><span class="hs-identifier hs-var">k1</span></a></span></span><span> </span><span id="local-6989586621679163324"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163324"><span class="hs-identifier hs-var">k2</span></a></span></span><span> </span><span id="local-6989586621679163323"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163323"><span class="hs-identifier hs-var">k3</span></a></span></span><span> </span><span id="local-6989586621679163322"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163322"><span class="hs-identifier hs-var">k4</span></a></span></span><span> </span><span id="local-6989586621679163321"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163321"><span class="hs-identifier hs-var">k5</span></a></span></span><span> </span><span id="local-6989586621679163320"><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163320"><span class="hs-identifier hs-var">k6</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><span class="annottext">Char -&gt; Doc
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'K'</span></span><span> </span><span class="annot"><span class="annottext">Doc -&gt; Doc -&gt; Doc
+</span><span class="hs-operator hs-var">P.&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Word8] -&gt; Doc
+</span><a href="ZM.Pretty.Base.html#prettyWords"><span class="hs-identifier hs-var">prettyWords</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163325"><span class="hs-identifier hs-var">k1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163324"><span class="hs-identifier hs-var">k2</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163323"><span class="hs-identifier hs-var">k3</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163322"><span class="hs-identifier hs-var">k4</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163321"><span class="hs-identifier hs-var">k5</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Word8
+</span><a href="#local-6989586621679163320"><span class="hs-identifier hs-var">k6</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- |Display a list of Words in hexadecimal format</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- &gt;&gt;&gt; prettyWords [11,22,33::Word8]</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- 0b1621</span><span>
+</span><span id="line-41"></span><span class="annot"><a href="ZM.Pretty.Base.html#prettyWords"><span class="hs-identifier hs-type">prettyWords</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Doc</span></span><span>
+</span><span id="line-42"></span><span id="prettyWords"><span class="annot"><span class="annottext">prettyWords :: [Word8] -&gt; Doc
+</span><a href="ZM.Pretty.Base.html#prettyWords"><span class="hs-identifier hs-var hs-var">prettyWords</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc
+</span><span class="hs-identifier hs-var">text</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Doc) -&gt; ([Word8] -&gt; String) -&gt; [Word8] -&gt; Doc
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Word8 -&gt; String) -&gt; [Word8] -&gt; String
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="annot"><span class="annottext">Word8 -&gt; String
+</span><a href="ZM.Pretty.Base.html#hex"><span class="hs-identifier hs-var">hex</span></a></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- |Display a Word in hexadecimal format</span><span>
+</span><span id="line-45"></span><span class="annot"><a href="ZM.Pretty.Base.html#hex"><span class="hs-identifier hs-type">hex</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Word8</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-46"></span><span id="hex"><span class="annot"><span class="annottext">hex :: Word8 -&gt; String
+</span><a href="ZM.Pretty.Base.html#hex"><span class="hs-identifier hs-var hs-var">hex</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Word8 -&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span><span class="hs-identifier hs-var">printf</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;%02x&quot;</span></span><span>
+</span><span id="line-47"></span></pre></body></html>

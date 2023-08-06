@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- Additional List functions, from the 'extra' package  -}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.List.Extra</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.List.Extra.html#list"><span class="hs-identifier">list</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">{-| 
+Non-recursive transform over a list, like maybe.
+
+&gt;&gt;&gt; list 1 (\v _ -&gt; v - 2) []
+1
+
+&gt;&gt;&gt; list 1 (\v _ -&gt; v - 2) [5,6,7]
+3
+-}</span><span>
+</span><span id="line-13"></span><span id="local-6989586621679158530"><span id="local-6989586621679158531"><span class="annot"><a href="Data.List.Extra.html#list"><span class="hs-identifier hs-type">list</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679158531"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679158530"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679158530"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158531"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679158530"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679158531"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-14"></span><span id="list"><span class="annot"><span class="annottext">list :: b -&gt; (a -&gt; [a] -&gt; b) -&gt; [a] -&gt; b
+</span><a href="Data.List.Extra.html#list"><span class="hs-identifier hs-var hs-var">list</span></a></span></span><span> </span><span id="local-6989586621679158529"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158529"><span class="hs-identifier hs-var">nil</span></a></span></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; b
+</span><span class="hs-identifier">_</span></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679158529"><span class="hs-identifier hs-var">nil</span></a></span><span>
+</span><span id="line-15"></span><span class="annot"><a href="Data.List.Extra.html#list"><span class="hs-identifier hs-var">list</span></a></span><span> </span><span class="annot"><span class="annottext">b
+</span><span class="hs-identifier">_</span></span><span>   </span><span id="local-6989586621679158528"><span class="annot"><span class="annottext">a -&gt; [a] -&gt; b
+</span><a href="#local-6989586621679158528"><span class="hs-identifier hs-var">cons</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679158527"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158527"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679158526"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679158526"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; b
+</span><a href="#local-6989586621679158528"><span class="hs-identifier hs-var">cons</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679158527"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679158526"><span class="hs-identifier hs-var">xs</span></a></span></pre></body></html>

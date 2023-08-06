@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.Bits52</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html"><span class="hs-identifier">ZM.Type.Bit</span></a></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span id="local-6989586621679158985"><span id="local-6989586621679158986"></span></span><span class="hs-keyword">data</span><span> </span><span id="Bits52"><span class="annot"><a href="ZM.Type.Bits52.html#Bits52"><span class="hs-identifier hs-var">Bits52</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-9"></span><span>       </span><span id="Bits52"><span class="annot"><a href="ZM.Type.Bits52.html#Bits52"><span class="hs-identifier hs-var">Bits52</span></a></span></span><span>
+</span><span id="line-10"></span><span>         </span><span class="hs-special">{</span><span> </span><span id="bit0"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit0"><span class="hs-identifier hs-var hs-var">bit0</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-11"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit1"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit1"><span class="hs-identifier hs-var hs-var">bit1</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-12"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit2"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit2"><span class="hs-identifier hs-var hs-var">bit2</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-13"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit3"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit3"><span class="hs-identifier hs-var hs-var">bit3</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-14"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit4"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit4"><span class="hs-identifier hs-var hs-var">bit4</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-15"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit5"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit5"><span class="hs-identifier hs-var hs-var">bit5</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-16"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit6"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit6"><span class="hs-identifier hs-var hs-var">bit6</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-17"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit7"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit7"><span class="hs-identifier hs-var hs-var">bit7</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-18"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit8"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit8"><span class="hs-identifier hs-var hs-var">bit8</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-19"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit9"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit9"><span class="hs-identifier hs-var hs-var">bit9</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-20"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit10"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit10"><span class="hs-identifier hs-var hs-var">bit10</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-21"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit11"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit11"><span class="hs-identifier hs-var hs-var">bit11</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-22"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit12"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit12"><span class="hs-identifier hs-var hs-var">bit12</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-23"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit13"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit13"><span class="hs-identifier hs-var hs-var">bit13</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-24"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit14"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit14"><span class="hs-identifier hs-var hs-var">bit14</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-25"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit15"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit15"><span class="hs-identifier hs-var hs-var">bit15</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-26"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit16"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit16"><span class="hs-identifier hs-var hs-var">bit16</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-27"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit17"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit17"><span class="hs-identifier hs-var hs-var">bit17</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-28"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit18"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit18"><span class="hs-identifier hs-var hs-var">bit18</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-29"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit19"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit19"><span class="hs-identifier hs-var hs-var">bit19</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-30"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit20"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit20"><span class="hs-identifier hs-var hs-var">bit20</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-31"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit21"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit21"><span class="hs-identifier hs-var hs-var">bit21</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-32"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit22"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit22"><span class="hs-identifier hs-var hs-var">bit22</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-33"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit23"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit23"><span class="hs-identifier hs-var hs-var">bit23</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-34"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit24"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit24"><span class="hs-identifier hs-var hs-var">bit24</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-35"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit25"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit25"><span class="hs-identifier hs-var hs-var">bit25</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-36"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit26"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit26"><span class="hs-identifier hs-var hs-var">bit26</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-37"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit27"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit27"><span class="hs-identifier hs-var hs-var">bit27</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-38"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit28"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit28"><span class="hs-identifier hs-var hs-var">bit28</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-39"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit29"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit29"><span class="hs-identifier hs-var hs-var">bit29</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-40"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit30"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit30"><span class="hs-identifier hs-var hs-var">bit30</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-41"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit31"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit31"><span class="hs-identifier hs-var hs-var">bit31</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-42"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit32"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit32"><span class="hs-identifier hs-var hs-var">bit32</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-43"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit33"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit33"><span class="hs-identifier hs-var hs-var">bit33</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-44"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit34"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit34"><span class="hs-identifier hs-var hs-var">bit34</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-45"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit35"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit35"><span class="hs-identifier hs-var hs-var">bit35</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-46"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit36"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit36"><span class="hs-identifier hs-var hs-var">bit36</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-47"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit37"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit37"><span class="hs-identifier hs-var hs-var">bit37</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-48"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit38"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit38"><span class="hs-identifier hs-var hs-var">bit38</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-49"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit39"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit39"><span class="hs-identifier hs-var hs-var">bit39</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-50"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit40"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit40"><span class="hs-identifier hs-var hs-var">bit40</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-51"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit41"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit41"><span class="hs-identifier hs-var hs-var">bit41</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-52"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit42"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit42"><span class="hs-identifier hs-var hs-var">bit42</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-53"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit43"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit43"><span class="hs-identifier hs-var hs-var">bit43</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-54"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit44"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit44"><span class="hs-identifier hs-var hs-var">bit44</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-55"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit45"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit45"><span class="hs-identifier hs-var hs-var">bit45</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-56"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit46"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit46"><span class="hs-identifier hs-var hs-var">bit46</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-57"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit47"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit47"><span class="hs-identifier hs-var hs-var">bit47</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-58"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit48"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit48"><span class="hs-identifier hs-var hs-var">bit48</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-59"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit49"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit49"><span class="hs-identifier hs-var hs-var">bit49</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-60"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit50"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit50"><span class="hs-identifier hs-var hs-var">bit50</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-61"></span><span>         </span><span class="hs-special">,</span><span> </span><span id="bit51"><span class="annot"><span class="annottext">Bits52 -&gt; Bit
+</span><a href="ZM.Type.Bits52.html#bit51"><span class="hs-identifier hs-var hs-var">bit51</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Bit.html#Bit"><span class="hs-identifier hs-type">Bit</span></a></span><span>
+</span><span id="line-62"></span><span>         </span><span class="hs-special">}</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679158928"><span id="local-6989586621679158930"><span class="annot"><span class="annottext">Bits52 -&gt; Bits52 -&gt; Bool
+(Bits52 -&gt; Bits52 -&gt; Bool)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bool) -&gt; Eq Bits52
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: Bits52 -&gt; Bits52 -&gt; Bool
+$c/= :: Bits52 -&gt; Bits52 -&gt; Bool
+== :: Bits52 -&gt; Bits52 -&gt; Bool
+$c== :: Bits52 -&gt; Bits52 -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679158912"><span id="local-6989586621679158914"><span id="local-6989586621679158916"><span id="local-6989586621679158918"><span id="local-6989586621679158920"><span id="local-6989586621679158922"><span id="local-6989586621679158924"><span class="annot"><span class="annottext">Eq Bits52
+Eq Bits52
+-&gt; (Bits52 -&gt; Bits52 -&gt; Ordering)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bool)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bool)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bool)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bool)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bits52)
+-&gt; (Bits52 -&gt; Bits52 -&gt; Bits52)
+-&gt; Ord Bits52
+Bits52 -&gt; Bits52 -&gt; Bool
+Bits52 -&gt; Bits52 -&gt; Ordering
+Bits52 -&gt; Bits52 -&gt; Bits52
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: Bits52 -&gt; Bits52 -&gt; Bits52
+$cmin :: Bits52 -&gt; Bits52 -&gt; Bits52
+max :: Bits52 -&gt; Bits52 -&gt; Bits52
+$cmax :: Bits52 -&gt; Bits52 -&gt; Bits52
+&gt;= :: Bits52 -&gt; Bits52 -&gt; Bool
+$c&gt;= :: Bits52 -&gt; Bits52 -&gt; Bool
+&gt; :: Bits52 -&gt; Bits52 -&gt; Bool
+$c&gt; :: Bits52 -&gt; Bits52 -&gt; Bool
+&lt;= :: Bits52 -&gt; Bits52 -&gt; Bool
+$c&lt;= :: Bits52 -&gt; Bits52 -&gt; Bool
+&lt; :: Bits52 -&gt; Bits52 -&gt; Bool
+$c&lt; :: Bits52 -&gt; Bits52 -&gt; Bool
+compare :: Bits52 -&gt; Bits52 -&gt; Ordering
+$ccompare :: Bits52 -&gt; Bits52 -&gt; Ordering
+$cp1Ord :: Eq Bits52
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679158905"><span id="local-6989586621679158907"><span id="local-6989586621679158909"><span class="annot"><span class="annottext">Int -&gt; Bits52 -&gt; ShowS
+[Bits52] -&gt; ShowS
+Bits52 -&gt; String
+(Int -&gt; Bits52 -&gt; ShowS)
+-&gt; (Bits52 -&gt; String) -&gt; ([Bits52] -&gt; ShowS) -&gt; Show Bits52
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [Bits52] -&gt; ShowS
+$cshowList :: [Bits52] -&gt; ShowS
+show :: Bits52 -&gt; String
+$cshow :: Bits52 -&gt; String
+showsPrec :: Int -&gt; Bits52 -&gt; ShowS
+$cshowsPrec :: Int -&gt; Bits52 -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. Bits52 -&gt; Rep Bits52 x)
+-&gt; (forall x. Rep Bits52 x -&gt; Bits52) -&gt; Generic Bits52
+forall x. Rep Bits52 x -&gt; Bits52
+forall x. Bits52 -&gt; Rep Bits52 x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep Bits52 x -&gt; Bits52
+$cfrom :: forall x. Bits52 -&gt; Rep Bits52 x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679158895"><span id="local-6989586621679158897"><span id="local-6989586621679158899"><span class="annot"><span class="annottext">Get Bits52
+Bits52 -&gt; Encoding
+Bits52 -&gt; Int -&gt; Int
+(Bits52 -&gt; Encoding)
+-&gt; Get Bits52 -&gt; (Bits52 -&gt; Int -&gt; Int) -&gt; Flat Bits52
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: Bits52 -&gt; Int -&gt; Int
+$csize :: Bits52 -&gt; Int -&gt; Int
+decode :: Get Bits52
+$cdecode :: Get Bits52
+encode :: Bits52 -&gt; Encoding
+$cencode :: Bits52 -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679158890"><span class="annot"><span class="annottext">Typeable Bits52
+AsType (Ana Bits52)
+Typeable Bits52
+-&gt; AsType (Ana Bits52)
+-&gt; (Proxy Bits52 -&gt; State Env HType)
+-&gt; Model Bits52
+Proxy Bits52 -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy Bits52 -&gt; State Env HType
+$cenvType :: Proxy Bits52 -&gt; State Env HType
+$cp2Model :: AsType (Ana Bits52)
+$cp1Model :: Typeable Bits52
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span></pre></body></html>

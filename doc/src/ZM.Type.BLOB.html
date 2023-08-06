@@ -1,0 +1,551 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric  #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- |Binary Large OBjects (BLOBs)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">ZM.Type.BLOB</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#BLOB"><span class="hs-identifier">BLOB</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#UTF8Encoding"><span class="hs-identifier">UTF8Encoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#UTF16LEEncoding"><span class="hs-identifier">UTF16LEEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#FlatEncoding"><span class="hs-identifier">FlatEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="ZM.Type.BLOB.html#NoEncoding"><span class="hs-identifier">NoEncoding</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Control.DeepSeq</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Flat</span></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><span class="hs-identifier">Data.Model</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span>           </span><span class="annot"><a href="ZM.Type.Array.html"><span class="hs-identifier">ZM.Type.Array</span></a></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- |A BLOB is binary value encoded according to a specified encoding (e.g. UTF8)</span><span>
+</span><span id="line-20"></span><span id="local-6989586621679161623"><span id="local-6989586621679161624"></span></span><span class="hs-keyword">data</span><span> </span><span id="BLOB"><span class="annot"><a href="ZM.Type.BLOB.html#BLOB"><span class="hs-identifier hs-var">BLOB</span></a></span></span><span> </span><span id="local-6989586621679161622"><span class="annot"><a href="#local-6989586621679161622"><span class="hs-identifier hs-type">encoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-21"></span><span>  </span><span id="BLOB"><span class="annot"><a href="ZM.Type.BLOB.html#BLOB"><span class="hs-identifier hs-var">BLOB</span></a></span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">{</span><span> </span><span id="encoding"><span class="annot"><span class="annottext">BLOB encoding -&gt; encoding
+</span><a href="ZM.Type.BLOB.html#encoding"><span class="hs-identifier hs-var hs-var">encoding</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679161622"><span class="hs-identifier hs-type">encoding</span></a></span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="content"><span class="annot"><span class="annottext">BLOB encoding -&gt; Bytes
+</span><a href="ZM.Type.BLOB.html#content"><span class="hs-identifier hs-var hs-var">content</span></a></span></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="ZM.Type.Array.html#Bytes"><span class="hs-identifier hs-type">Bytes</span></a></span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(forall x. BLOB encoding -&gt; Rep (BLOB encoding) x)
+-&gt; (forall x. Rep (BLOB encoding) x -&gt; BLOB encoding)
+-&gt; Generic (BLOB encoding)
+forall x. Rep (BLOB encoding) x -&gt; BLOB encoding
+forall x. BLOB encoding -&gt; Rep (BLOB encoding) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall encoding x. Rep (BLOB encoding) x -&gt; BLOB encoding
+forall encoding x. BLOB encoding -&gt; Rep (BLOB encoding) x
+$cto :: forall encoding x. Rep (BLOB encoding) x -&gt; BLOB encoding
+$cfrom :: forall encoding x. BLOB encoding -&gt; Rep (BLOB encoding) x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span id="local-6989586621679161615"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679161611"><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="annot"><a href="#local-6989586621679161615"><span class="hs-identifier hs-type">encoding</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Model</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="ZM.Type.BLOB.html#BLOB"><span class="hs-identifier hs-type">BLOB</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679161615"><span class="hs-identifier hs-type">encoding</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- |UTF-8 Encoding</span><span>
+</span><span id="line-30"></span><span id="local-6989586621679161608"><span id="local-6989586621679161609"></span></span><span class="hs-keyword">data</span><span> </span><span id="UTF8Encoding"><span class="annot"><a href="ZM.Type.BLOB.html#UTF8Encoding"><span class="hs-identifier hs-var">UTF8Encoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-31"></span><span>  </span><span id="UTF8Encoding"><span class="annot"><a href="ZM.Type.BLOB.html#UTF8Encoding"><span class="hs-identifier hs-var">UTF8Encoding</span></a></span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161603"><span id="local-6989586621679161605"><span class="annot"><span class="annottext">UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+(UTF8Encoding -&gt; UTF8Encoding -&gt; Bool)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Bool) -&gt; Eq UTF8Encoding
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c/= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+== :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c== :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161587"><span id="local-6989586621679161589"><span id="local-6989586621679161591"><span id="local-6989586621679161593"><span id="local-6989586621679161595"><span id="local-6989586621679161597"><span id="local-6989586621679161599"><span class="annot"><span class="annottext">Eq UTF8Encoding
+Eq UTF8Encoding
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Ordering)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Bool)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Bool)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Bool)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; Bool)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding)
+-&gt; (UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding)
+-&gt; Ord UTF8Encoding
+UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+UTF8Encoding -&gt; UTF8Encoding -&gt; Ordering
+UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding
+$cmin :: UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding
+max :: UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding
+$cmax :: UTF8Encoding -&gt; UTF8Encoding -&gt; UTF8Encoding
+&gt;= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c&gt;= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+&gt; :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c&gt; :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+&lt;= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c&lt;= :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+&lt; :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+$c&lt; :: UTF8Encoding -&gt; UTF8Encoding -&gt; Bool
+compare :: UTF8Encoding -&gt; UTF8Encoding -&gt; Ordering
+$ccompare :: UTF8Encoding -&gt; UTF8Encoding -&gt; Ordering
+$cp1Ord :: Eq UTF8Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161580"><span id="local-6989586621679161582"><span id="local-6989586621679161584"><span class="annot"><span class="annottext">Int -&gt; UTF8Encoding -&gt; ShowS
+[UTF8Encoding] -&gt; ShowS
+UTF8Encoding -&gt; String
+(Int -&gt; UTF8Encoding -&gt; ShowS)
+-&gt; (UTF8Encoding -&gt; String)
+-&gt; ([UTF8Encoding] -&gt; ShowS)
+-&gt; Show UTF8Encoding
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UTF8Encoding] -&gt; ShowS
+$cshowList :: [UTF8Encoding] -&gt; ShowS
+show :: UTF8Encoding -&gt; String
+$cshow :: UTF8Encoding -&gt; String
+showsPrec :: Int -&gt; UTF8Encoding -&gt; ShowS
+$cshowsPrec :: Int -&gt; UTF8Encoding -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161571"><span id="local-6989586621679161573"><span id="local-6989586621679161575"><span id="local-6989586621679161577"><span class="annot"><span class="annottext">ReadPrec [UTF8Encoding]
+ReadPrec UTF8Encoding
+Int -&gt; ReadS UTF8Encoding
+ReadS [UTF8Encoding]
+(Int -&gt; ReadS UTF8Encoding)
+-&gt; ReadS [UTF8Encoding]
+-&gt; ReadPrec UTF8Encoding
+-&gt; ReadPrec [UTF8Encoding]
+-&gt; Read UTF8Encoding
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [UTF8Encoding]
+$creadListPrec :: ReadPrec [UTF8Encoding]
+readPrec :: ReadPrec UTF8Encoding
+$creadPrec :: ReadPrec UTF8Encoding
+readList :: ReadS [UTF8Encoding]
+$creadList :: ReadS [UTF8Encoding]
+readsPrec :: Int -&gt; ReadS UTF8Encoding
+$creadsPrec :: Int -&gt; ReadS UTF8Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161568"><span class="annot"><span class="annottext">UTF8Encoding -&gt; ()
+(UTF8Encoding -&gt; ()) -&gt; NFData UTF8Encoding
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UTF8Encoding -&gt; ()
+$crnf :: UTF8Encoding -&gt; ()
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. UTF8Encoding -&gt; Rep UTF8Encoding x)
+-&gt; (forall x. Rep UTF8Encoding x -&gt; UTF8Encoding)
+-&gt; Generic UTF8Encoding
+forall x. Rep UTF8Encoding x -&gt; UTF8Encoding
+forall x. UTF8Encoding -&gt; Rep UTF8Encoding x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep UTF8Encoding x -&gt; UTF8Encoding
+$cfrom :: forall x. UTF8Encoding -&gt; Rep UTF8Encoding x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161559"><span id="local-6989586621679161561"><span id="local-6989586621679161563"><span class="annot"><span class="annottext">Get UTF8Encoding
+UTF8Encoding -&gt; Encoding
+UTF8Encoding -&gt; Int -&gt; Int
+(UTF8Encoding -&gt; Encoding)
+-&gt; Get UTF8Encoding
+-&gt; (UTF8Encoding -&gt; Int -&gt; Int)
+-&gt; Flat UTF8Encoding
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UTF8Encoding -&gt; Int -&gt; Int
+$csize :: UTF8Encoding -&gt; Int -&gt; Int
+decode :: Get UTF8Encoding
+$cdecode :: Get UTF8Encoding
+encode :: UTF8Encoding -&gt; Encoding
+$cencode :: UTF8Encoding -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161554"><span class="annot"><span class="annottext">Typeable UTF8Encoding
+AsType (Ana UTF8Encoding)
+Typeable UTF8Encoding
+-&gt; AsType (Ana UTF8Encoding)
+-&gt; (Proxy UTF8Encoding -&gt; State Env HType)
+-&gt; Model UTF8Encoding
+Proxy UTF8Encoding -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy UTF8Encoding -&gt; State Env HType
+$cenvType :: Proxy UTF8Encoding -&gt; State Env HType
+$cp2Model :: AsType (Ana UTF8Encoding)
+$cp1Model :: Typeable UTF8Encoding
+</span><a href="#local-6989586621679161554"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- |UTF-16 Little Endian Encoding</span><span>
+</span><span id="line-35"></span><span id="local-6989586621679161552"><span id="local-6989586621679161553"></span></span><span class="hs-keyword">data</span><span> </span><span id="UTF16LEEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#UTF16LEEncoding"><span class="hs-identifier hs-var">UTF16LEEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-36"></span><span>  </span><span id="UTF16LEEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#UTF16LEEncoding"><span class="hs-identifier hs-var">UTF16LEEncoding</span></a></span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161547"><span id="local-6989586621679161549"><span class="annot"><span class="annottext">UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+(UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; Eq UTF16LEEncoding
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c/= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+== :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c== :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161532"><span id="local-6989586621679161534"><span id="local-6989586621679161536"><span id="local-6989586621679161538"><span id="local-6989586621679161540"><span id="local-6989586621679161542"><span id="local-6989586621679161544"><span class="annot"><span class="annottext">Eq UTF16LEEncoding
+Eq UTF16LEEncoding
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Ordering)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding)
+-&gt; (UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding)
+-&gt; Ord UTF16LEEncoding
+UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Ordering
+UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding
+$cmin :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding
+max :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding
+$cmax :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; UTF16LEEncoding
+&gt;= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c&gt;= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+&gt; :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c&gt; :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+&lt;= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c&lt;= :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+&lt; :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+$c&lt; :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Bool
+compare :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Ordering
+$ccompare :: UTF16LEEncoding -&gt; UTF16LEEncoding -&gt; Ordering
+$cp1Ord :: Eq UTF16LEEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161526"><span id="local-6989586621679161528"><span id="local-6989586621679161530"><span class="annot"><span class="annottext">Int -&gt; UTF16LEEncoding -&gt; ShowS
+[UTF16LEEncoding] -&gt; ShowS
+UTF16LEEncoding -&gt; String
+(Int -&gt; UTF16LEEncoding -&gt; ShowS)
+-&gt; (UTF16LEEncoding -&gt; String)
+-&gt; ([UTF16LEEncoding] -&gt; ShowS)
+-&gt; Show UTF16LEEncoding
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [UTF16LEEncoding] -&gt; ShowS
+$cshowList :: [UTF16LEEncoding] -&gt; ShowS
+show :: UTF16LEEncoding -&gt; String
+$cshow :: UTF16LEEncoding -&gt; String
+showsPrec :: Int -&gt; UTF16LEEncoding -&gt; ShowS
+$cshowsPrec :: Int -&gt; UTF16LEEncoding -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161518"><span id="local-6989586621679161520"><span id="local-6989586621679161522"><span id="local-6989586621679161524"><span class="annot"><span class="annottext">ReadPrec [UTF16LEEncoding]
+ReadPrec UTF16LEEncoding
+Int -&gt; ReadS UTF16LEEncoding
+ReadS [UTF16LEEncoding]
+(Int -&gt; ReadS UTF16LEEncoding)
+-&gt; ReadS [UTF16LEEncoding]
+-&gt; ReadPrec UTF16LEEncoding
+-&gt; ReadPrec [UTF16LEEncoding]
+-&gt; Read UTF16LEEncoding
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [UTF16LEEncoding]
+$creadListPrec :: ReadPrec [UTF16LEEncoding]
+readPrec :: ReadPrec UTF16LEEncoding
+$creadPrec :: ReadPrec UTF16LEEncoding
+readList :: ReadS [UTF16LEEncoding]
+$creadList :: ReadS [UTF16LEEncoding]
+readsPrec :: Int -&gt; ReadS UTF16LEEncoding
+$creadsPrec :: Int -&gt; ReadS UTF16LEEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161516"><span class="annot"><span class="annottext">UTF16LEEncoding -&gt; ()
+(UTF16LEEncoding -&gt; ()) -&gt; NFData UTF16LEEncoding
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: UTF16LEEncoding -&gt; ()
+$crnf :: UTF16LEEncoding -&gt; ()
+</span><a href="#local-6989586621679161516"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. UTF16LEEncoding -&gt; Rep UTF16LEEncoding x)
+-&gt; (forall x. Rep UTF16LEEncoding x -&gt; UTF16LEEncoding)
+-&gt; Generic UTF16LEEncoding
+forall x. Rep UTF16LEEncoding x -&gt; UTF16LEEncoding
+forall x. UTF16LEEncoding -&gt; Rep UTF16LEEncoding x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep UTF16LEEncoding x -&gt; UTF16LEEncoding
+$cfrom :: forall x. UTF16LEEncoding -&gt; Rep UTF16LEEncoding x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161508"><span id="local-6989586621679161510"><span id="local-6989586621679161512"><span class="annot"><span class="annottext">Get UTF16LEEncoding
+UTF16LEEncoding -&gt; Encoding
+UTF16LEEncoding -&gt; Int -&gt; Int
+(UTF16LEEncoding -&gt; Encoding)
+-&gt; Get UTF16LEEncoding
+-&gt; (UTF16LEEncoding -&gt; Int -&gt; Int)
+-&gt; Flat UTF16LEEncoding
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: UTF16LEEncoding -&gt; Int -&gt; Int
+$csize :: UTF16LEEncoding -&gt; Int -&gt; Int
+decode :: Get UTF16LEEncoding
+$cdecode :: Get UTF16LEEncoding
+encode :: UTF16LEEncoding -&gt; Encoding
+$cencode :: UTF16LEEncoding -&gt; Encoding
+</span><a href="#local-6989586621679161508"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161504"><span class="annot"><span class="annottext">Typeable UTF16LEEncoding
+AsType (Ana UTF16LEEncoding)
+Typeable UTF16LEEncoding
+-&gt; AsType (Ana UTF16LEEncoding)
+-&gt; (Proxy UTF16LEEncoding -&gt; State Env HType)
+-&gt; Model UTF16LEEncoding
+Proxy UTF16LEEncoding -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy UTF16LEEncoding -&gt; State Env HType
+$cenvType :: Proxy UTF16LEEncoding -&gt; State Env HType
+$cp2Model :: AsType (Ana UTF16LEEncoding)
+$cp1Model :: Typeable UTF16LEEncoding
+</span><a href="#local-6989586621679161504"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- |Flat encoding</span><span>
+</span><span id="line-40"></span><span id="local-6989586621679161502"><span id="local-6989586621679161503"></span></span><span class="hs-keyword">data</span><span> </span><span id="FlatEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#FlatEncoding"><span class="hs-identifier hs-var">FlatEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-41"></span><span>  </span><span id="FlatEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#FlatEncoding"><span class="hs-identifier hs-var">FlatEncoding</span></a></span></span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161497"><span id="local-6989586621679161499"><span class="annot"><span class="annottext">FlatEncoding -&gt; FlatEncoding -&gt; Bool
+(FlatEncoding -&gt; FlatEncoding -&gt; Bool)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Bool) -&gt; Eq FlatEncoding
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c/= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+== :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c== :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161482"><span id="local-6989586621679161484"><span id="local-6989586621679161486"><span id="local-6989586621679161488"><span id="local-6989586621679161490"><span id="local-6989586621679161492"><span id="local-6989586621679161494"><span class="annot"><span class="annottext">Eq FlatEncoding
+Eq FlatEncoding
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Ordering)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Bool)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Bool)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Bool)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; Bool)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding)
+-&gt; (FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding)
+-&gt; Ord FlatEncoding
+FlatEncoding -&gt; FlatEncoding -&gt; Bool
+FlatEncoding -&gt; FlatEncoding -&gt; Ordering
+FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding
+$cmin :: FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding
+max :: FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding
+$cmax :: FlatEncoding -&gt; FlatEncoding -&gt; FlatEncoding
+&gt;= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c&gt;= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+&gt; :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c&gt; :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+&lt;= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c&lt;= :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+&lt; :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+$c&lt; :: FlatEncoding -&gt; FlatEncoding -&gt; Bool
+compare :: FlatEncoding -&gt; FlatEncoding -&gt; Ordering
+$ccompare :: FlatEncoding -&gt; FlatEncoding -&gt; Ordering
+$cp1Ord :: Eq FlatEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161476"><span id="local-6989586621679161478"><span id="local-6989586621679161480"><span class="annot"><span class="annottext">Int -&gt; FlatEncoding -&gt; ShowS
+[FlatEncoding] -&gt; ShowS
+FlatEncoding -&gt; String
+(Int -&gt; FlatEncoding -&gt; ShowS)
+-&gt; (FlatEncoding -&gt; String)
+-&gt; ([FlatEncoding] -&gt; ShowS)
+-&gt; Show FlatEncoding
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [FlatEncoding] -&gt; ShowS
+$cshowList :: [FlatEncoding] -&gt; ShowS
+show :: FlatEncoding -&gt; String
+$cshow :: FlatEncoding -&gt; String
+showsPrec :: Int -&gt; FlatEncoding -&gt; ShowS
+$cshowsPrec :: Int -&gt; FlatEncoding -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161468"><span id="local-6989586621679161470"><span id="local-6989586621679161472"><span id="local-6989586621679161474"><span class="annot"><span class="annottext">ReadPrec [FlatEncoding]
+ReadPrec FlatEncoding
+Int -&gt; ReadS FlatEncoding
+ReadS [FlatEncoding]
+(Int -&gt; ReadS FlatEncoding)
+-&gt; ReadS [FlatEncoding]
+-&gt; ReadPrec FlatEncoding
+-&gt; ReadPrec [FlatEncoding]
+-&gt; Read FlatEncoding
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [FlatEncoding]
+$creadListPrec :: ReadPrec [FlatEncoding]
+readPrec :: ReadPrec FlatEncoding
+$creadPrec :: ReadPrec FlatEncoding
+readList :: ReadS [FlatEncoding]
+$creadList :: ReadS [FlatEncoding]
+readsPrec :: Int -&gt; ReadS FlatEncoding
+$creadsPrec :: Int -&gt; ReadS FlatEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161466"><span class="annot"><span class="annottext">FlatEncoding -&gt; ()
+(FlatEncoding -&gt; ()) -&gt; NFData FlatEncoding
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: FlatEncoding -&gt; ()
+$crnf :: FlatEncoding -&gt; ()
+</span><a href="#local-6989586621679161466"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. FlatEncoding -&gt; Rep FlatEncoding x)
+-&gt; (forall x. Rep FlatEncoding x -&gt; FlatEncoding)
+-&gt; Generic FlatEncoding
+forall x. Rep FlatEncoding x -&gt; FlatEncoding
+forall x. FlatEncoding -&gt; Rep FlatEncoding x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep FlatEncoding x -&gt; FlatEncoding
+$cfrom :: forall x. FlatEncoding -&gt; Rep FlatEncoding x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161458"><span id="local-6989586621679161460"><span id="local-6989586621679161462"><span class="annot"><span class="annottext">Get FlatEncoding
+FlatEncoding -&gt; Encoding
+FlatEncoding -&gt; Int -&gt; Int
+(FlatEncoding -&gt; Encoding)
+-&gt; Get FlatEncoding
+-&gt; (FlatEncoding -&gt; Int -&gt; Int)
+-&gt; Flat FlatEncoding
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: FlatEncoding -&gt; Int -&gt; Int
+$csize :: FlatEncoding -&gt; Int -&gt; Int
+decode :: Get FlatEncoding
+$cdecode :: Get FlatEncoding
+encode :: FlatEncoding -&gt; Encoding
+$cencode :: FlatEncoding -&gt; Encoding
+</span><a href="#local-6989586621679161458"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161454"><span class="annot"><span class="annottext">Typeable FlatEncoding
+AsType (Ana FlatEncoding)
+Typeable FlatEncoding
+-&gt; AsType (Ana FlatEncoding)
+-&gt; (Proxy FlatEncoding -&gt; State Env HType)
+-&gt; Model FlatEncoding
+Proxy FlatEncoding -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy FlatEncoding -&gt; State Env HType
+$cenvType :: Proxy FlatEncoding -&gt; State Env HType
+$cp2Model :: AsType (Ana FlatEncoding)
+$cp1Model :: Typeable FlatEncoding
+</span><a href="#local-6989586621679161454"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- |Unspecified encoding</span><span>
+</span><span id="line-45"></span><span id="local-6989586621679161452"><span id="local-6989586621679161453"></span></span><span class="hs-keyword">data</span><span> </span><span id="NoEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#NoEncoding"><span class="hs-identifier hs-var">NoEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-46"></span><span>  </span><span id="NoEncoding"><span class="annot"><a href="ZM.Type.BLOB.html#NoEncoding"><span class="hs-identifier hs-var">NoEncoding</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679161447"><span id="local-6989586621679161449"><span class="annot"><span class="annottext">NoEncoding -&gt; NoEncoding -&gt; Bool
+(NoEncoding -&gt; NoEncoding -&gt; Bool)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Bool) -&gt; Eq NoEncoding
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+/= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c/= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+== :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c== :: NoEncoding -&gt; NoEncoding -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161432"><span id="local-6989586621679161434"><span id="local-6989586621679161436"><span id="local-6989586621679161438"><span id="local-6989586621679161440"><span id="local-6989586621679161442"><span id="local-6989586621679161444"><span class="annot"><span class="annottext">Eq NoEncoding
+Eq NoEncoding
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Ordering)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Bool)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Bool)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Bool)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; Bool)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; NoEncoding)
+-&gt; (NoEncoding -&gt; NoEncoding -&gt; NoEncoding)
+-&gt; Ord NoEncoding
+NoEncoding -&gt; NoEncoding -&gt; Bool
+NoEncoding -&gt; NoEncoding -&gt; Ordering
+NoEncoding -&gt; NoEncoding -&gt; NoEncoding
+forall a.
+Eq a
+-&gt; (a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+min :: NoEncoding -&gt; NoEncoding -&gt; NoEncoding
+$cmin :: NoEncoding -&gt; NoEncoding -&gt; NoEncoding
+max :: NoEncoding -&gt; NoEncoding -&gt; NoEncoding
+$cmax :: NoEncoding -&gt; NoEncoding -&gt; NoEncoding
+&gt;= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c&gt;= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+&gt; :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c&gt; :: NoEncoding -&gt; NoEncoding -&gt; Bool
+&lt;= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c&lt;= :: NoEncoding -&gt; NoEncoding -&gt; Bool
+&lt; :: NoEncoding -&gt; NoEncoding -&gt; Bool
+$c&lt; :: NoEncoding -&gt; NoEncoding -&gt; Bool
+compare :: NoEncoding -&gt; NoEncoding -&gt; Ordering
+$ccompare :: NoEncoding -&gt; NoEncoding -&gt; Ordering
+$cp1Ord :: Eq NoEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161426"><span id="local-6989586621679161428"><span id="local-6989586621679161430"><span class="annot"><span class="annottext">Int -&gt; NoEncoding -&gt; ShowS
+[NoEncoding] -&gt; ShowS
+NoEncoding -&gt; String
+(Int -&gt; NoEncoding -&gt; ShowS)
+-&gt; (NoEncoding -&gt; String)
+-&gt; ([NoEncoding] -&gt; ShowS)
+-&gt; Show NoEncoding
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [NoEncoding] -&gt; ShowS
+$cshowList :: [NoEncoding] -&gt; ShowS
+show :: NoEncoding -&gt; String
+$cshow :: NoEncoding -&gt; String
+showsPrec :: Int -&gt; NoEncoding -&gt; ShowS
+$cshowsPrec :: Int -&gt; NoEncoding -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161418"><span id="local-6989586621679161420"><span id="local-6989586621679161422"><span id="local-6989586621679161424"><span class="annot"><span class="annottext">ReadPrec [NoEncoding]
+ReadPrec NoEncoding
+Int -&gt; ReadS NoEncoding
+ReadS [NoEncoding]
+(Int -&gt; ReadS NoEncoding)
+-&gt; ReadS [NoEncoding]
+-&gt; ReadPrec NoEncoding
+-&gt; ReadPrec [NoEncoding]
+-&gt; Read NoEncoding
+forall a.
+(Int -&gt; ReadS a)
+-&gt; ReadS [a] -&gt; ReadPrec a -&gt; ReadPrec [a] -&gt; Read a
+readListPrec :: ReadPrec [NoEncoding]
+$creadListPrec :: ReadPrec [NoEncoding]
+readPrec :: ReadPrec NoEncoding
+$creadPrec :: ReadPrec NoEncoding
+readList :: ReadS [NoEncoding]
+$creadList :: ReadS [NoEncoding]
+readsPrec :: Int -&gt; ReadS NoEncoding
+$creadsPrec :: Int -&gt; ReadS NoEncoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Read</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161416"><span class="annot"><span class="annottext">NoEncoding -&gt; ()
+(NoEncoding -&gt; ()) -&gt; NFData NoEncoding
+forall a. (a -&gt; ()) -&gt; NFData a
+rnf :: NoEncoding -&gt; ()
+$crnf :: NoEncoding -&gt; ()
+</span><a href="#local-6989586621679161416"><span class="hs-identifier hs-var hs-var hs-var hs-var">NFData</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(forall x. NoEncoding -&gt; Rep NoEncoding x)
+-&gt; (forall x. Rep NoEncoding x -&gt; NoEncoding) -&gt; Generic NoEncoding
+forall x. Rep NoEncoding x -&gt; NoEncoding
+forall x. NoEncoding -&gt; Rep NoEncoding x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cto :: forall x. Rep NoEncoding x -&gt; NoEncoding
+$cfrom :: forall x. NoEncoding -&gt; Rep NoEncoding x
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">Generic</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161408"><span id="local-6989586621679161410"><span id="local-6989586621679161412"><span class="annot"><span class="annottext">Get NoEncoding
+NoEncoding -&gt; Encoding
+NoEncoding -&gt; Int -&gt; Int
+(NoEncoding -&gt; Encoding)
+-&gt; Get NoEncoding -&gt; (NoEncoding -&gt; Int -&gt; Int) -&gt; Flat NoEncoding
+forall a. (a -&gt; Encoding) -&gt; Get a -&gt; (a -&gt; Int -&gt; Int) -&gt; Flat a
+size :: NoEncoding -&gt; Int -&gt; Int
+$csize :: NoEncoding -&gt; Int -&gt; Int
+decode :: Get NoEncoding
+$cdecode :: Get NoEncoding
+encode :: NoEncoding -&gt; Encoding
+$cencode :: NoEncoding -&gt; Encoding
+</span><a href="#local-6989586621679161408"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Flat</span></a></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679161404"><span class="annot"><span class="annottext">Typeable NoEncoding
+AsType (Ana NoEncoding)
+Typeable NoEncoding
+-&gt; AsType (Ana NoEncoding)
+-&gt; (Proxy NoEncoding -&gt; State Env HType)
+-&gt; Model NoEncoding
+Proxy NoEncoding -&gt; State Env HType
+forall a.
+Typeable a
+-&gt; AsType (Ana a) -&gt; (Proxy a -&gt; State Env HType) -&gt; Model a
+envType :: Proxy NoEncoding -&gt; State Env HType
+$cenvType :: Proxy NoEncoding -&gt; State Env HType
+$cp2Model :: AsType (Ana NoEncoding)
+$cp1Model :: Typeable NoEncoding
+</span><a href="#local-6989586621679161404"><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Model</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span></pre></body></html>
