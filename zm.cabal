@@ -91,7 +91,7 @@ library
     , either              >4.3.2    && <6
     , extra
     , flat                >=0.6      && <0.7
-    , megaparsec          >7        && <10
+    , megaparsec          >=9        && <10
     , model               >=0.5      && <0.6
     , parser-combinators
     , pretty              >=1.1.2
