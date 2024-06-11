@@ -103,7 +103,7 @@ Note: the decimal dot is not required
 >>> parseMaybe float "35"
 Just 35.0
 -}
-float :: RealFloat a => Parser a
+float :: (RealFloat a) => Parser a
 float = toRealFloat <$> L.signed (return ()) (lexeme L.scientific)
 
 -- TODO: add binary
@@ -163,7 +163,7 @@ Just 127
 parseMaybe unsigned "0XFF" :: Maybe Word7
 Nothing
 -}
-unsigned :: Integral a => Parser a
+unsigned :: (Integral a) => Parser a
 unsigned = (char '0' >> (char 'x' <|> char 'X') >> L.hexadecimal) <|> integral
 
 {- |
@@ -209,10 +209,10 @@ Just 334559923200232302133331312313131231231231231231231
 >>> parseMaybe signed "-334559923200232302133331312313131231231231231231231" :: Maybe Integer
 Just (-334559923200232302133331312313131231231231231231231)
 -}
-signed :: Integral a => Parser a
+signed :: (Integral a) => Parser a
 signed = L.signed (return ()) (lexeme integral)
 
-integral :: Integral a => Parser a
+integral :: (Integral a) => Parser a
 integral = do
     d <- L.decimal
     notFollowedBy (char '.')
@@ -341,7 +341,7 @@ shake = lexeme k
             <*> hexDigitChar
             <*> hexDigitChar
 
-{- |Space consumer
+{- | Space consumer
  |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
 -}
 sc :: Parser ()
@@ -351,9 +351,9 @@ sc = L.space space1 lineComment blockComment
 
     blockComment = L.skipBlockComment "{-" "-}"
 
---end parser = (<* eof)
---doc = between sc (sc >> eof)
+-- end parser = (<* eof)
+-- doc = between sc (sc >> eof)
 
--- |Add trailing space removal to a parser
+-- | Add trailing space removal to a parser
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc

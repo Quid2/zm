@@ -54,14 +54,25 @@ instance KeyOf QualName (AbsRef,AbsADT) where
   keyOf (ref, adt) = QualName "" (convert $ declName adt) (prettyShow ref)
 
 
--- |Derive an absolute type for a type, or throw an error if derivation is impossible
+{- | Derive an absolute type for a type, or throw an error if derivation is impossible
+
+>>> absType (Proxy :: Proxy Bool)
+TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28))
+
+>>> absType (Proxy :: Proxy ([Bool]))
+TypeApp (TypeCon (AbsRef (SHAKE128_48 184 205 19 24 113 152))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
+-}
 absType :: Model a => Proxy a -> AbsType
 absType = typeName . absTypeModel
 
 absEnv :: Model a => Proxy a -> AbsEnv
 absEnv = typeEnv . absTypeModel
 
--- |Derive an absolute type model for a type, or throw an error if derivation is impossible
+{- |Derive an absolute type model for a type, or throw an error if derivation is impossible
+
+>>> absTypeModel (Proxy :: Proxy Bool)
+TypeModel {typeName = TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)), typeEnv = fromList [(AbsRef (SHAKE128_48 48 111 25 129 180 28),ADT {declName = Name (UnicodeLetter 'B') [UnicodeLetterOrNumberOrLine 'o',UnicodeLetterOrNumberOrLine 'o',UnicodeLetterOrNumberOrLine 'l'], declNumParameters = 0, declCons = Just (ConTree (Con {constrName = Name (UnicodeLetter 'F') [UnicodeLetterOrNumberOrLine 'a',UnicodeLetterOrNumberOrLine 'l',UnicodeLetterOrNumberOrLine 's',UnicodeLetterOrNumberOrLine 'e'], constrFields = Left []}) (Con {constrName = Name (UnicodeLetter 'T') [UnicodeLetterOrNumberOrLine 'r',UnicodeLetterOrNumberOrLine 'u',UnicodeLetterOrNumberOrLine 'e'], constrFields = Left []}))})]}
+-}
 absTypeModel :: Model a => Proxy a -> AbsTypeModel
 absTypeModel = either (error . unlines . map prettyShow) id . absTypeModelMaybe
 

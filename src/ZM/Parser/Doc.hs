@@ -1,10 +1,10 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE RecordWildCards           #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {-
 A parser for a concise and extensible document format that can embed programming constructs (data types declarations, function, etc) as well as text, diagrams, etc.
 
-A document is divided into sections, each introduced by a keyword that specify what parser is used to interpret it.
+A document is a sequence of sections, each introduced by a keyword that specify what parser is used to interpret it.
 
 A section name should be either a sequence of characters or as sequence of symbols:
 
@@ -29,7 +29,7 @@ module X where
   ...
 ```
 
-| A line of text
+\| A line of text
 
 {|
 A block of text
@@ -64,6 +64,29 @@ In both cases, the text that composes the section is passed to the parser exactl
 
 Space between sections is not significant.
 
+Alternative:
+For documents/notes, etc, we just use the usual data syntax.
+
+data Note = Note {title :: String, body :: String}
+
+Note {
+  title="Parser"
+  body={
+  A parser for a concise and extensible document format that can embed programming constructs (data types declarations, function, etc) as well as text, diagrams, etc.}
+  }
+}
+
+Document {
+    elements={
+    [Note "title" "body"]}
+}
+
+data Grace = Grace Text -- Grace source code
+
+Grace {
+ ...
+}
+
 ## Compared
 
 xml/html
@@ -83,16 +106,16 @@ https://via.hypothes.is/https://talk.fission.codes/t/tools-for-thought-atjson-as
 -}
 module ZM.Parser.Doc where
 
-import           Control.Monad        (void)
-import           Data.Char
-import           Data.Either.Extra    (mapLeft)
-import           Data.Foldable        (fold)
-import           Data.List
-import qualified Data.Map             as M
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
-import           ZM.Parser.Lexer
-import           ZM.Parser.Types      (Parser)
+import Control.Monad (void)
+import Data.Char
+import Data.Either.Extra (mapLeft)
+import Data.Foldable (fold)
+import Data.List
+import qualified Data.Map as M
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import ZM.Parser.Lexer
+import ZM.Parser.Types (Parser)
 
 -- import ZM.Parser.Util (parseDoc)
 
@@ -125,9 +148,9 @@ data P b = forall a. P {parser :: Parser a, converter :: a -> b}
 {-
 Enhanced Haskell:
 
-* multiple modules in same file (rust style)
+\* multiple modules in same file (rust style)
 
-* Better integration of tests and code, tests and code are written together but they get split on
+\* Better integration of tests and code, tests and code are written together but they get split on
 
 module Z where
 
@@ -149,13 +172,12 @@ table Stk -> (Stk,Money,Percent)
 Unipol        https://www.google.com/finance/quote/UNI:BIT?window=1Y        BIT:UNI        22,017         46.3%
 
 data PortfolioLine = Line Text Link Double Percent
- 
+
 map ()
 
 table [unipol,bami]
 
 -}
-
 
 {- | Document evaluation
 

@@ -1,23 +1,23 @@
-{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
--- |Dynamical decoding of serialised typed values
+-- | Dynamical decoding of serialised typed values
 module ZM.To.Decoder (
     decodeAbsTypeModel,
     typeDecoder,
     typeDecoderMap,
 ) where
 
-import qualified Data.ByteString    as B
-import qualified Data.Map           as M
-import           Data.Model
-import           Flat
-import           Flat.Decoder.Types
-import           ZM.Parser.Types    (Value, pattern Value)
-import           ZM.Transform
-import           ZM.Types           (AbsRef, AbsType, AbsTypeModel, Identifier)
+import qualified Data.ByteString as B
+import qualified Data.Map as M
+import Data.Model
+import Flat
+import Flat.Decoder.Types
+import ZM.Parser.Types (Value, pattern Value)
+import ZM.Transform
+import ZM.Types (AbsRef, AbsType, AbsTypeModel, Identifier)
 
 {- $setup
  >>> :set -XScopedTypeVariables
@@ -46,7 +46,6 @@ Left (TooMuchSpace ...
 Or not, if the binary sequence happens to have the same length of a value of the wrong type:
 
 >>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Word8)) (flat (11::Int)) == Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 177 244 106 73 200 248)), valName = "V22", valBits = [False,False,False,True,False,True,True,False], valFields = []})
-True
 
 >>> decodeAbsTypeModel (absTypeModel (Proxy::Proxy Word8)) (flat (11::Word8)) == Right (Value {valType = TypeCon (AbsRef (SHAKE128_48 177 244 106 73 200 248)), valName = "V11", valBits = [False,False,False,False,True,False,True,True], valFields = []})
 True
@@ -74,14 +73,14 @@ Right "11"
 decodeAbsTypeModel :: AbsTypeModel -> B.ByteString -> Decoded Value
 decodeAbsTypeModel = unflatWith . typeDecoder
 
--- |Returns a decoder for the type defined by the given model
+-- | Returns a decoder for the type defined by the given model
 typeDecoder :: AbsTypeModel -> Get Value
 typeDecoder = typeOp typeDecoderMap
 
--- |A mapping between references to absolute types and the corresponding decoder
+-- | A mapping between references to absolute types and the corresponding decoder
 type TypeDecoderMap = TypeMap (Get Value)
 
--- |Returns decoders for all types in the given model
+-- | Returns decoders for all types in the given model
 typeDecoderMap :: AbsTypeModel -> TypeDecoderMap
 typeDecoderMap = typeOpMap (conDecoder [])
 
@@ -101,7 +100,7 @@ conDecoder bs env t (Con cn cs) =
 typeOp :: (AbsTypeModel -> TypeMap r) -> AbsTypeModel -> r
 typeOp opMap tm = solve (typeName tm) (opMap tm)
 
--- |A mapping between references to absolute types and the corresponding operation
+-- | A mapping between references to absolute types and the corresponding operation
 type TypeMap r = M.Map (Type AbsRef) r
 
 typeOpMap ::
