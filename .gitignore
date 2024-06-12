@@ -1,0 +1,8 @@
+**/.stack-work
+stack.yaml.lock
+dist/**
+dist-newstyle/**
+other/**
+tmp/**
+private/**
+_build/**
