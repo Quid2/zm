@@ -37,6 +37,9 @@ library
     ZM.Parser.Lexer
     ZM.Parser.Types
     ZM.Parser.Util
+    ZM.Parser.Exp
+    ZM.Parser.Literal
+    ZM.Parser.Val
     ZM.Parser.Value
     ZM.Parser.Bracket
     ZM.Pretty

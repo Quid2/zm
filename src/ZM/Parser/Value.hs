@@ -1,31 +1,38 @@
-module ZM.Parser.Value
-  ( value
-  , pattern
-  )
-where
-import           Text.Megaparsec
-import           ZM.Parser.Lexer
-import           ZM.Parser.Types hiding (Value)
-import           ZM.Parser.Util
+{-# LANGUAGE OverloadedStrings #-}
 
--- |Generic ZM value, a constructor followed by optional, optionally named, fields.
--- data Value = Value String ValueFields
---   deriving (Show)
--- |Constructor fields
--- type ValueFields = Either [Value] [(String, Value)]
+module ZM.Parser.Value (
+  value,
+  pattern,
+)
+where
+
+import Data.Text (Text)
+import Text.Megaparsec
+import ZM.Parser.Lexer
+import ZM.Parser.Literal
+import ZM.Parser.Types
+import ZM.Parser.Util
+import ZM.Parser.Val hiding (Value)
+
+{- | Generic ZM value, a constructor followed by optional, optionally named, fields.
+ data Value = Value String ValueFields
+   deriving (Show)
+ |Constructor fields
+ type ValueFields = Either [Value] [(String, Value)]
+-}
 type Value = Val Literal Void
 
--- |Parse a document as a ZM value
--- valueD :: Parser Value
--- valueD = doc value
--- |A Pattern matches a subset of values of a ZM Type
+{- | Parse a document as a ZM value
+ valueD :: Parser Value
+ valueD = doc value
+ |A Pattern matches a subset of values of a ZM Type
+-}
 type Pattern = Val Literal Binder
 
-{-|
+{- |
 Parse a plain ZM value.
 
 >>> parseMaybe value ""
-Nothing
 
 >>> parseMaybe value "_"
 Nothing
@@ -77,7 +84,7 @@ Nothing
 value :: Parser Value
 value = valueV special
 
-{-|
+{- |
 Parse a pattern.
 
 A wildcard:
@@ -100,13 +107,13 @@ Variables can appear at any level:
 >>> parse pattern "" "(T _ (T2  _b 'N'))" == Right (Constr "T" (Left [PWild,Constr "T2" (Left [PBind "b",VChar 'N'])]))
 True
 -}
+
 -- PROB: ambiguity between variable names and constructors, we require a '_' before variable name
 pattern :: Parser Pattern
 pattern = valueV (special <|> binds)
 
 constr, valueV :: Parser (Val lit binder) -> Parser (Val lit binder)
-valueV v = pars (valueV v) <|> v <|> constr v
-
+valueV v = parenthesis (valueV v) <|> v <|> constr v
 constr v = Constr <$> localId <*> fieldsV v
 
 special :: Parser (Val Literal binder)
@@ -114,7 +121,7 @@ special =
   try (VInteger <$> signed)
     <|> (VFloat <$> float)
     <|> (VChar <$> charLiteral)
-    <|> (VString <$> stringLiteral)
+    <|> (VString <$> textLiteral)
 
 -- TODO: Add VArray
 binds :: Parser (Val lit Binder)
@@ -122,20 +129,21 @@ binds = maybe PWild PBind <$> var
 
 nestedValue :: Parser (Val lit binder) -> Parser (Val lit binder)
 nestedValue v =
-  pars (valueV v) <|> v <|> (\n -> Constr n (Left [])) <$> localId
+  parenthesis (valueV v) <|> v <|> (\n -> Constr n (Left [])) <$> localId
 
 -- fields :: Parser ValueFields
 fieldsV v = namedFields v <|> unnamedFields v
 
--- |Parse unnamed fields
-fieldsV, unnamedFields
-  :: Parser (Val lit binder)
-  -> Parser (Either [Val lit binder] [(String, Val lit binder)])
+-- | Parse unnamed fields
+fieldsV
+  , unnamedFields ::
+    Parser (Val lit binder) ->
+    Parser (Either [Val lit binder] [(Text, Val lit binder)])
 unnamedFields v = Left <$> many (nestedValue v)
 
-{-| Parse a set of named fields
+{- | Parse a set of named fields
 
-$setup
+\$setup
 >>> let pflds = parseMaybe (namedFields value)
 
 >>> pflds "{}"
@@ -153,6 +161,8 @@ This might be interpreted as 'False b' and so it fails:
 >>> pflds "{a=False b=True}"
 Nothing
 
+>>> pflds "{a=False\nb=True}"
+
 >>> pflds "{a=(False) b=True}" == Just (Right [("a",Constr "False" (Left [])),("b",Constr "True" (Left []))])
 True
 
@@ -161,17 +171,17 @@ Just (Right [("a",Fix (ConstrF "Msg" (Right [("from",Fix (ConstrF "Joe" (Left []
 
 Haskell style comments are allowed:
 
->>> pflds "{ l1  = cons false {- we are in the middle of a Constr ()-} nil , l2=  nil } -- named fields are completed" == Just (Right [("l1",Constr "cons" (Left [Constr "false" (Left []),Constr "nil" (Left [])])),("l2",Constr "nil" (Left []))])
+>>> pflds "{ l1  = cons false {\- we are in the middle of a Constr ()-\} nil , l2=  nil } -- named fields are completed" == Just (Right [("l1",Constr "cons" (Left [Constr "false" (Left []),Constr "nil" (Left [])])),("l2",Constr "nil" (Left []))])
 True
 -}
-namedFields
-  :: Parser (Val lit binder)
-  -> Parser (Either [Val lit binder] [(String, Val lit binder)])
+namedFields ::
+  Parser (Val lit binder) ->
+  Parser (Either [Val lit binder] [(Text, Val lit binder)])
 namedFields v = Right <$> cpars (sepBy (namedField v) (optional $ symbol ","))
 
-namedField :: Parser (Val lit binder) -> Parser (String, Val lit binder)
+namedField :: Parser (Val lit binder) -> Parser (Text, Val lit binder)
 namedField v = do
   name <- localId
-  _    <- symbol "="
-  v    <- valueV v
+  _ <- symbol "="
+  v <- valueV v
   return (name, v)

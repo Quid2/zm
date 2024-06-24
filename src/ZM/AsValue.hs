@@ -47,7 +47,7 @@ import           Data.ZigZag           (zagZig)
 import           Flat.Run
 import           Numeric.Natural
 import           ZM.Abs
-import           ZM.Parser.Types       (Value, valFields, valName)
+import           ZM.Parser.Val
 import           ZM.To.Decoder         (decodeAbsTypeModel)
 import           ZM.Type.Bit
 import           ZM.Type.Bits11
@@ -102,7 +102,7 @@ class AsValue a where
 
   -- | Convert a ZM value in (simple, without field names) textual form in the corresponding Haskell value
 unValue :: AsValue a => Value -> a
-unValue v = unVal (valName v) (valFields v)
+unValue v = unVal (T.unpack $ valName v) (valFields v)
 
 -- Convert an Haskell value in the corresponding ZM value to (simple, without field names) textual form
 value :: forall a . (Model a, Flat a) => a -> Value
@@ -211,7 +211,7 @@ prop> \(w::T.Text -> unValue (value (UTF16Text w)) == (UTF16Text w)
 -}
 
 instance (AsValue a) => AsValue (Array a) where
-  unVal ("A0")  [] = Array []
+  unVal "A0"  [] = Array []
   unVal ('A':i) vs | let n = read i in n == length vs-1 && n < 256 = let Array l2 = unValue (last vs) :: Array a in Array (map unValue (init vs) ++ l2)
   unVal v     vs  = wrongValue v vs
 

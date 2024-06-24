@@ -1,48 +1,51 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE ScopedTypeVariables    ,CPP   #-}
 
 {- Parse ZM ADT declarations and values -}
-module ZM.Parser.ADT
-  ( adts
-  , adt
-  , parType
-  , absReference
-  , maybeNamedAbsRef
-  , namedOrAbsRef
+module ZM.Parser.ADT (
+  adts,
+  adt,
+  parType,
+  absReference,
+  maybeNamedAbsRef,
+  namedOrAbsRef,
+  constr,
+  ADTParts (..),
   -- , absId
-  )
+)
 where
 
-import Data.Maybe ( fromMaybe )
+import Data.Maybe (fromMaybe)
+import Data.Text (Text)
 import Text.Megaparsec
-import ZM
-    ( convert,
-      prettyShow,
-      Convertible,
-      Fields,
-      Type(..),
-      Pretty,
-      Identifier,
-      AbsRef(..) )
-import ZM.Parser.Lexer ( localId, symbol, shake )
+import Text.PrettyPrint hiding ((<>))
+import qualified Text.PrettyPrint as P
+import ZM (
+  AbsRef (..),
+  Convertible,
+  Fields,
+  Identifier,
+  Pretty,
+  Type (..),
+  convert,
+  prettyShow,
+ )
+import ZM.Parser.Lexer (localId, shake, symbol)
 import ZM.Parser.Types
-    ( Label,
-      AtAbsName,
-      AtId,
-      Range,
-      TypeName,
-      ADTParts(ADTParts),
-      Parser,
-      asTypeName )
-import ZM.Parser.Util ( mkAt, cpars, pars )
+import ZM.Parser.Util (cpars, mkAt, parenthesis)
+import ZM.Pretty
 
--- $setup
--- >>> import ZM.Parser.Util(parseDoc)
+{- $setup
+>>> import ZM.Parser.Util(parseDoc)
+-}
 
-{-|Parse a, possibly empty, group of ZM ADT declarations.
+{- | Parse a, possibly empty, group of ZM ADT declarations.
 
 >>> parseMaybe adts ""
 Just []
@@ -57,7 +60,7 @@ Just [Void@(0:0-3) =,
 adts :: Parser [ADTParts]
 adts = sepEndBy adt (symbol ";")
 
-{-| Parse a ZM ADT declaration.
+{- | Parse a ZM ADT declaration.
 
 >>> putStr $ prettyShow $ parseMaybe adt "Void"
 Just Void@(0:0-3) =
@@ -98,7 +101,7 @@ adt =
     <*> many idAt
     <*> optional ((symbol "=" <|> symbol "≡") *> sepBy constr (symbol "|"))
 
-{-| Parse a constructor declaration (with either named or unnamed fields).
+{- | Parse a constructor declaration (with either named or unnamed fields).
 
 >> prettyShow <$> parseMaybe constr "False"
 Just (ADTParts {name = "Bool"@(0,0), vars = [], constrs = [("False"@(0,7),Left []),("True"@(0,15),Left [])]})
@@ -117,11 +120,10 @@ Just "V@(0:0) A@(0:2) B@(0:4) (C@(0:7) D@(0:9))"
 -}
 constr :: Parser (AtId, Fields AtId AtAbsName)
 constr = (,) <$> idAt <*> flds
-      --flds = eitherP unnamedFlds namedFlds
-
-
  where
-  flds      = (Right <$> namedFlds) <|> (Left <$> unnamedFlds)
+  -- flds = eitherP unnamedFlds namedFlds
+
+  flds = (Right <$> namedFlds) <|> (Left <$> unnamedFlds)
   namedFlds = cpars (sepBy namedConstrFld (symbol ","))
   namedConstrFld =
     (,) <$> (idAt <* (symbol "::" <|> symbol ":")) <*> parType absIdAt
@@ -135,24 +137,21 @@ absIdAt = at namedOrAbsRef
 idAt :: Parser AtId
 idAt = at localIdentifier
 
-localIdentifier :: Convertible String b => Parser b
+localIdentifier :: (Convertible Text b) => Parser b
 localIdentifier = convert <$> localId
 
 {- Add location information to the result of a parser.
 
 We assume that:
-* the parser does not parse initial space
-* the length of parsed text is equal to the length of the pretty-shown result
-* the parsed text is disposed on a single line
+\* the parser does not parse initial space
+\* the length of parsed text is equal to the length of the pretty-shown result
+\* the parsed text is disposed on a single line
 -}
 
 at :: (TraversableStream s, MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
-
-
-
 at parser = do
   pos <- getSourcePos
-  r   <- parser
+  r <- parser
   return $ mkAt pos (length (prettyShow r)) r
 
 -- at parser = do
@@ -164,7 +163,8 @@ at parser = do
 --   -- when (sourceLine pos2 /= sourceLine pos1) $ fail "at: unexpected multiline parser"
 --   --return $ At (mkRange pos1 (unPos (sourceColumn pos2) - unPos (sourceColumn pos1))) r
 --   return $ At (mkRange pos1 l) rr
-{-| Parse a type application, a type constructor with zero or more parameters
+
+{- | Parse a type application, a type constructor with zero or more parameters
 
 >>> parseMaybe (parType localId) "a"
 Just (TypeCon "a")
@@ -187,7 +187,7 @@ Just (TypeApp (TypeApp (TypeCon "a") (TypeCon "b")) (TypeCon "c"))
 parType :: Parser a -> Parser (Type a)
 parType cons = foldl1 TypeApp <$> types cons
 
-{-| Parse a simple type, either a type constructor or a type in parentheses
+{- | Parse a simple type, either a type constructor or a type in parentheses
 >>> parseMaybe (simpleType localId) "a"
 Just (TypeCon "a")
 
@@ -195,9 +195,9 @@ Just (TypeCon "a")
 Just (TypeApp (TypeApp (TypeCon "a") (TypeCon "b")) (TypeCon "c"))
 -}
 simpleType :: Parser ref -> Parser (Type ref)
-simpleType cons = pars (parType cons) <|> (TypeCon <$> cons)
+simpleType cons = parenthesis (parType cons) <|> (TypeCon <$> cons)
 
-{-| Parse a non-empty sequence of types.
+{- | Parse a non-empty sequence of types.
 >>> parseMaybe (types localId) ""
 Nothing
 
@@ -209,7 +209,8 @@ types cons = some (simpleType cons)
 
 -- typN :: Parser a -> Parser (TypeN a)
 -- typN cons = pars (typN cons) <|> (TypeN <$> cons <*> many (typN cons))
-{-| Parse a simple type name, possibly qualified with an absolute code.
+
+{- | Parse a simple type name, possibly qualified with an absolute code.
 
 >>> prettyShow <$> parseMaybe namedOrAbsRef "nil"
 Just "nil"
@@ -226,6 +227,7 @@ And this is just a type name (NO actually we try to interpret it as an absolute 
 >>> parseMaybe namedOrAbsRef "K306f1981b41c"
 Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
 -}
+
 -- absId :: Parser (TypeName Identifier)
 -- absId =
 --   asTypeName Nothing . Just <$> dref <|>
@@ -233,16 +235,16 @@ Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
 namedOrAbsRef :: Parser (TypeName Identifier)
 namedOrAbsRef =
   asTypeName Nothing
-    .   Just
+    . Just
     <$> (optional (symbol ".") *> absReference)
-    <|> asTypeName
-    <$> (Just <$> localIdentifier)
+      <|> (asTypeName . Just <$> localIdentifier)
     <*> optional dref
 
 namedMaybeAbsRef :: Parser (TypeName Identifier)
-namedMaybeAbsRef = asTypeName <$> (Just <$> localIdentifier) <*> optional dref
+namedMaybeAbsRef = (asTypeName . Just <$> localIdentifier) <*> optional dref
 
 -- An absolute reference, plus optionally the data type name
+
 {- |
 >>> prettyShow <$> parseMaybe maybeNamedAbsRef "Bool.K306f1981b41c"
 Just "Bool.K306f1981b41c"
@@ -259,10 +261,9 @@ Nothing
 maybeNamedAbsRef :: Parser (TypeName Identifier)
 maybeNamedAbsRef =
   asTypeName Nothing
-    .   Just
+    . Just
     <$> (optional (symbol ".") *> absReference)
-    <|> asTypeName
-    <$> (Just <$> localIdentifier)
+      <|> (asTypeName . Just <$> localIdentifier)
     <*> (Just <$> dref)
 
 dref :: Parser AbsRef
@@ -278,3 +279,18 @@ Nothing
 absReference :: Parser AbsRef
 absReference = AbsRef <$> shake
 
+-- | A parsed ADT
+data ADTParts = ADTParts
+  { name :: AtAbsName
+  , vars :: [AtId]
+  , constrs :: [(AtId, Fields AtId AtAbsName)]
+  }
+  deriving (Show)
+
+instance Pretty ADTParts where
+  pPrint :: ADTParts -> Doc
+  pPrint p =
+    pPrint (name p)
+      <+> hsep (map pPrint $ vars p)
+      <+> char '='
+      <+> hsep (punctuate (text " |") (map pPrint (constrs p)))

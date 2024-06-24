@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- | Dynamical decoding of serialised typed values
@@ -15,9 +14,11 @@ import qualified Data.Map as M
 import Data.Model
 import Flat
 import Flat.Decoder.Types
-import ZM.Parser.Types (Value, pattern Value)
+import ZM.Parser.Types
+import ZM.Parser.Val
 import ZM.Transform
 import ZM.Types (AbsRef, AbsType, AbsTypeModel, Identifier)
+import Data.Text (Text)
 
 {- $setup
  >>> :set -XScopedTypeVariables
@@ -85,7 +86,7 @@ typeDecoderMap :: AbsTypeModel -> TypeDecoderMap
 typeDecoderMap = typeOpMap (conDecoder [])
 
 conDecoder ::
-    (Convertible name String) =>
+    (Convertible name Text) =>
     [Bool] ->
     TypeDecoderMap ->
     AbsType ->

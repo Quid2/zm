@@ -1,42 +1,35 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 -- Parse ZM data type definitions
-module ZM.Parser.Env
-  ( parseADTs
-  , parseADTsWith
-  ) where
+module ZM.Parser.Env (
+      parseADTs,
+      parseADTsWith,
+) where
 
-import ZM.Parser.ADT ( adts )
-
-import           Data.Either
-import           Data.List
-
--- import           Data.Maybe
-import           ZM.Parser.Types
-
--- import qualified ZM.Parser.Parser as P
-import           ZM.Parser.Util
-import           ZM.Pretty
-
-import           Control.Monad
-import           Data.Bifunctor
-
---import Data.Either.Extra
--- import           Data.Either.Validation
-import           Data.Foldable
-import qualified Data.Map        as M
-import           Data.Model
-import           Data.Word
-import           ZM.Abs
-import           ZM.Types
+import Control.Monad
+import Data.Bifunctor
+import Data.Either
+import Data.Foldable
+import Data.List
+import qualified Data.Map as M
+import Data.Model
+import Data.Word
+import ZM.Abs
+import ZM.Parser.ADT (ADTParts (..), adts)
+import ZM.Parser.Types
+import ZM.Parser.Util
+import ZM.Pretty
+import ZM.Types
+import Data.Text (Text)
 
 -- tst = putStr . prettyShow . parseADTs
 -- ok = putStr . prettyShow . (\(Right a) -> a) . parseADTs
 -- import           ZM.Util
-{-|
+
+{- |
 Parse a (possibly empty) closed group of ADT declarations.
 
 >>> tst = putStr . prettyShow . parseADTs
@@ -238,12 +231,11 @@ Left ["Duplicated type name: a"@(0:4),
 
 >>> tst "List List ≡ Nil"
 Left ["Duplicated type name: List"@(0:5-8)]
-
 -}
-parseADTs :: String -> Either [AtError] AbsEnv
+parseADTs :: Text -> Either [AtError] AbsEnv
 parseADTs = parseADTsWith M.empty
 
-{-|
+{- |
 Parse a (possibly empty) group of ADT declarations, in the context of an environment.
 
 
@@ -278,35 +270,37 @@ Remote references to correct types are retrieved and checked:
 
 >> tst "T = T Bool.K306f1981b41c"
 BAD: Left ["Reference to unknown type: Bool.K306f1981b41c"@(0:6-23)]
-
 -}
-parseADTsWith :: AbsEnv -> String -> Either [AtError] AbsEnv
+parseADTsWith :: AbsEnv -> Text -> Either [AtError] AbsEnv
 parseADTsWith absEnv =
-  either
-    (\e -> Left [e])
-    (makeADTs >=> kindCheckWith absEnv >=> toAbsEnvWith absEnv) .
-  parseDoc adts --makeEnv >=> toAbsEnvWith absEnv
-  where
-    kindCheckWith absEnv relEnv =
-      case concatMap atk . kindErrors $ addAbsEnv absEnv relEnv of
-        []   -> Right relEnv
-        errs -> Left errs
-    atk ::
-         ZMError (Either (Label (Range, Word8) Identifier) (At (TypeName Identifier)))
-      -> [At String]
-    atk e =
-      let s = prettyShow (either (pPrint . object) (pPrint . object) <$> e)
-       in map (either (\t -> Label (fst $ label t) s) (\t -> Label (label t) s)) $
-          toList e
-    addAbsEnv absEnv relEnv =
-      relEnv `M.union`
-      (M.fromList .
-       map
-         (\radt@(_, adt) ->
-            ( keyOf radt
-            , ADT (at0 (declName adt)) (declNumParameters adt) Nothing)) .
-       M.toList $
-       absEnv)
+      either
+            (\e -> Left [e])
+            (makeADTs >=> kindCheckWith absEnv >=> toAbsEnvWith absEnv)
+            . parseDoc adts -- makeEnv >=> toAbsEnvWith absEnv
+   where
+      kindCheckWith absEnv relEnv =
+            case concatMap atk . kindErrors $ addAbsEnv absEnv relEnv of
+                  [] -> Right relEnv
+                  errs -> Left errs
+      atk ::
+            ZMError (Either (Label (Range, Word8) Identifier) (At (TypeName Identifier))) ->
+            [At String]
+      atk e =
+            let s = prettyShow (either (pPrint . object) (pPrint . object) <$> e)
+             in map (either (\t -> Label (fst $ label t) s) (\t -> Label (label t) s)) $
+                  toList e
+      addAbsEnv absEnv relEnv =
+            relEnv
+                  `M.union` ( M.fromList
+                                    . map
+                                          ( \radt@(_, adt) ->
+                                                ( keyOf radt
+                                                , ADT (at0 (declName adt)) (declNumParameters adt) Nothing
+                                                )
+                                          )
+                                    . M.toList
+                                    $ absEnv
+                            )
 
 -- makeEnv ::
 --      [ADTParts]
@@ -314,98 +308,102 @@ parseADTsWith absEnv =
 --                                                                                         , Word8) Identifier) (At (TypeName Identifier)))))
 -- makeEnv = makeADTs
 toAbsEnvWith ::
-     Convertible n Identifier
-  => AbsEnv
-  -> M.Map (At (TypeName Identifier)) (ADT n n (TypeRef2 (Label (t, Word8) t1) (At (TypeName Identifier))))
-  -> Either [At String] AbsEnv
-toAbsEnvWith absEnv
-  --let extEnv = relEnv `M.union` (M.fromList . map (\radt -> (keyOf radt,ADT (Label (Range 0 0 0) (TypeName "" Nothing)) 0 Nothing)) .  M.toList $ absEnv)
-  -- in first (concatMap ate) . relToAbsEnvWith absEnv . ((asRef <$>) <$>) $ relEnv
-  --in first (concatMap ate) . relToAbsEnv . ((asRef <$>) <$>) $ extEnv
- = first (concatMap ate) . relToAbsEnvWith absEnv . ((asRef <$>) <$>)
-  where
-    ate :: ZMError (At (TypeName Identifier)) -> [At String]
-    ate e =
-      let s = prettyShow (object <$> e)
-       in map (\t -> Label (label t) s) $ toList e
+      (Convertible n Identifier) =>
+      AbsEnv ->
+      M.Map (At (TypeName Identifier)) (ADT n n (TypeRef2 (Label (t, Word8) t1) (At (TypeName Identifier)))) ->
+      Either [At String] AbsEnv
+toAbsEnvWith absEnv =
+      -- let extEnv = relEnv `M.union` (M.fromList . map (\radt -> (keyOf radt,ADT (Label (Range 0 0 0) (TypeName "" Nothing)) 0 Nothing)) .  M.toList $ absEnv)
+      -- in first (concatMap ate) . relToAbsEnvWith absEnv . ((asRef <$>) <$>) $ relEnv
+      -- in first (concatMap ate) . relToAbsEnv . ((asRef <$>) <$>) $ extEnv
+      first (concatMap ate) . relToAbsEnvWith absEnv . ((asRef <$>) <$>)
+   where
+      ate :: ZMError (At (TypeName Identifier)) -> [At String]
+      ate e =
+            let s = prettyShow (object <$> e)
+             in map (\t -> Label (label t) s) $ toList e
 
 instance KeyOf (At (TypeName Identifier)) (AbsRef, AbsADT) where
-  keyOf (ref, adt) = at0 (asTypeName (Just $ declName adt) (Just ref))
+      keyOf (ref, adt) = at0 (asTypeName (Just $ declName adt) (Just ref))
 
 at0 :: a -> Label Range a
 at0 = Label (Range 0 0 0)
 
 -- FIX: to be moved in main model
-type TRef
-   = TypeRef2 (Label (Range, Word8) Identifier) (At (TypeName Identifier))
+type TRef =
+      TypeRef2 (Label (Range, Word8) Identifier) (At (TypeName Identifier))
 
 makeADTs ::
-     [ADTParts]
-  -> Either [AtError] (M.Map (At (TypeName Identifier)) (ADT AtId AtId TRef))
+      [ADTParts] ->
+      Either [AtError] (M.Map (At (TypeName Identifier)) (ADT AtId AtId TRef))
 makeADTs adts =
-  let eadts = map makeADT adts
-      errors = concat $ lefts eadts
-   in if null errors
-        then Right . M.fromList $ rights eadts
-        else Left errors
+      let eadts = map makeADT adts
+          errors = concat $ lefts eadts
+       in if null errors
+            then Right . M.fromList $ rights eadts
+            else Left errors
 
 makeADT ::
-     ADTParts -> Either [AtError] (At (TypeName Identifier), ADT AtId AtId TRef)
+      ADTParts -> Either [AtError] (At (TypeName Identifier), ADT AtId AtId TRef)
 makeADT adt =
-  let errors = uniqueLocalTypeNames adt ++ uniqueConstrNames adt
-      --cons = (contree . constrs $ adt) >>= traverse (varOrName (M.fromList (zip (map object $ vars adt) [0..])))
-      cons =
-        (varOrName (M.fromList (zip (map object $ vars adt) [0 ..])) <$>) <$>
-        (contree . constrs $ adt)
-   in if null errors
-        then Right
-               ( name adt
-               , ADT
-                   { declName = localTypeName <$> name adt
-                   , declNumParameters = fromIntegral (length (vars adt))
-                   , declCons = cons
-                   })
-        else Left errors
-  -- Variable names take precedence over type declarations
-  where
-    varOrName :: M.Map Identifier Word8 -> At (TypeName Identifier) -> TRef
-  -- varOrName vs r@(Label l (TypeName n (Just _))) = Ext2 r
-  -- varOrName vs r@(Label l (TypeName n Nothing)) =
-    varOrName vs r@(Label l tn)
-      | hasRef tn = Ext2 r
-      | otherwise =
-        let n = localTypeName tn
-         in case M.lookup n vs of
-              Nothing -> Ext2 r -- . asQualName <$> n
-              Just i  -> Var2 (Label (l, i) n)
+      let errors = uniqueLocalTypeNames adt ++ uniqueConstrNames adt
+          -- cons = (contree . constrs $ adt) >>= traverse (varOrName (M.fromList (zip (map object $ vars adt) [0..])))
+          cons =
+            (varOrName (M.fromList (zip (map object $ vars adt) [0 ..])) <$>)
+                  <$> (contree . constrs $ adt)
+       in if null errors
+            then
+                  Right
+                        ( name adt
+                        , ADT
+                              { declName = localTypeName <$> name adt
+                              , declNumParameters = fromIntegral (length (vars adt))
+                              , declCons = cons
+                              }
+                        )
+            else Left errors
+   where
+      -- Variable names take precedence over type declarations
+
+      varOrName :: M.Map Identifier Word8 -> At (TypeName Identifier) -> TRef
+      -- varOrName vs r@(Label l (TypeName n (Just _))) = Ext2 r
+      -- varOrName vs r@(Label l (TypeName n Nothing)) =
+      varOrName vs r@(Label l tn)
+            | hasRef tn = Ext2 r
+            | otherwise =
+                  let n = localTypeName tn
+                   in case M.lookup n vs of
+                        Nothing -> Ext2 r -- . asQualName <$> n
+                        Just i -> Var2 (Label (l, i) n)
 
 asRef :: TypeRef2 (Label (a, Word8) a1) name -> TypeRef name
-asRef (Ext2 r)                = TypRef r
+asRef (Ext2 r) = TypRef r
 asRef (Var2 (Label (_, i) _)) = TypVar i -- (Label l (TypeName n Nothing))
-  -- varOrName vs r@(At l (TypeName n (Just _))) = TypRef r
-  -- varOrNameT vs r@(At l (TypeName n Nothing)) =
-  --    case M.lookup n vs of
-  --          -- Nothing -> Just $ TypRef . asQualName <$> n
-  --          Just i -> Just $ TypVar i
+-- varOrName vs r@(At l (TypeName n (Just _))) = TypRef r
+-- varOrNameT vs r@(At l (TypeName n Nothing)) =
+--    case M.lookup n vs of
+--          -- Nothing -> Just $ TypRef . asQualName <$> n
+--          Just i -> Just $ TypVar i
 
---uniqueADTName adts = dupErrors "data type declaration" $ map name adts
+-- uniqueADTName adts = dupErrors "data type declaration" $ map name adts
 -- Locally defined type names (the adt name plus the variables names) must be unique
 uniqueLocalTypeNames :: ADTParts -> [Label Range String]
 uniqueLocalTypeNames adt =
-  dupErrors "type name" ((localTypeName <$> name adt) : vars adt)
+      dupErrors "type name" ((localTypeName <$> name adt) : vars adt)
 
 uniqueConstrNames :: ADTParts -> [Label Range String]
 uniqueConstrNames = dupErrors "constructor" . map fst . constrs
 
---dupError kind = testErrors dups (\ds -> [unwords ["Duplicated",kind++":",unwords ds]])
+-- dupError kind = testErrors dups (\ds -> [unwords ["Duplicated",kind++":",unwords ds]])
 -- dupErrors :: String -> [AtName] -> [AtError]
 dupErrors :: (Eq (f a), Pretty a, Functor f) => [Char] -> [f a] -> [f String]
 dupErrors kind vs =
-  (((\n -> unwords ["Duplicated", kind ++ ":", prettyShow n]) <$>) <$>) $
-  dups vs
+      (((\n -> unwords ["Duplicated", kind ++ ":", prettyShow n]) <$>) <$>) $
+            dups vs
 
-dups :: Eq a => [a] -> [a]
+dups :: (Eq a) => [a] -> [a]
 dups ls = ls \\ nub ls
+
 -- dups :: Eq a => [a] -> [a]
 -- dups ls = deleteFirstsBy atEq ls (nubBy atEq ls)
 -- -- makeADT :: String -> [String] -> [(String, Fields String String)] -> Either Errors (QualName, ADT String String (TypeRef QualName))
@@ -427,10 +425,10 @@ dups ls = ls \\ nub ls
 --      (\qn constrs -> (qn,ADT {declName=locName <$> qn
 --                              ,declNumParameters=fromIntegral (length (vars adt))
 --                              ,declCons = constrs})) <$> eqn <*> econstrs <* nameClashError <* varDupErrors <* constrDupErrors <* constrNameErrors <* varNameErrors
---idErrors :: [String] -> Validation Errors [Identifier]
---idErrors = traverse (asIdentifier . object)
---dupError :: String -> [String] -> Validation Errors [String]
---dupError kind = testErrors dups (\ds -> [unwords ["Duplicated",kind++":",unwords ds]])
+-- idErrors :: [String] -> Validation Errors [Identifier]
+-- idErrors = traverse (asIdentifier . object)
+-- dupError :: String -> [String] -> Validation Errors [String]
+-- dupError kind = testErrors dups (\ds -> [unwords ["Duplicated",kind++":",unwords ds]])
 -- dupErrors kind vs =
 --   (((\n -> unwords ["Duplicated", kind, n]) <$>) <$>) $ dups vs
 -- dupErrors kind vs = ((\n -> unwords ["Duplicated",kind,object n]) <$>) $ dups vs
@@ -449,11 +447,11 @@ dups ls = ls \\ nub ls
 --   case M.lookup n vs of
 --     Nothing -> TypRef <$> parseQN n
 --     Just i -> pure $ TypVar i -- const (TypVar i) <$> identifier n
---parseQN :: String -> Either Errors QualName
+-- parseQN :: String -> Either Errors QualName
 -- parseQN :: String -> Validation Errors QualName
---parseQN = eitherToValidation . convertResultToErrors . safeConvert --asIdentifier :: String -> Either Errors Identifier
---asIdentifier = convertResultToErrors . safeConvert
---readDataTypes :: String -> Either Errors AbsEnv
+-- parseQN = eitherToValidation . convertResultToErrors . safeConvert --asIdentifier :: String -> Either Errors Identifier
+-- asIdentifier = convertResultToErrors . safeConvert
+-- readDataTypes :: String -> Either Errors AbsEnv
 -- readDataTypes src = undefined
 --   parse src >>= relToAbsEnv >>= validationToEither . testErrors kindErrors id
 -- -- parse :: String -> Either String AbsEnv

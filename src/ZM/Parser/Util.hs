@@ -1,50 +1,42 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module ZM.Parser.Util (
-    parseDoc,
-    -- , parseE
-    mkAt,
-    syntaxError, -- PUBLIC?
+  parseDoc,
+  -- , parseE
+  mkAt,
+  syntaxError, -- PUBLIC?
 
-    -- * Parser transformers
-    doc,
-    pars,
-    cpars,
-    spars,
+  -- * Parser transformers
+  doc,
+  parenthesis,
+  cpars,
+  spars,
 ) where
-
--- import           Data.Model
--- import           Data.Void
--- import           Data.Word
-
--- import           Text.Megaparsec.Error   hiding ( Label )
-
--- import           ZM.To.Util
--- import           ZM.Types
--- import           ZM.Util
 
 import Data.Bifunctor (Bifunctor (first))
 import qualified Data.List.NonEmpty as NE
 import Text.Megaparsec hiding (Label)
 import ZM.Parser.Lexer (sc, symbol)
 import ZM.Parser.Types (
-    AtError,
-    Label (Label),
-    Parser,
-    Range (Range),
+  AtError,
+  Label (Label),
+  Parser,
+  Range (Range),
  )
 
 {- $setup
  >>> import ZM.Parser.Lexer(float)
 -}
 
--- |Parse a string using the provided parser
+{- | Parse a string using the provided parser
 parseDoc :: Parser a -> String -> Either AtError a
+-}
 parseDoc parser = parseE (doc parser)
 
-parseE :: Parser a -> String -> Either AtError a
+-- parseE :: Parser a -> String -> Either AtError a
 parseE p = first syntaxError . parse p ""
 
 #if MIN_VERSION_megaparsec(9,0,0)
@@ -88,11 +80,11 @@ syntaxError err =
 mkAt :: SourcePos -> Int -> a2 -> Label Range a2
 mkAt pos len = Label (mkRange pos len)
 
-mkRange :: Integral a => SourcePos -> a -> Range
+mkRange :: (Integral a) => SourcePos -> a -> Range
 mkRange pos len =
-    let asP f = (\n -> n - 1) . fromIntegral . unPos . f
-        st = asP sourceColumn pos
-     in Range (asP sourceLine pos) st (st + fromIntegral len - 1)
+  let asP f = (\n -> n - 1) . fromIntegral . unPos . f
+      st = asP sourceColumn pos
+   in Range (asP sourceLine pos) st (st + fromIntegral len - 1)
 
 {- |
 Make the parser into a document parser (that will parse any initial space and till eof)
@@ -123,11 +115,11 @@ cpars = between (symbol "{") (symbol "}")
 
 {- | Parses something between parenthesis "(..)"
 
->>> parseMaybe (pars float) "()"
+>>> parseMaybe (parenthesis float) "()"
 Nothing
 
->>> parseMaybe (pars float) "( 3.7 )"
+>>> parseMaybe (parenthesis float) "( 3.7)"
 Just 3.7
 -}
-pars :: Parser a -> Parser a
-pars = between (symbol "(") (symbol ")")
+parenthesis :: Parser a -> Parser a
+parenthesis = between (symbol "(") (symbol ")")

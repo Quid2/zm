@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
 {-
@@ -112,6 +113,8 @@ import Data.Either.Extra (mapLeft)
 import Data.Foldable (fold)
 import Data.List
 import qualified Data.Map as M
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import ZM.Parser.Lexer
@@ -123,13 +126,13 @@ import ZM.Parser.Types (Parser)
 >>> import Text.Megaparsec(parseMaybe)
 -}
 
-data Section = Section {name :: String, body :: String} deriving (Show)
+data Section = Section {name :: Text, body :: Text} deriving (Show)
 
-sectionText :: Section -> String
-sectionText Section{..} = name ++ body
+sectionText :: Section -> Text
+sectionText Section{..} = T.append name body
 
-sectionsText :: [Section] -> String
-sectionsText = intercalate "\n" . map sectionText
+sectionsText :: [Section] -> Text
+sectionsText = T.intercalate "\n" . map sectionText
 
 -- multiParser :: [P b] -> Parser b
 -- multiParser = foldr (\(P p c) ps -> (c <$> p) <|> ps) (fail "no parse")
@@ -195,14 +198,14 @@ Variation: Section parsers, in addition of their content are also given access t
 >>> parsers = M.fromList [("char", Left <$> charLiteral), ("$", Right <$> stringLiteral)]
 >>> evalSections parsers "char 'c'\n$ \"abc\""
 -}
-evalSections :: M.Map String (Parser a) -> String -> Either String [a]
-evalSections ps src = either Left (mapM eval) $ parseS sections src
-  where
-    eval sect =
-        let n = name sect
-         in maybe (Left ("Unknown section " ++ n)) (\p -> parseS p (body sect)) $ M.lookup n ps
+evalSections :: M.Map Text (Parser a) -> Text -> Either String [a]
+evalSections ps src = mapM eval =<< parseS sections src
+ where
+  eval sect =
+    let n = name sect
+     in maybe (Left ("Unknown section " ++ T.unpack n)) (\p -> parseS p (body sect)) $ M.lookup n ps
 
-parseS :: Parser a -> String -> Either String a
+parseS :: Parser a -> Text -> Either String a
 parseS p = mapLeft errorBundlePretty . runParser p ""
 
 {- |
@@ -237,11 +240,11 @@ Just (Section {name = "adt", body = "Enum = A \n   | B\n | C"})
 section :: Parser Section
 section = Section <$> sectionName <*> sectionBody
 
-sectionBody :: Parser String
-sectionBody = manyTill anyChar sectionEnd
+sectionBody :: Parser Text
+sectionBody = T.pack <$> manyTill anyChar sectionEnd
 
 sectionEnd :: Parser ()
-sectionEnd = (lookAhead $ try $ void (eol >> sectionName)) <|> eof
+sectionEnd = lookAhead (try $ void (eol >> sectionName)) <|> eof
 
 -- parseMaybe elems "adt Enum = A \n   | B\n | C"
 
@@ -282,7 +285,7 @@ Just ":+*/.@#$%?><;"
 
 >>> parseMaybe sectionName "{"
 -}
-sectionName :: Parser String
+sectionName :: Parser Text
 sectionName = takeWhile1P (Just "not white space or control") isNameChar
 
 isNameChar c = not $ isSpace c || isControl c

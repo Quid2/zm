@@ -2,16 +2,14 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module ZM.Parser.Types (
     Parser,
-    ADTParts (..),
     asTypeName,
     hasName,
     hasRef,
@@ -27,99 +25,63 @@ module ZM.Parser.Types (
     AtAbsName,
     AtError,
     Range (..),
-    Val,
-    ValF (..),
-    pattern Constr,
-    pattern VInteger,
-    pattern VChar,
-    pattern VString,
-    pattern VFloat,
-    pattern VArray,
-    pattern PBind,
-    pattern PWild,
     Fix (..),
     Annotate (..),
-    Literal (..),
-    Binder (..),
-    Value,
-    pattern Value,
-    valType,
-    valName,
-    valBits,
-    valFields,
     Void,
     Void1,
     module Data.Either.Validation,
 ) where
 
 import Data.Either.Validation
---hiding (Value)
 import Data.Fix
+import Data.Functor.Classes
+import Data.Text (Text)
 import Data.These.Extra
 import Data.Void
 import Data.Word
 import Text.Megaparsec hiding (Label, label)
 import Text.PrettyPrint hiding ((<>))
 import qualified Text.PrettyPrint as P
+import Text.Show.Deriving
 import ZM
 
-type Parser = Parsec Void String -- TODO: generalise to any textual type
+type Parser = Parsec Void Text -- TODO: generalise to any textual type
 
--- |A parsed ADT
-data ADTParts = ADTParts
-    { name :: AtAbsName
-    , vars :: [AtId]
-    , constrs :: [(AtId, Fields AtId AtAbsName)]
-    }
-    deriving (Show)
+{- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c"
 
-instance Pretty ADTParts where
-    pPrint :: ADTParts -> Doc
-    pPrint p =
-        pPrint (name p)
-            <+> hsep (map pPrint $ vars p)
-            <+> char '='
-            <+> hsep (punctuate (text " |") (map pPrint (constrs p)))
+>>> asTypeName (Just "Bool") Nothing
+This "Bool"
 
--- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c" 
+>>> pPrint $ asTypeName (Just "Bool") Nothing
+"Bool"
+-}
+
+-- n = asTypeName "Bool" (asbType :: Proxy Bool)
+
 type TypeName l = These l AbsRef
 
--- TODO: Convert to These l AbsRef
--- data TypeName l =
---   TypeName l
---           (Maybe AbsRef)
---   deriving (Show, Functor, Ord, Eq)
--- localName (TypeName l _) = l
--- asQualName (TypeName l Nothing) = QualName "" "" (prettyShow l)
--- asQualName (TypeName l (Just ref)) = QualName "" (prettyShow l) (prettyShow ref)
--- instance Pretty n => Pretty (TypeName n) where
---   pPrint (TypeName n Nothing) = pPrint n
---   pPrint (TypeName n (Just r)) = pPrint n <> char '.' <> pPrint r
-asTypeName :: Maybe a -> Maybe b -> These a b
+asTypeName :: Maybe s -> Maybe AbsRef -> TypeName s
 asTypeName = aThese
 
--- typeNameName :: TypeName l -> l
--- typeNameName = fromThis
-
--- typeNameRef :: TypeName l -> AbsRef
--- typeNameRef = fromThat
-
-hasName :: These a b -> Bool
+hasName :: TypeName s -> Bool
 hasName = hasThis
 
-hasRef :: These a1 a -> Bool
+hasRef :: TypeName s -> Bool
 hasRef = hasThat
 
-localTypeName :: These a b -> a
+localTypeName :: TypeName s -> s
 localTypeName = fromThis
 
-absTypeName :: These a b -> b
+absTypeName :: TypeName s -> AbsRef
 absTypeName = fromThat
 
-instance Pretty n => Pretty (TypeName n) where
+instance (Pretty n) => Pretty (TypeName n) where
     pPrint = both pPrint (\r -> char '.' P.<> pPrint r)
 
--- This a == These a (any b)
+{-
+>>> pPrint $ Range 3 7 11
+(3:7-11)
+-}
 data Range = Range {line, start, end :: Word32}
     deriving (Show, Eq, Ord, Generic, Flat, Model)
 
@@ -145,29 +107,38 @@ type AtId = At Identifier
 
 type AtAbsName = At (TypeName Identifier)
 
---- 'Transparent' position-marked envelope
+{- 'Transparent' labeled envelope
+
+>>> pPrint $ Label (Range 3 7 11) "Bool"
+"Bool"@(3:7-11)
+
+Label is transparent with respect to equality and ordering (why?):
+
+>>> Label (Range 3 7 11) "Bool" == Label (Range 2 3 5) "Bool"
+True
+-}
 data Label l a = Label {label :: l, object :: a}
     deriving (Show, Functor)
 
 instance (Pretty l, Pretty a) => Pretty (Label l a) where
     pPrint (Label l a) = pPrint a <> text "@" <> pPrint l
 
-instance Eq p => Eq (Label l p) where
+instance (Eq p) => Eq (Label l p) where
     (Label _ a) == (Label _ b) = a == b
 
-instance Ord a => Ord (Label l a) where
+instance (Ord a) => Ord (Label l a) where
     (Label _ a) <= (Label _ b) = a <= b
 
-instance Convertible a b => Convertible (Label l a) (Label l b) where
+instance (Convertible a b) => Convertible (Label l a) (Label l b) where
     safeConvert (Label l a) = Label l <$> safeConvert a
 
-instance Convertible a b => Convertible (Label l a) b where
+instance (Convertible a b) => Convertible (Label l a) b where
     safeConvert (Label _ a) = safeConvert a
 
 -- MOVE TO model
 -- instance Convertible a a where safeConvert = Right
 
-{- |A generic value (used for dynamic decoding)
+{- | A generic value (used for dynamic decoding)
  data Value =
    Value { valType :: AbsType -- ^Type
          , valName :: String -- ^Constructor name (duplicate info if we have abstype)
@@ -205,9 +176,50 @@ instance Convertible a b => Convertible (Label l a) b where
 -- deriving instance (Show annotation,Show binder,Show (lit (Val annotation lit binder))) => Show (Val annotation lit binder)
 -- deriving instance (Eq annotation,Eq binder,Eq (lit (Val annotation lit binder))) => Eq (Val annotation lit binder)
 
-data Void1 a
+{-
 
-data Annotate label f = Annotate label (f (Annotate label f))
+>>> ConstrF "True" (Left []) :: Val Literal Void
+Couldn't match type: ValF
+                       lit0_a6FLu[tau:1] binder0_a6FLv[tau:1] r0_a6FLw[tau:1]
+               with: Fix (ValF Literal Void)
+Expected: Val Literal Void
+  Actual: ValF
+            lit0_a6FLu[tau:1] binder0_a6FLv[tau:1] r0_a6FLw[tau:1]
+In the expression: ConstrF "True" (Left []) :: Val Literal Void
+In an equation for `it_a6FID':
+    it_a6FID = ConstrF "True" (Left []) :: Val Literal Void
+
+-}
+-- instance Pretty (Val lit binder) where
+--     pPrint v =
+--         let hasFields = not $ null (valFields v)
+--             start = if hasFields then char '(' else mempty
+--             end = if hasFields then char ')' else mempty
+--          in start
+--                 <> text (valName v)
+--                 <> char ' '
+--                 <> hsep (map pPrint (valFields v))
+--                 <> end
+
+{-
+Recursive Annotation
+
+>>> Ann "Bool" $ ConstrF "True" (Left []) :: Annotate String (ValF Literal Void)
+Ann "Bool" (ConstrF "True" (Left []))
+
+>>> Ann "Bool" $ LitF (LChar 't') :: Annotate String (ValF Literal Void)
+Ann "Bool" (LitF (LChar 't'))
+
+>>> Ann "Bool" $ LitF (LArray [Ann "Char" $ LitF (LChar 't')]) :: Annotate String (ValF Literal Void)
+Ann "Bool" (LitF (LArray [Ann "Char" (LitF (LChar 't'))]))
+
+>>> Ann (Range 1 3 4) $ BinderF Wild :: Annotate Range (ValF Void1 Binder)
+Ann (Range {line = 1, start = 3, end = 4}) (BinderF Wild)
+
+>>> Ann "Bool" (LitF (LChar 't')) == (Ann "Bool" $ LitF (LChar 't') :: Annotate String (ValF Literal Void))
+True
+-}
+data Annotate label f = Ann label (f (Annotate label f))
 
 deriving instance (Eq label, Eq (f (Annotate label f))) => Eq (Annotate label f)
 
@@ -215,25 +227,17 @@ deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label
 
 deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
 
-type Val lit binder = Fix (ValF lit binder)
+{-
+>>> ConstrF "True" (Left []) :: Val Literal Void
 
-data ValF lit binder r
-    = ConstrF
-        String
-        -- ^Name of the constructor (e.g. "True")
-        (Either [r] [(String, r)])
-        -- ^Constructor parameters, possibly named
-        --        } -- ^A standard constructor, e.g. PCon "True" []
-    | -- |A variable or a lit pattern (e.g. a string or a number)
-      LitF (lit r)
-    | -- |A pattern that might bind a matched value to a name
-      BinderF binder
+>>> show (VChar 't' :: Val Literal Void)
+-}
+-- s :: String
+-- s =  show (VChar 't' :: Val Literal Void)
 
-deriving instance (Eq r, Eq binder, Eq (lit r)) => Eq (ValF lit binder r)
+-- ee = (VChar 't' :: Val Literal Void) == (VChar 't' :: Val Literal Void)
 
-deriving instance (Ord r, Ord binder, Ord (lit r)) => Ord (ValF lit binder r)
-
-deriving instance (Show r, Show binder, Show (lit r)) => Show (ValF lit binder r)
+-- ee = (VChar 't' :: Val Literal Void) == (VChar 't' :: Val Literal Void)
 
 {-
 type Pat = Val Literal Binder
@@ -249,69 +253,22 @@ vs = [Fix (BinderF Wild),Fix (LitF (LInteger 2)),Fix (LitF (LArray [Fix (BinderF
 p = Constr "C" (Left [PBind "h"])
 
 type VA label lit binder = Annotate label (ValF lit binder)
+
+>>> show $ (VString "abc" :: Pat)
+Not in scope: type constructor or class `Pat'
 -}
 
-pattern Constr ::
-    String ->
-    Either [Val lit binder] [(String, Val lit binder)] ->
-    Val lit binder
-pattern Constr s fs = Fix (ConstrF s fs)
+{-
+>>> VChar 't' :: Val Literal Void
+No instance for (Show1 (ValF Literal Void))
+  arising from a use of `evalPrint'
+In a stmt of an interactive GHCi command: evalPrint it_akHm1
+-}
 
-pattern VInteger :: Integer -> Val Literal binder
-pattern VInteger f = Fix (LitF (LInteger f))
+data Void1 a
 
-pattern VFloat :: Double -> Val Literal binder
-pattern VFloat f = Fix (LitF (LFloat f))
+instance Show (Void1 a) where show _ = ""
 
-pattern VChar :: Char -> Val Literal binder
-pattern VChar f = Fix (LitF (LChar f))
+-- newtype V = ValF Literal Binder
 
-pattern VString :: String -> Val Literal binder
-pattern VString f = Fix (LitF (LString f))
-
-pattern VArray :: [Val Literal binder] -> Val Literal binder
-pattern VArray f = Fix (LitF (LArray f))
-
-pattern PWild :: Val lit Binder
-pattern PWild = Fix (BinderF Wild)
-
-pattern PBind :: String -> Val lit Binder
-pattern PBind s = Fix (BinderF (Bind s))
-
---instance Model v => Model (Pat v)
-
-data Literal e
-    = LInteger Integer
-    | LFloat Double -- Rational
-    | LChar Char
-    | LString String
-    | LArray [e]
-    deriving (Eq, Ord, Show)
-
-data Binder
-    = Wild
-    | Bind String
-    deriving (Eq, Ord, Show)
-
-type Value = Annotate (AbsType, [Bool]) (ValF Literal Void)
-
-pattern Value ::
-    forall a b lit binder.
-    a ->
-    String ->
-    b ->
-    [Annotate (a, b) (ValF lit binder)] ->
-    Annotate (a, b) (ValF lit binder)
-pattern Value{valType, valName, valBits, valFields} = Annotate (valType, valBits) (ConstrF valName (Left valFields))
-
-instance Pretty Value where
-    pPrint :: Value -> Doc
-    pPrint v =
-        let hasFields = not $ null (valFields v)
-            start = if hasFields then char '(' else mempty
-            end = if hasFields then char ')' else mempty
-         in start
-                <> text (valName v)
-                <> char ' '
-                <> hsep (map pPrint (valFields v))
-                <> end
+-- $(deriveShow1 ''V)

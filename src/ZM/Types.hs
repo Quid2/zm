@@ -67,9 +67,11 @@ import Data.Char
 import Data.Digest.Keccak
 import Data.Either.Validation
 import Data.Foldable
+
 -- import qualified Data.Map               as M
 import Data.Model hiding (Name)
 import Data.Model.Types hiding (Name)
+import Data.Text (Text, pack, unpack)
 import Data.Word
 import Flat
 import ZM.Model ()
@@ -160,10 +162,17 @@ data Identifier
   | Symbol (NonEmptyList UnicodeSymbol)
   deriving (Eq, Ord, Show, NFData, Generic, Flat)
 
+instance Convertible Text Identifier where
+  -- safeConvert = errorsToConvertResult asIdentifier
+  safeConvert = safeConvert . unpack
+
 -- instance Flat [UnicodeLetterOrNumberOrLine]
 instance Convertible String Identifier where
   -- safeConvert = errorsToConvertResult asIdentifier
   safeConvert = errorsToConvertResult (validationToEither . asIdentifier)
+
+instance Convertible Identifier Text where
+  safeConvert = fmap pack . safeConvert
 
 instance Convertible Identifier String where
   safeConvert (Name (UnicodeLetter h) t) =
@@ -186,8 +195,8 @@ Failure ["In a*^: '*' is not an Unicode Letter or Number or a _","In a*^: '^' is
 asIdentifier :: String -> Validation Errors Identifier
 asIdentifier [] = err ["identifier cannot be empty"]
 asIdentifier i@(h : t) =
-  errsInContext i
-    $ if isLetter h
+  errsInContext i $
+    if isLetter h
       then Name <$> asLetter h <*> traverse asLetterOrNumber t
       else Symbol . nonEmptyList <$> traverse asSymbol i
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module ZM.Parser.Lexer (
@@ -13,6 +14,7 @@ module ZM.Parser.Lexer (
     float,
     charLiteral,
     stringLiteral,
+    textLiteral,
     shake,
     signed,
     unsigned,
@@ -22,11 +24,14 @@ module ZM.Parser.Lexer (
 
 -- import Data.Word
 
+import Control.Monad
 import Data.Char as C
 import Data.Scientific
+import Data.Text (Text, pack, unpack)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Debug
 import ZM hiding ()
 import ZM.Parser.Types (Parser)
 
@@ -63,19 +68,107 @@ Just '\37329'
 
 >>> parseMaybe charLiteral "'\37329'"
 Just '\37329'
+
+>>> parseMaybe charLiteral "?a"
+Just 'a'
+
+>>> parseMaybe charLiteral "?🔥"
+Just '\128293'
+
+>>> parseMaybe charLiteral "?\t"
+Just '\t'
+
+>>> parseMaybe charLiteral "?\37329"
+Just '\37329'
 -}
 charLiteral :: Parser Char
-charLiteral = lexeme $ between (char '\'') (char '\'') L.charLiteral
+charLiteral =
+    lexeme $
+        choice
+            [ char '?' *> L.charLiteral -- Ruby style
+            , between (char '\'') (char '\'') L.charLiteral -- Not using this frees '' for strings
+            ]
 
 {- |
 >>> parseMaybe stringLiteral "\"\""
 Just ""
 
->>> parseMaybe stringLiteral "\"abc\n金\37329\" "
-Just "abc\n\37329\37329"
+>>> parseMaybe singleLineText "\"abc\n金\37329\" "
+WAS Just "abc\n\37329\37329"
+NOW Nothing
+
+>>> parseMaybe stringLiteral "a\\nb"
+Nothing
 -}
+textLiteral :: Parser Text
+textLiteral = lexeme . fmap pack $ try singleLineText <|> multiLineText
+
 stringLiteral :: Parser String
-stringLiteral = lexeme $ char '"' >> manyTill L.charLiteral (char '"')
+stringLiteral = singleLineText
+
+{- Multi Line Text/String
+
+Anything between an opening "\n and a final \n":
+..."
+line1
+line2
+"
+
+'"' in text do not need to be escaped unless is at the beginning of a line:
+
+Last line end is not included in the return string (is part of the closing delimiter.
+
+>>> parseMaybe multiLineText "\"\n x\"x \n\""
+Just " x\"x "
+
+>>> parseMaybe multiLineText "\"\nabc\ndef\n\""
+Just "abc\ndef"
+
+>>> parseMaybe multiLineText "\"\nabc\n\""
+Just "abc"
+
+>>> parseMaybe multiLineText "'\nabc\r\nfgh\n'"
+Just "abc\r\nfgh"
+
+>>> parseMaybe multiLineText "\"\n\n\""
+Just ""
+
+Can use either " or ' as delimiter, but must use identical delimeters:
+
+>>> Nothing == parseMaybe multiLineText "'\nabc\n\""
+True
+
+TODO: generalise to template/quoting
+-}
+multiLineText :: Parser String
+multiLineText = do
+    delim <- strDelim <* lineEnd
+    manyTill L.charLiteral (try $ lineEnd >> char delim)
+
+singleLineText :: Parser String
+singleLineText = do
+    delim <- strDelim
+    manyTill L.charLiteral (char delim)
+
+strDelim :: Parser Char
+strDelim = char '"' <|> char '\''
+
+{- Parse and normalise linux/windows/mac line endings
+>>> parseMaybe lineEnd "\n"
+Just '\n'
+
+>>> parseMaybe lineEnd "\r\n"
+Just '\n'
+
+>>> parseMaybe lineEnd "\r"
+Just '\n'
+-}
+lineEnd :: Parser Char
+lineEnd =
+    choice
+        [ char '\r' >> optional (char '\n') >> return '\n'
+        , char '\n'
+        ]
 
 {- |
 Parse signed floats or integers (as floats)
@@ -257,17 +350,17 @@ Just "Bool"
 >>> parseMaybe localId "ant_13_"
 Just "ant_13_"
 -}
-localId :: Parser String
+localId :: Parser Text
 localId = lexeme name
 
-identifier :: Parser String
+identifier :: Parser Text
 identifier = lexeme (name <|> sym)
 
-name :: Parser String
-name = (:) <$> letterChar <*> many (alphaNumChar <|> char '_')
+name :: Parser Text
+name = pack <$> ((:) <$> letterChar <*> many (alphaNumChar <|> char '_'))
 
-sym :: Parser String
-sym = some symChar
+sym :: Parser Text
+sym = pack <$> some symChar
 
 -- TODO: spell out allowed categories
 symChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
@@ -287,7 +380,7 @@ Just (Just "a")
 >>> parseMaybe var "_是不是"
 Just (Just "\26159\19981\26159")
 -}
-var :: Parser (Maybe String)
+var :: Parser (Maybe Text)
 var = lexeme (char '_' *> optional name)
 
 {- |
@@ -308,7 +401,7 @@ Just "if then"
 >>> parseMaybe (symbol "Gold金en") "Gold金en"
 Just "Gold\37329en"
 -}
-symbol :: String -> Parser String
+symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
 {- |
@@ -347,9 +440,9 @@ shake = lexeme k
 sc :: Parser ()
 sc = L.space space1 lineComment blockComment
   where
-    lineComment = L.skipLineComment "--"
+    lineComment = L.skipLineComment ("--" :: Text)
 
-    blockComment = L.skipBlockComment "{-" "-}"
+    blockComment = L.skipBlockCommentNested ("{-" :: Text) "-}"
 
 -- end parser = (<* eof)
 -- doc = between sc (sc >> eof)
