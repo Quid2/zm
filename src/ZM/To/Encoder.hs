@@ -36,8 +36,8 @@ import ZM
 import ZM.Parser.ADT
 import ZM.Parser.Lexer (
   charLiteral,
-  float,
-  signed,
+  signedFloat,
+  signedInt,
   stringLiteral,
   symbol,
   unsigned,
@@ -225,16 +225,16 @@ instance Flat OBJ where
 typeEncoderMap :: AbsTypeModel -> TypeEncoderMap
 typeEncoderMap tm =
   let denv =
-        addSpecial (Proxy :: Proxy Float) float
-          . addSpecial (Proxy :: Proxy Double) float
+        addSpecial (Proxy :: Proxy Float) signedFloat
+          . addSpecial (Proxy :: Proxy Double) signedFloat
           . addSpecial (Proxy :: Proxy Word8) unsigned
           . addSpecial (Proxy :: Proxy Word16) unsigned
           . addSpecial (Proxy :: Proxy Word32) unsigned
           . addSpecial (Proxy :: Proxy Word64) unsigned
-          . addSpecial (Proxy :: Proxy Int8) signed
-          . addSpecial (Proxy :: Proxy Int16) signed
-          . addSpecial (Proxy :: Proxy Int32) signed
-          . addSpecial (Proxy :: Proxy Int64) signed
+          . addSpecial (Proxy :: Proxy Int8) signedInt
+          . addSpecial (Proxy :: Proxy Int16) signedInt
+          . addSpecial (Proxy :: Proxy Int32) signedInt
+          . addSpecial (Proxy :: Proxy Int64) signedInt
           . addSpecial (Proxy :: Proxy Char) charLiteral
           . addSpecial (Proxy :: Proxy ZM.String) (ZM.String <$> stringLiteral)
           . addSpecial (Proxy :: Proxy [Char]) stringLiteral
@@ -349,8 +349,8 @@ namedFld (name, parser) = do
   _ <- symbol "="
   parser
 
-floatEnc :: Parser OBJ
-floatEnc = encParser (float :: Parser Float)
+signedFloatEnc :: Parser OBJ
+signedFloatEnc = encParser (signedFloat :: Parser Float)
 
 -- | Transform a parser in an encoding parser
 encParser :: (Flat a) => Parser a -> Parser OBJ

@@ -5,22 +5,23 @@
 module ZM.Parser.Lexer (
     sc,
     eof,
+    lexeme,
     -- $lexemes
+    prefixOp,
+    infixOp,
     var,
     identifier,
     sym,
     localId,
     symbol,
-    float,
     charLiteral,
     stringLiteral,
     textLiteral,
     shake,
-    signed,
+    signedInt,
+    signedFloat,
     unsigned,
 ) where
-
--- TODO: CHECK WHY IT FAILS WITH EVAL PLUGIN
 
 -- import Data.Word
 
@@ -170,35 +171,6 @@ lineEnd =
         , char '\n'
         ]
 
-{- |
-Parse signed floats or integers (as floats)
-
->>> parseMaybe float "3"
-Just 3.0
-
->>> parseMaybe (float :: Parser Float)  "+3"
-Just 3.0
-
->>> parseMaybe (float :: Parser Double) "-3"
-Just (-3.0)
-
->>> parseMaybe float "3.6E+11"
-Just 3.6e11
-
->>> parseMaybe float "-3.6E-11"
-Just (-3.6e-11)
-
->>> parseMaybe float "-1E99999999"
-Just (-Infinity)
-
-Note: the decimal dot is not required
-
->>> parseMaybe float "35"
-Just 35.0
--}
-float :: (RealFloat a) => Parser a
-float = toRealFloat <$> L.signed (return ()) (lexeme L.scientific)
-
 -- TODO: add binary
 -- unsigned = char '0' ( char 'x' >> L.hexadecimal <|>  char' 'b' >> L.binary)
 
@@ -210,8 +182,10 @@ float = toRealFloat <$> L.signed (return ()) (lexeme L.scientific)
 >>> parseMaybe unsigned "11" :: Maybe Word8
 Just 11
 
->>> parseMaybe unsigned "11." :: Maybe Word8
-Nothing
+No final dot allowed:
+
+>>> Nothing == (parseMaybe unsigned "11." :: Maybe Word8)
+True
 
 >>> parseMaybe unsigned "33455" :: Maybe Word8
 Just 175
@@ -260,50 +234,100 @@ unsigned :: (Integral a) => Parser a
 unsigned = (char '0' >> (char 'x' <|> char 'X') >> L.hexadecimal) <|> integral
 
 {- |
+Parse signed floats or integers (as floats)
+
+>>> parseMaybe signedFloat "3"
+Just 3.0
+
+>>> parseMaybe (signedFloat :: Parser Float)  "+3"
+Just 3.0
+
+>>> parseMaybe (signedFloat :: Parser Double) "-3"
+Just (-3.0)
+
+>>> parseMaybe signedFloat "3.6E+11"
+Just 3.6e11
+
+>>> parseMaybe signedFloat "-3.6E-11"
+Just (-3.6e-11)
+
+>>> parseMaybe signedFloat "-1E99999999"
+Just (-Infinity)
+
+
+No space between the sign and the number:
+
+>>> Nothing == parseMaybe signedFloat "+ 35"
+True
+
+>>> Nothing == parseMaybe signedFloat "- 35"
+True
+
+Atomic parser
+
+>>> parseMaybe (signedFloat <|> const 0 <$> symbol "+") "+"
+Just 0.0
+
+The decimal dot is not required (so parse ints before floats):
+
+>>> parseMaybe signedFloat "35"
+Just 35.0
+-}
+signedFloat :: (RealFloat a) => Parser a
+signedFloat = lexeme . try $ toRealFloat <$> L.signed (return ()) L.scientific
+
+{- |
 @setup
 >>> import Data.Int
 
->>> parseMaybe signed "55" :: Maybe Int8
+>>> parseMaybe signedInt "55" :: Maybe Int8
 Just 55
 
->>> parseMaybe signed "+55" :: Maybe Int8
+>>> parseMaybe signedInt "+55" :: Maybe Int8
 Just 55
 
->>> parseMaybe signed "-55" :: Maybe Int8
+>>> parseMaybe signedInt "-55" :: Maybe Int8
 Just (-55)
 
->>> parseMaybe signed "+ 55" :: Maybe Int8
+>>> parseMaybe signedInt "+ 55" :: Maybe Int8
 Nothing
 
->>> parseMaybe signed "- 55" :: Maybe Int8
+>>> parseMaybe signedInt "- 55" :: Maybe Int8
 Nothing
 
->>> parseMaybe signed "3455" :: Maybe Int16
+>>> parseMaybe signedInt "3455" :: Maybe Int16
 Just 3455
 
->>> parseMaybe signed "-4433455" :: Maybe Int32
+>>> parseMaybe signedInt "-4433455" :: Maybe Int32
 Just (-4433455)
 
->>> parseMaybe signed "+231231231233455" :: Maybe Int64
+>>> parseMaybe signedInt "+231231231233455" :: Maybe Int64
 Just 231231231233455
 
->>> parseMaybe signed "-12312312" :: Maybe Int
+>>> parseMaybe signedInt "-12312312" :: Maybe Int
 Just (-12312312)
 
->>> parseMaybe signed "0xFF" :: Maybe Int8
+>>> parseMaybe signedInt "0xFF" :: Maybe Int8
 Nothing
 
->>> parseMaybe signed "334559923200232302133331312313131231231231231231231" :: Maybe Integer
+
+>>> parseMaybe (signedInt <|> const 0 <$> symbol "+") "+"
+Just 0
+
+>>> parseMaybe signedInt "334559923200232302133331312313131231231231231231231" :: Maybe Integer
 Just 334559923200232302133331312313131231231231231231231
 
->>> parseMaybe signed "+334559923200232302133331312313131231231231231231231" :: Maybe Integer
+>>> parseMaybe signedInt "+334559923200232302133331312313131231231231231231231" :: Maybe Integer
 Just 334559923200232302133331312313131231231231231231231
 
->>> parseMaybe signed "-334559923200232302133331312313131231231231231231231" :: Maybe Integer
+>>> parseMaybe signedInt "34 "
+Just 34
+
+>>> parseMaybe signedInt "-334559923200232302133331312313131231231231231231231" :: Maybe Integer
 Just (-334559923200232302133331312313131231231231231231231)
 -}
-signed :: (Integral a) => Parser a
-signed = L.signed (return ()) (lexeme integral)
+signedInt :: (Integral a) => Parser a
+signedInt = lexeme . try $ L.signed (return ()) integral
 
 integral :: (Integral a) => Parser a
 integral = do
@@ -350,6 +374,15 @@ Just "Bool"
 >>> parseMaybe localId "ant_13_"
 Just "ant_13_"
 -}
+
+-- TODO: add (+) `add`
+
+prefixOp :: Parser Text
+prefixOp = localId
+
+infixOp :: Parser Text
+infixOp = lexeme sym
+
 localId :: Parser Text
 localId = lexeme name
 
@@ -359,12 +392,32 @@ identifier = lexeme (name <|> sym)
 name :: Parser Text
 name = pack <$> ((:) <$> letterChar <*> many (alphaNumChar <|> char '_'))
 
+{-
+>>> parseMaybe infixOp "+"
+Just "+"
+
+>>> parseMaybe sym "-−"
+Just "-\8722"
+
+>>> parseMaybe sym "->"
+Just "->"
+
+>>> parseMaybe sym "+−+=×÷<√∊≠><&!`~!@#$%^&*+=:;'?,.-_/!*/+"
+Just "+\8722+=\215\247<\8730\8714\8800><&!`~!@#$%^&*+=:;'?,.-_/!*/+"
+-}
 sym :: Parser Text
 sym = pack <$> some symChar
 
 -- TODO: spell out allowed categories
 symChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
-symChar = satisfy (\c -> C.isSymbol c || elem (C.generalCategory c) [C.OtherPunctuation, C.CurrencySymbol]) <?> "sym"
+symChar =
+    satisfy
+        ( \c ->
+            C.isSymbol c
+                || elem (C.generalCategory c) [C.MathSymbol, C.OtherPunctuation, C.CurrencySymbol]
+                || elem c ['-', '_']
+        )
+        <?> "sym"
 {-# INLINE symChar #-}
 
 {- |

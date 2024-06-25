@@ -118,8 +118,8 @@ constr v = Constr <$> localId <*> fieldsV v
 
 special :: Parser (Val Literal binder)
 special =
-  try (VInteger <$> signed)
-    <|> (VFloat <$> float)
+  try (VInteger <$> signedInt)
+    <|> (VFloat <$> signedFloat)
     <|> (VChar <$> charLiteral)
     <|> (VString <$> textLiteral)
 
