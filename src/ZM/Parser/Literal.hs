@@ -9,6 +9,7 @@ import Data.Text
 import Text.Megaparsec
 import ZM.Parser.Lexer
 import ZM.Parser.Types
+import ZM.Pretty
 
 data Literal -- e
     = LInteger Integer
@@ -16,6 +17,12 @@ data Literal -- e
     | LChar Char
     | LString Text
     deriving (Eq, Ord, Show)
+
+instance Pretty Literal where
+    pPrint (LInteger i) = pPrint i
+    pPrint (LFloat f) = pPrint f
+    pPrint (LChar c) = chr c
+    pPrint (LString t) = txt t
 
 {- |
 >>> parseMaybe literal "13"
@@ -33,8 +40,8 @@ Just (LString "abc")
 literal :: Parser Literal
 literal =
     choice
-        [ try (LInteger <$> signed)
-        , LFloat <$> float
+        [ try (LInteger <$> signedInt)
+        , LFloat <$> signedFloat
         , LChar <$> charLiteral
         , LString <$> textLiteral
         ]
