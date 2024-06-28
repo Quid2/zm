@@ -19,7 +19,7 @@ module ZM.Parser.Util (
 import Data.Bifunctor (Bifunctor (first))
 import qualified Data.List.NonEmpty as NE
 import Text.Megaparsec hiding (Label)
-import ZM.Parser.Lexer (sc, symbol)
+import ZM.Parser.Lexer (ws, symbol)
 import ZM.Parser.Types (
   AtError,
   Label (Label),
@@ -90,7 +90,7 @@ mkRange pos len =
 Make the parser into a document parser (that will parse any initial space and till eof)
 -}
 doc :: Parser a -> Parser a
-doc = between sc eof
+doc = between ws eof
 
 {- |
 Parses something between square parenthesis "[..]"
