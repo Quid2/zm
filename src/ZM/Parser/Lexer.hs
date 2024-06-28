@@ -1,9 +1,13 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module ZM.Parser.Lexer (
-    sc,
+    ws,
     eof,
     lexeme,
     -- $lexemes
@@ -29,12 +33,38 @@ import Control.Monad
 import Data.Char as C
 import Data.Scientific
 import Data.Text (Text, pack, unpack)
-import Text.Megaparsec
+import Text.Megaparsec hiding (Label)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Debug
 import ZM hiding ()
-import ZM.Parser.Types (Parser)
+import ZM.Parser.Types (Label (..), Parser, Annotate (Ann))
+
+-- lexeme :: (AnnotatePos a b) => Parser a -> Parser b
+-- lexeme p = do
+--     pos <- getOffset
+--     annotatePos pos <$> lexeme_ p
+
+{- | Add trailing space removal to a parser
+lexeme :: Parser a -> Parser a
+-}
+lexeme = L.lexeme ws
+
+ws :: Parser ()
+ws = L.space space1 empty empty
+
+{- | Space consumer
+ |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
+-}
+
+-- sc = L.space space1 lineComment blockComment
+--   where
+--     lineComment = L.skipLineComment ("--" :: Text)
+
+--     blockComment = L.skipBlockCommentNested ("{-" :: Text) "-}"
+
+-- end parser = (<* eof)
+-- doc = between sc (sc >> eof)
 
 {- $lexemes
 Lexemes remove any trailing space, including comments:
@@ -106,6 +136,46 @@ textLiteral = lexeme . fmap pack $ try singleLineText <|> multiLineText
 
 stringLiteral :: Parser String
 stringLiteral = singleLineText
+
+{-
+check: https://docs.dhall-lang.org/tutorials/Language-Tour.html#multi-line-text-literals
+
+. and Dhall also supports Nix-style multi-line string literals:
+
+dhall
+''
+    #!/bin/bash
+
+    echo "Hi!"
+''
+<Ctrl-D>
+Text
+
+"\n#!/bin/bash\n\necho \"Hi!\"\n"
+These "double single quote strings" ignore all special characters, with one exception: if you want to include a '' in the string, you will need to escape it with a preceding ' (i.e. use ''' to insert '' into the final string).
+
+These strings also strip leading whitespace using the same rules as Nix. Specifically: "it strips from each line a number of spaces equal to the minimal indentation of the string as a whole (disregarding the indentation of empty lines)."
+
+You can also interpolate expressions into strings using ${...} syntax. For example:
+
+\$ dhall
+    let name = "John Doe"
+in  let age  = 21
+in  "My name is ${name} and my age is ${Integer/show age}"
+<Ctrl-D>
+Text
+
+"My name is John Doe and my age is 21"
+Note that you can only interpolate expressions of type Text
+
+If you need to insert a "${" into a string without interpolation then use "''${" (same as Nix)
+
+''
+    for file in *; do
+      echo "Found ''${file}"
+    done
+''
+-}
 
 {- Multi Line Text/String
 
@@ -273,6 +343,8 @@ The decimal dot is not required (so parse ints before floats):
 >>> parseMaybe signedFloat "35"
 Just 35.0
 -}
+y = parseMaybe signedFloat "35"
+
 signedFloat :: (RealFloat a) => Parser a
 signedFloat = lexeme . try $ toRealFloat <$> L.signed (return ()) L.scientific
 
@@ -455,7 +527,7 @@ Just "if then"
 Just "Gold\37329en"
 -}
 symbol :: Text -> Parser Text
-symbol = L.symbol sc
+symbol = L.symbol ws
 
 {- |
 Parse absolute reference's compact string format
@@ -486,20 +558,3 @@ shake = lexeme k
             <*> hexDigitChar
             <*> hexDigitChar
             <*> hexDigitChar
-
-{- | Space consumer
- |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
--}
-sc :: Parser ()
-sc = L.space space1 lineComment blockComment
-  where
-    lineComment = L.skipLineComment ("--" :: Text)
-
-    blockComment = L.skipBlockCommentNested ("{-" :: Text) "-}"
-
--- end parser = (<* eof)
--- doc = between sc (sc >> eof)
-
--- | Add trailing space removal to a parser
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
