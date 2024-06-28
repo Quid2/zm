@@ -45,7 +45,7 @@ import qualified Text.PrettyPrint as P
 import Text.Show.Deriving
 import ZM
 
-type Parser = Parsec Void Text -- TODO: generalise to any textual type
+type Parser = Parsec Void Text
 
 {- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c"
 
@@ -226,6 +226,9 @@ deriving instance (Eq label, Eq (f (Annotate label f))) => Eq (Annotate label f)
 deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label f)
 
 deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
+
+instance (Pretty l, Pretty (f (Annotate l f))) => Pretty (Annotate l f) where
+    pPrint (Ann l f) = pPrint f <> chr '@' <> pPrint l
 
 {-
 >>> ConstrF "True" (Left []) :: Val Literal Void
