@@ -283,7 +283,7 @@ parseADTsWith absEnv =
                   [] -> Right relEnv
                   errs -> Left errs
       atk ::
-            ZMError (Either (Label (Range, Word8) Identifier) (At (TypeName Identifier))) ->
+            ZMError (Either (Label (RangeLine, Word8) Identifier) (At (TypeName Identifier))) ->
             [At String]
       atk e =
             let s = prettyShow (either (pPrint . object) (pPrint . object) <$> e)
@@ -326,12 +326,12 @@ toAbsEnvWith absEnv =
 instance KeyOf (At (TypeName Identifier)) (AbsRef, AbsADT) where
       keyOf (ref, adt) = at0 (asTypeName (Just $ declName adt) (Just ref))
 
-at0 :: a -> Label Range a
-at0 = Label (Range 0 0 0)
+at0 :: a -> Label RangeLine a
+at0 = Label (RangeLine 0 0 0)
 
 -- FIX: to be moved in main model
 type TRef =
-      TypeRef2 (Label (Range, Word8) Identifier) (At (TypeName Identifier))
+      TypeRef2 (Label (RangeLine, Word8) Identifier) (At (TypeName Identifier))
 
 makeADTs ::
       [ADTParts] ->
@@ -387,11 +387,11 @@ asRef (Var2 (Label (_, i) _)) = TypVar i -- (Label l (TypeName n Nothing))
 
 -- uniqueADTName adts = dupErrors "data type declaration" $ map name adts
 -- Locally defined type names (the adt name plus the variables names) must be unique
-uniqueLocalTypeNames :: ADTParts -> [Label Range String]
+uniqueLocalTypeNames :: ADTParts -> [Label RangeLine String]
 uniqueLocalTypeNames adt =
       dupErrors "type name" ((localTypeName <$> name adt) : vars adt)
 
-uniqueConstrNames :: ADTParts -> [Label Range String]
+uniqueConstrNames :: ADTParts -> [Label RangeLine String]
 uniqueConstrNames = dupErrors "constructor" . map fst . constrs
 
 -- dupError kind = testErrors dups (\ds -> [unwords ["Duplicated",kind++":",unwords ds]])

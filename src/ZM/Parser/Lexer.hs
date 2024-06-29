@@ -16,6 +16,7 @@ module ZM.Parser.Lexer (
     var,
     identifier,
     sym,
+    constr,
     localId,
     symbol,
     charLiteral,
@@ -32,7 +33,8 @@ module ZM.Parser.Lexer (
 import Control.Monad
 import Data.Char as C
 import Data.Scientific
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text, pack,)
+import qualified Data.Text as T 
 import Text.Megaparsec hiding (Label)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -51,7 +53,7 @@ lexeme :: Parser a -> Parser a
 lexeme = L.lexeme ws
 
 ws :: Parser ()
-ws = L.space space1 empty empty
+ws = L.space hspace1 empty empty
 
 {- | Space consumer
  |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
@@ -461,8 +463,44 @@ localId = lexeme name
 identifier :: Parser Text
 identifier = lexeme (name <|> sym)
 
+{-
+
+FIX THIS?
+
+>>> parseMaybe name "_asd"
+Nothing
+
+>>> parseMaybe name "abc12"
+Just "abc12"
+
+>>> parseMaybe name "abc1*"
+Nothing
+
+>>> Nothing == parseMaybe name "True"
+True
+
+>>> Nothing == parseMaybe name "_"
+True
+-}
 name :: Parser Text
-name = pack <$> ((:) <$> letterChar <*> many (alphaNumChar <|> char '_'))
+name = T.cons <$> lowerChar <*> takeWhileP (Just "alpha numeric or _") (\c -> isAlphaNum c || c =='_')
+
+{-
+Allow _ ?
+
+>>> Nothing == parseMaybe constr "_"
+True
+
+>>> parseMaybe constr "N"
+
+>>> parseMaybe constr "Nil"
+Just "Nil"
+
+>>> parseMaybe constr "abc1*"
+Nothing
+-}
+constr :: Parser Text
+constr = lexeme $ T.cons <$> upperChar <*> takeWhileP (Just "alpha numeric") isAlphaNum
 
 {-
 >>> parseMaybe infixOp "+"

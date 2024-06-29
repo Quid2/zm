@@ -15,7 +15,7 @@ module ZM.Parser.ADT (
   absReference,
   maybeNamedAbsRef,
   namedOrAbsRef,
-  constr,
+  constructor,
   ADTParts (..),
   -- , absId
 )
@@ -38,7 +38,7 @@ import ZM (
  )
 import ZM.Parser.Lexer (localId, shake, symbol)
 import ZM.Parser.Types
-import ZM.Parser.Util (cpars, mkAt, parenthesis)
+import ZM.Parser.Util (at, cpars, parenthesis)
 import ZM.Pretty
 
 {- $setup
@@ -99,7 +99,7 @@ adt =
   (\name vars mcons -> ADTParts name vars (fromMaybe [] mcons))
     <$> at namedMaybeAbsRef -- absIdAt
     <*> many idAt
-    <*> optional ((symbol "=" <|> symbol "≡") *> sepBy constr (symbol "|"))
+    <*> optional ((symbol "=" <|> symbol "≡") *> sepBy constructor (symbol "|"))
 
 {- | Parse a constructor declaration (with either named or unnamed fields).
 
@@ -118,8 +118,8 @@ Just "Cons@(0:0-3) {head@(0:6-9) :: a@(0:11),\n              tail@(0:14-17) :: L
 >>> prettyShow <$> parseMaybe constr "V A B (C D)"
 Just "V@(0:0) A@(0:2) B@(0:4) (C@(0:7) D@(0:9))"
 -}
-constr :: Parser (AtId, Fields AtId AtAbsName)
-constr = (,) <$> idAt <*> flds
+constructor :: Parser (AtId, Fields AtId AtAbsName)
+constructor = (,) <$> idAt <*> flds
  where
   -- flds = eitherP unnamedFlds namedFlds
 
@@ -131,7 +131,7 @@ constr = (,) <$> idAt <*> flds
 
 -- atyp = pos (typ name)
 -- typeAt = typ absIdAt
-absIdAt :: Parser (Label Range (TypeName Identifier))
+absIdAt :: Parser (Label RangeLine (TypeName Identifier))
 absIdAt = at namedOrAbsRef
 
 idAt :: Parser AtId
@@ -139,30 +139,6 @@ idAt = at localIdentifier
 
 localIdentifier :: (Convertible Text b) => Parser b
 localIdentifier = convert <$> localId
-
-{- Add location information to the result of a parser.
-
-We assume that:
-\* the parser does not parse initial space
-\* the length of parsed text is equal to the length of the pretty-shown result
-\* the parsed text is disposed on a single line
--}
-
-at :: (TraversableStream s, MonadParsec e s m, Pretty a2) => m a2 -> m (Label Range a2)
-at parser = do
-  pos <- getSourcePos
-  r <- parser
-  return $ mkAt pos (length (prettyShow r)) r
-
--- at parser = do
---   pos1 <- getPosition
---   r <- parser
---   (mr,ms) <- match parser
---   let l = length . dropWhile (== ' ') . reverse $ ms
---   --pos2 <- getPosition
---   -- when (sourceLine pos2 /= sourceLine pos1) $ fail "at: unexpected multiline parser"
---   --return $ At (mkRange pos1 (unPos (sourceColumn pos2) - unPos (sourceColumn pos1))) r
---   return $ At (mkRange pos1 l) rr
 
 {- | Parse a type application, a type constructor with zero or more parameters
 

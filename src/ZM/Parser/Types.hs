@@ -7,6 +7,8 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module ZM.Parser.Types (
     Parser,
@@ -24,9 +26,12 @@ module ZM.Parser.Types (
     AtId,
     AtAbsName,
     AtError,
-    Range (..),
+    Offset,
+    Range (..)
+    ,RangeLine (..),
     Fix (..),
     Annotate (..),
+    unAnn,
     Void,
     Void1,
     module Data.Either.Validation,
@@ -46,6 +51,8 @@ import Text.Show.Deriving
 import ZM
 
 type Parser = Parsec Void Text
+
+type Offset = Int
 
 {- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c"
 
@@ -82,24 +89,37 @@ instance (Pretty n) => Pretty (TypeName n) where
 >>> pPrint $ Range 3 7 11
 (3:7-11)
 -}
-data Range = Range {line, start, end :: Word32}
-    deriving (Show, Eq, Ord, Generic, Flat, Model)
+data RangeLine = RangeLine {line, startPos, endPos :: Word32}     deriving (Show, Eq, Ord, Generic, Flat, Model)
 
-instance Pretty Range where
-    pPrint r =
+instance Pretty RangeLine where
+    pPrint (RangeLine {..}) =
         text $
             concat
                 [ "("
-                , show $ line r
+                , show line
                 , ":"
-                , show $ start r
-                , if end r == start r
+                , show startPos
+                , if endPos == startPos
                     then ""
-                    else "-" ++ show (end r)
+                    else "-" ++ show endPos
                 , ")"
                 ]
 
-type At v = Label Range v
+data Range = Range {start, end :: Word32} deriving (Show, Eq, Ord, Generic, Flat, Model)
+
+instance Pretty Range where
+    pPrint (Range {..}) =
+        text $
+            concat
+                [ "("
+                , show start
+                , if end == start
+                    then ""
+                    else "-" ++ show end
+                , ")"
+                ]
+
+type At v = Label RangeLine v
 
 type AtError = At String
 
@@ -227,8 +247,19 @@ deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label
 
 deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
 
-instance (Pretty l, Pretty (f (Annotate l f))) => Pretty (Annotate l f) where
-    pPrint (Ann l f) = pPrint f <> chr '@' <> pPrint l
+unAnn :: Functor f => Annotate label f -> F f
+unAnn (Ann _ r) = F (fmap unAnn r)
+
+-- Our own Fix, to derive Show automatically.
+newtype F f = F (f (F f))
+deriving instance (Show (f (F f))) =>  Show (F f)
+
+-- Pretty instance for F, hiding the presence of F
+instance (Pretty (f (F f))) => Pretty (F f) where pPrint (F r) = pPrint r
+
+-- instance (Show (f (F f))) =>  Show (F f) where
+--     show (F r) = show r
+
 
 {-
 >>> ConstrF "True" (Left []) :: Val Literal Void

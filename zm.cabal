@@ -69,6 +69,7 @@ library
     ZM.Type.Tuples
     ZM.Type.Unit
     ZM.Type.Words
+    -- ZM.Parser.Constr
     ZM.Types
     ZM.Util
 

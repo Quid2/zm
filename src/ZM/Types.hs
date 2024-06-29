@@ -152,7 +152,7 @@ toTypeRef _ (Ext k) = TypRef k
 toTypeRef adtRef Rec = TypRef adtRef
 
 substAbsADT :: (AbsRef -> b) -> AbsADT -> ADT Identifier Identifier (TypeRef b)
-substAbsADT f adt = (f <$>) <$> (toTypeRef (absRef adt) <$> adt)
+substAbsADT f adt = (f <$>) . toTypeRef (absRef adt) <$> adt
 
 -- CHECK: Is it necessary to specify a syntax for identifiers?
 

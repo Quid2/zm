@@ -2,6 +2,8 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveTraversable #-}
 
 module ZM.Parser.Exp where
 
@@ -15,6 +17,7 @@ import ZM.Parser.Literal (Literal (..), literal)
 import ZM.Parser.Types
 import ZM.Parser.Util
 import ZM.Pretty
+import Data.Functor.Classes (Show1)
 
 {-
 >>> p s = prettyShow <$> parseMaybe expr s
@@ -30,6 +33,8 @@ Nothing
 
 >>> p "{(true -> false) (false->true) }"
 Just "{(((->@7 true@2)@7 false@10)@7 ((->@23 false@18)@23 true@25)@23)@7}@0"
+
+BAD
 
 >>> p "{true -> false \n false->true}"
 Just "{((->@6 true@1)@6 ((->@22 (false@9 false@17)@9)@22 true@24)@22)@6}@0"
@@ -67,8 +72,8 @@ how to implement haskell's $ ?
 Just "((->@2 a@0)@2 ((->@7 b@5)@7 c@10)@7)@2"
 
 1 + (2 * (4 + 5))
->>> prettyShow <$> parseMaybe expr "1 + 2 * 4 + 5"
-Just "((+@2 1@0)@2 ((*@6 2@4)@6 ((+@10 4@8)@10 5@12)@10)@6)@2"
+>>> prettyShow . unAnn <$> parseMaybe expr "1 + 2 * 4 + 5"
+Just "((+ 1) ((* 2) ((+ 4) 5)))"
 
 >>> parseMaybe expr "1 + 2 + 4"
 Just (Ann 2 (App (Ann 2 (App (Ann 2 (Op "+")) (Ann 0 (Lit (LInteger 1))))) (Ann 6 (App (Ann 6 (App (Ann 6 (Op "+")) (Ann 4 (Lit (LInteger 2))))) (Ann 8 (Lit (LInteger 4)))))))
@@ -84,13 +89,42 @@ Just (Ann 0 (Op "f"))
 
 >>> parseMaybe expr "1"
 Just (Ann 0 (Lit (LInteger 1)))
+
+>>> prettyShow . unAnn <$> parseMaybe expr "[1 [11 22] 33  ]"
+Just "[((1 [(11 22)]) 33)]"
+
+>>>  parseMaybe expr "[1\n2]"
+Just (Ann 0 (Arr (Bracket {open = '[', close = ']', op = Nothing, values = [Ann 1 (App (Ann 1 (Lit (LInteger 1))) (Ann 3 (Lit (LInteger 2))))]})))
+
+>>> prettyShow . unAnn <$> parseMaybe expr "1"
+Just "1"
+
+>>> prettyShow . unAnn <$> parseMaybe expr "f 1"
+Just "(f 1)"
+
+>>> prettyShow . unAnn <$> parseMaybe expr "Cons 1 Nil"
+Just "((Cons 1) Nil)"
+
+>>> prettyShow . unAnn <$> parseMaybe expr "1 2"
+Just "(1 2)"
+
+>>> parseMaybe expr "Nil"
+Just (Ann 0 (Con "Nil"))
+
+>>> prettyShow . unAnn <$> parseMaybe expr "+ 1"
+Nothing
+
 -}
-type Exp = Annotate Int ExpR
+type Exp = Annotate Offset ExpR
 
 located :: Parser (ExpR Exp) -> Parser Exp
-located p = do
-  pos <- getOffset
-  Ann pos <$> p
+located p = Ann <$> getOffset <*> p
+
+-- located p = do
+--   beg <- getOffset
+--   v <- p 
+--   end <- getOffset
+--   return $ Ann (Range (fromIntegral beg) (fromIntegral end)) v
 
 expr :: Parser Exp
 expr = do
@@ -118,6 +152,7 @@ simple =
     [ parenthesis expr
     , arr
     , pre
+    , con
     , lit
     ]
 
@@ -127,15 +162,14 @@ pre = located $ Op <$> prefixOp
 arr :: Parser Exp
 arr = located $ Arr <$> bracket expr
 
+inf :: Parser Exp
 inf = located $ Op <$> infixOp
 
-lit = located $ Lit <$> literal
+con :: Parser Exp
+con = located $ Con <$> constr
 
-f1, v1, a1 :: Exp
--- e1 :: ExpR r
-f1 = Ann 10 (Op "plus1")
-v1 = Ann 10 (Lit $ LInteger 3)
-a1 = Ann 10 (App f1 a1)
+lit :: Parser Exp
+lit = located $ Lit <$> literal
 
 -- type Expr = Fix ExpR
 data ExpR r
@@ -150,13 +184,15 @@ data ExpR r
     --   BinderF
     -- | -- \|A variable or a lit pattern (e.g. a string or a number)
     App r r
+  | Con Text -- Constructor (e.g. "True")   
   | Op Text -- Infix Text
   | Arr (Bracket r)
   | Lit Literal
-  deriving (Show, Eq)
+  deriving (Show, Eq, Functor)
 
 instance (Pretty r) => Pretty (ExpR r) where
   pPrint (App f a) = chr '(' <> hsep [pPrint f, pPrint a] <> chr ')'
+  pPrint (Con name) = txt name
   pPrint (Op name) = txt name
   pPrint (Arr brk) = pPrint brk
   pPrint (Lit l) = pPrint l
@@ -182,3 +218,6 @@ instance (Pretty r) => Pretty (ExpR r) where
 -- located :: (a -> ExpR r) -> Parser (ExpR r) -> Parser (Annotate Int ExpR)
 
 -- located :: Parser (ExpR r) -> Parser Exp
+
+instance (Pretty l, Pretty (f (Annotate l f))) => Pretty (Annotate l f) where
+    pPrint (Ann l f) = pPrint f <> chr '@' <> pPrint l

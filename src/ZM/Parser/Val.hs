@@ -81,34 +81,6 @@ deriving instance (Ord r, Ord binder, Ord lit) => Ord (ValF lit binder r)
 
 deriving instance (Show r, Show binder, Show lit) => Show (ValF lit binder r)
 
--- type Val lit binder = Fix (ValF lit binder)
-
--- deriving instance (Eq binder, Eq lit) => Eq (Val lit binder)
--- deriving instance (Ord binder, Ord lit) => Ord (Val lit binder)
-
--- -- Keep the recursion open so that we can Annotate every level
--- data ValF lit binder r
---     = ConstrF
---         String
---         -- ^Name of the constructor (e.g. "True")
---         (Either [r] [(String, r)])
---         -- ^Constructor parameters, possibly named
---         -- e.g. ConstrF "True" []
-
---     | -- |A pattern that might bind a matched value to a name
---       BinderF binder
-
---     -- | BracketF BracketKind [ValF lit binder r]
-
---     | -- |A variable or a lit pattern (e.g. a string or a number)
---       LitF lit
-
--- deriving instance (Eq r, Eq binder, Eq lit) => Eq (ValF lit binder r)
-
--- deriving instance (Ord r, Ord binder, Ord lit) => Ord (ValF lit binder r)
-
--- deriving instance (Show r, Show binder, Show lit) => Show (ValF lit binder r)
-
 pattern Constr ::
     Text ->
     Either [Val lit binder] [(Text, Val lit binder)] ->

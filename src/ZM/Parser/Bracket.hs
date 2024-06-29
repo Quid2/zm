@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveTraversable #-}
 
 module ZM.Parser.Bracket (
     Bracket (..),
@@ -16,28 +17,36 @@ import ZM.Pretty
 {- List of values between brackets, space separated, with an optional operand/modifier
 >>> import ZM.Parser.Lexer
 
-NOTE: not all symbols are accepted:
-
->>> parseMaybe (bracket signed) "{* 11 22 *}"
+>>> parseMaybe (bracket signedInt) "{11 {3 4} 22}"
 Nothing
 
->>> parseMaybe (bracket signed) "{ %%11 22%%}" == Nothing
+>>> parseMaybe (bracket signedInt) "{11\n 22}"
+Nothing
+
+NOTE: not all symbols are accepted:
+
+>>> parseMaybe (bracket signedInt) "{* 11 22 *}"
+Nothing
+
+>>> parseMaybe (bracket signedInt) "{ %%11 22%%}" == Nothing
 True
 
->>> parseMaybe (bracket signed) "{%%11 22%%}"
-Just (Bracket {open = '{', op = Just "%%", values = [11,22]})
+>>> parseMaybe (bracket signedInt) "{%%11 22%%}"
 
->>> parseMaybe (bracket signed) "{|11 22|}"
-Just (Bracket {open = '{', op = Just "|", values = [11,22]})
+>>> parseMaybe (bracket signedInt) "{|11 22|}"
+Just (Bracket {open = '{', close = '}', op = Just "|", values = [11,22]})
 
->>> parseMaybe (bracket signed) "{11 22}"
-Just (Bracket {open = '{', op = Nothing, values = [11,22]})
+>>> parseMaybe (bracket signedInt) "{11 22}"
+Just (Bracket {open = '{', close = '}', op = Nothing, values = [11,22]})
 
 >>> parseMaybe (bracket (symbol "a")) "[a a]"
-Just (Bracket {open = '[', op = Nothing, values = ["a","a"]})
+Just (Bracket {open = '[', close = ']', op = Nothing, values = ["a","a"]})
 
 >>> parseMaybe (bracket (char 'a')) "[]"
-Just (Bracket {open = '[', op = Nothing, values = ""})
+Just (Bracket {open = '[', close = ']', op = Nothing, values = ""})
+
+>>> parseMaybe (bracket (char 'a')) "[\n]"
+Nothing
 -}
 bracket :: Parser e -> Parser (Bracket e)
 bracket pe = lexeme $ do
@@ -56,7 +65,7 @@ data Bracket e = Bracket
     , op :: Maybe Text
     , values :: [e]
     }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord,Functor)
 
 {-
 >>> prettyShow <$> parseMaybe (bracket signedInt) "{%%11 22%%}"

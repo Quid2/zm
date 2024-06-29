@@ -8,7 +8,7 @@ where
 
 import Data.Text (Text)
 import Text.Megaparsec
-import ZM.Parser.Lexer
+import ZM.Parser.Lexer hiding (constr)
 import ZM.Parser.Literal
 import ZM.Parser.Types
 import ZM.Parser.Util
@@ -131,14 +131,16 @@ nestedValue :: Parser (Val lit binder) -> Parser (Val lit binder)
 nestedValue v =
   parenthesis (valueV v) <|> v <|> (\n -> Constr n (Left [])) <$> localId
 
--- fields :: Parser ValueFields
-fieldsV v = namedFields v <|> unnamedFields v
-
--- | Parse unnamed fields
 fieldsV
   , unnamedFields ::
     Parser (Val lit binder) ->
     Parser (Either [Val lit binder] [(Text, Val lit binder)])
+
+-- fields :: Parser ValueFields
+fieldsV v = namedFields v <|> unnamedFields v
+
+-- | Parse unnamed fields
+
 unnamedFields v = Left <$> many (nestedValue v)
 
 {- | Parse a set of named fields
