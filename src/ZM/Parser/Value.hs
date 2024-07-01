@@ -3,6 +3,8 @@
 module ZM.Parser.Value (
   value,
   pattern,
+  Value,
+  Pattern
 )
 where
 

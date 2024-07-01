@@ -11,3 +11,4 @@ import ZM.Parser.Lexer as X
 import ZM.Parser.Types as X
 import ZM.Parser.Util as X
 import ZM.Parser.Value as X
+import ZM.Parser.Exp as X

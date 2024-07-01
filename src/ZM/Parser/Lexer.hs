@@ -8,6 +8,8 @@
 
 module ZM.Parser.Lexer (
     ws,
+    wsn,
+    lineEnd,
     eof,
     lexeme,
     -- $lexemes
@@ -54,6 +56,9 @@ lexeme = L.lexeme ws
 
 ws :: Parser ()
 ws = L.space hspace1 empty empty
+
+wsn = L.space space1 empty empty
+
 
 {- | Space consumer
  |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
@@ -340,15 +345,22 @@ Atomic parser
 >>> parseMaybe (signedFloat <|> const 0 <$> symbol "+") "+"
 Just 0.0
 
-The decimal dot is not required (so parse ints before floats):
+The decimal dot is not required
 
 >>> parseMaybe signedFloat "35"
 Just 35.0
+
+>>> parseMaybe signedFloat "3E11"
+Just 3.0e11
+
+>>> parseMaybe signedFloat "-9E+11"
+Just (-9.0e11)
+
 -}
 y = parseMaybe signedFloat "35"
 
 signedFloat :: (RealFloat a) => Parser a
-signedFloat = lexeme . try $ toRealFloat <$> L.signed (return ()) L.scientific
+signedFloat = lexeme $ toRealFloat <$> L.signed (return ()) L.scientific
 
 {- |
 @setup
@@ -384,8 +396,7 @@ Just (-12312312)
 >>> parseMaybe signedInt "0xFF" :: Maybe Int8
 Nothing
 
-
->>> parseMaybe (signedInt <|> const 0 <$> symbol "+") "+"
+>>> parseMaybe (try signedInt <|> const 0 <$> symbol "+") "+"
 Just 0
 
 >>> parseMaybe signedInt "334559923200232302133331312313131231231231231231231" :: Maybe Integer
@@ -401,12 +412,12 @@ Just 34
 Just (-334559923200232302133331312313131231231231231231231)
 -}
 signedInt :: (Integral a) => Parser a
-signedInt = lexeme . try $ L.signed (return ()) integral
+signedInt = lexeme $ L.signed (return ()) integral
 
 integral :: (Integral a) => Parser a
 integral = do
     d <- L.decimal
-    notFollowedBy (char '.')
+    notFollowedBy (choice [char '.',char 'e',char 'E'])
     return d
 
 -- TODO:add check on

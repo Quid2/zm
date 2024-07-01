@@ -30,6 +30,7 @@ module ZM.Parser.Types (
     Range (..)
     ,RangeLine (..),
     Fix (..),
+    F(..),
     Annotate (..),
     unAnn,
     Void,
@@ -242,9 +243,7 @@ True
 data Annotate label f = Ann label (f (Annotate label f))
 
 deriving instance (Eq label, Eq (f (Annotate label f))) => Eq (Annotate label f)
-
 deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label f)
-
 deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
 
 unAnn :: Functor f => Annotate label f -> F f
@@ -252,6 +251,8 @@ unAnn (Ann _ r) = F (fmap unAnn r)
 
 -- Our own Fix, to derive Show automatically.
 newtype F f = F (f (F f))
+deriving instance (Eq (f (F f))) =>  Eq (F f)
+deriving instance (Ord (f (F f))) =>  Ord (F f)
 deriving instance (Show (f (F f))) =>  Show (F f)
 
 -- Pretty instance for F, hiding the presence of F

@@ -1,15 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module ZM.Parser.Exp where
-
--- import Data.Fix
 import Data.Text (Text)
-import GHC.Desugar (AnnotationWrapper)
 import Text.Megaparsec
 import ZM.Parser.Bracket
 import ZM.Parser.Lexer
@@ -17,27 +14,55 @@ import ZM.Parser.Literal (Literal (..), literal)
 import ZM.Parser.Types
 import ZM.Parser.Util
 import ZM.Pretty
-import Data.Functor.Classes (Show1)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Data.Maybe (fromMaybe)
+
 
 {-
->>> p s = prettyShow <$> parseMaybe expr s
+>>> pr = parseMaybe (doc expr)
+>>> p = fmap prettyShow . pr
+>>> up = fmap unAnn . pr
+>>> sup = fmap prettyShow . up
+
+>>> sup "{T->T\nF->{x->x}}"
+Just "{((-> T) T) ((-> F) {((-> x) x)})}"
+
+>>> sup " [\n    1\n     -22\n] \n"
+Just "[1 -22]"
+
+>>> up "-3.6E+11"
+Just (F (Lit (LFloat (-3.6e11))))
+
+>>> p "{1 + 2}"
+Just "{((+@3 1@1)@3 2@5)@3}@0"
 
 >>> p " [one two] "
-Nothing
+Just "[(one@2 two@6)@2]@1"
 
 >>> p "[one two] = [1 2]"
 Just "((=@10 [(one@1 two@5)@1]@0)@10 [(1@13 2@15)@13]@12)@10"
 
->>> p "{ true -> false}"
-Nothing
+>>> sup "{ true -> false}"
+Just "{((-> true) false)}"
 
->>> p "{(true -> false) (false->true) }"
-Just "{(((->@7 true@2)@7 false@10)@7 ((->@23 false@18)@23 true@25)@23)@7}@0"
+>>> sup $ "{1\n2}"
+Just "{1 2}"
 
-BAD
+>>> sup "(1 :: Nil) -> 1"
+Just "((-> ((:: 1) Nil)) 1)"
+
+>>> sup "Cons 1 Nil -> 1"
+Just "((-> ((Cons 1) Nil)) 1)"
 
 >>> p "{true -> false \n false->true}"
-Just "{((->@6 true@1)@6 ((->@22 (false@9 false@17)@9)@22 true@24)@22)@6}@0"
+Just "{((->@6 true@1)@6 false@9)@6 ((->@22 false@17)@22 true@24)@22}@0"
+
+>>> p "{true -> false,false->true}"
+Just "{((->@6 true@1)@6 ((,@14 false@9)@14 ((->@20 false@15)@20 true@22)@20)@14)@6}@0"
+
+>>> up "{true -> false \n false->true}" == up "{true -> false,false->true}"
+False
 
 >>> parseMaybe expr "double 10"
 Just (Ann 0 (App (Ann 0 (Op "double")) (Ann 7 (Lit (LInteger 10)))))
@@ -94,7 +119,7 @@ Just (Ann 0 (Lit (LInteger 1)))
 Just "[((1 [(11 22)]) 33)]"
 
 >>>  parseMaybe expr "[1\n2]"
-Just (Ann 0 (Arr (Bracket {open = '[', close = ']', op = Nothing, values = [Ann 1 (App (Ann 1 (Lit (LInteger 1))) (Ann 3 (Lit (LInteger 2))))]})))
+Just (Ann 0 (Arr (Bracket {open = '[', close = ']', op = Nothing, values = [Ann 1 (Lit (LInteger 1)),Ann 3 (Lit (LInteger 2))]})))
 
 >>> prettyShow . unAnn <$> parseMaybe expr "1"
 Just "1"
@@ -113,8 +138,8 @@ Just (Ann 0 (Con "Nil"))
 
 >>> prettyShow . unAnn <$> parseMaybe expr "+ 1"
 Nothing
-
 -}
+
 type Exp = Annotate Offset ExpR
 
 located :: Parser (ExpR Exp) -> Parser Exp
@@ -125,6 +150,19 @@ located p = Ann <$> getOffset <*> p
 --   v <- p 
 --   end <- getOffset
 --   return $ Ann (Range (fromIntegral beg) (fromIntegral end)) v
+
+{-
+>>> p = fmap error . parseModule
+
+>>> p "numbers"
+-}
+parseModule fileName = do
+    src <- T.readFile $ concat ["../qq/qq-src/",fileName,".qq"]
+    T.putStrLn src
+    putStrLn (maybe "Nothing" (prettyShow . unAnn) (parseMaybe mdl src))
+
+mdl :: Parser Exp
+mdl = doc expr
 
 expr :: Parser Exp
 expr = do
@@ -221,3 +259,7 @@ instance (Pretty r) => Pretty (ExpR r) where
 
 instance (Pretty l, Pretty (f (Annotate l f))) => Pretty (Annotate l f) where
     pPrint (Ann l f) = pPrint f <> chr '@' <> pPrint l
+
+-- instance (Pretty (f (Annotate () f))) => Pretty (Annotate () f) where
+--     pPrint (Ann () f) = pPrint f
+
