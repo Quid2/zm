@@ -4,10 +4,11 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module ZM.Parser.Util (
-  -- * Parsing 
+  -- * Parsing
   parseDoc,
   -- , parseE
   syntaxError, -- PUBLIC?
+  testParse,
 
   -- * Position Handling
   mkAt,
@@ -23,13 +24,13 @@ module ZM.Parser.Util (
 import Data.Bifunctor (Bifunctor (first))
 import qualified Data.List.NonEmpty as NE
 import Text.Megaparsec hiding (Label)
-import ZM.Parser.Lexer 
-import ZM.Pretty
+import ZM.Parser.Lexer
 import ZM.Parser.Types (
   Label (Label),
   Parser,
-  RangeLine(..),
+  RangeLine (..),
  )
+import ZM.Pretty
 
 {- $setup
  >>> import ZM.Parser.Lexer(float)
@@ -43,6 +44,9 @@ parseDoc parser = parseE (doc parser)
 -- parseE :: Parser a -> String -> Either AtError a
 parseE :: (TraversableStream s, VisualStream s, ShowErrorComponent e) => Parsec e s c -> s -> Either (Label RangeLine String) c
 parseE p = first syntaxError . parse p ""
+
+testParse :: (VisualStream s, TraversableStream s, ShowErrorComponent e) => Parsec e s c -> s -> Either String c
+testParse p = first errorBundlePretty . runParser p ""
 
 #if MIN_VERSION_megaparsec(9,0,0)
 syntaxError :: (TraversableStream s, VisualStream s,ShowErrorComponent e) => ParseErrorBundle s e -> Label RangeLine String
@@ -87,6 +91,7 @@ Make the parser into a document parser (that will parse any initial space and ti
 -}
 doc :: Parser a -> Parser a
 doc = between wsn (wsn >> eof)
+
 -- doc = between ws eof
 
 {- |
@@ -121,7 +126,6 @@ Just 3.7
 parenthesis :: Parser a -> Parser a
 parenthesis = between (symbol "(") (symbol ")")
 
-
 -- Position
 
 {- Add location information to the result of a parser.
@@ -148,7 +152,6 @@ at parser = do
 --   --return $ At (mkRange pos1 (unPos (sourceColumn pos2) - unPos (sourceColumn pos1))) r
 --   return $ At (mkRange pos1 l) rr
 
-
 mkAt :: SourcePos -> Int -> a -> Label RangeLine a
 mkAt pos len = Label (mkRange pos len)
 
@@ -157,4 +160,3 @@ mkRange pos len =
   let asP f = (\n -> n - 1) . fromIntegral . unPos . f
       st = asP sourceColumn pos
    in RangeLine (asP sourceLine pos) st (st + fromIntegral len - 1)
-

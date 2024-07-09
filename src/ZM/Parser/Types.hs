@@ -5,10 +5,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module ZM.Parser.Types (
     Parser,
@@ -27,10 +26,10 @@ module ZM.Parser.Types (
     AtAbsName,
     AtError,
     Offset,
-    Range (..)
-    ,RangeLine (..),
+    Range (..),
+    RangeLine (..),
     Fix (..),
-    F(..),
+    F (..),
     Annotate (..),
     unAnn,
     Void,
@@ -45,9 +44,10 @@ import Data.Text (Text)
 import Data.These.Extra
 import Data.Void
 import Data.Word
+import qualified Prettyprinter as P
 import Text.Megaparsec hiding (Label, label)
 import Text.PrettyPrint hiding ((<>))
-import qualified Text.PrettyPrint as P
+import qualified Text.PrettyPrint as TP
 import Text.Show.Deriving
 import ZM
 
@@ -90,10 +90,10 @@ instance (Pretty n) => Pretty (TypeName n) where
 >>> pPrint $ Range 3 7 11
 (3:7-11)
 -}
-data RangeLine = RangeLine {line, startPos, endPos :: Word32}     deriving (Show, Eq, Ord, Generic, Flat, Model)
+data RangeLine = RangeLine {line, startPos, endPos :: Word32} deriving (Show, Eq, Ord, Generic, Flat, Model)
 
 instance Pretty RangeLine where
-    pPrint (RangeLine {..}) =
+    pPrint (RangeLine{..}) =
         text $
             concat
                 [ "("
@@ -109,7 +109,7 @@ instance Pretty RangeLine where
 data Range = Range {start, end :: Word32} deriving (Show, Eq, Ord, Generic, Flat, Model)
 
 instance Pretty Range where
-    pPrint (Range {..}) =
+    pPrint (Range{..}) =
         text $
             concat
                 [ "("
@@ -246,21 +246,25 @@ deriving instance (Eq label, Eq (f (Annotate label f))) => Eq (Annotate label f)
 deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label f)
 deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
 
-unAnn :: Functor f => Annotate label f -> F f
+unAnn :: (Functor f) => Annotate label f -> F f
 unAnn (Ann _ r) = F (fmap unAnn r)
 
 -- Our own Fix, to derive Show automatically.
 newtype F f = F (f (F f))
-deriving instance (Eq (f (F f))) =>  Eq (F f)
-deriving instance (Ord (f (F f))) =>  Ord (F f)
-deriving instance (Show (f (F f))) =>  Show (F f)
+deriving instance (Eq (f (F f))) => Eq (F f)
+deriving instance (Ord (f (F f))) => Ord (F f)
+deriving instance (Show (f (F f))) => Show (F f)
 
 -- Pretty instance for F, hiding the presence of F
-instance (Pretty (f (F f))) => Pretty (F f) where pPrint (F r) = pPrint r
+-- instance (Pretty (f (F f))) => Pretty (F f) where pPrint (F r) = pPrint r
+
+instance (P.Pretty l, P.Pretty (f (Annotate l f))) => P.Pretty (Annotate l f) where
+    pretty (Ann l f) = P.pretty f <> P.pretty '@' <> P.pretty l
+
+instance (P.Pretty (f (F f))) => P.Pretty (F f) where pretty (F f) = P.pretty f
 
 -- instance (Show (f (F f))) =>  Show (F f) where
 --     show (F r) = show r
-
 
 {-
 >>> ConstrF "True" (Left []) :: Val Literal Void

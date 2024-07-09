@@ -32,16 +32,18 @@ library
     ZM.Model
     ZM.Parser
     ZM.Parser.ADT
+    ZM.Parser.Bracket
     ZM.Parser.Doc
     ZM.Parser.Env
+    ZM.Parser.Exp
     ZM.Parser.Lexer
+    ZM.Parser.Literal
+    ZM.Parser.Op
+    ZM.Parser.Pretty
     ZM.Parser.Types
     ZM.Parser.Util
-    ZM.Parser.Exp
-    ZM.Parser.Literal
     ZM.Parser.Val
     ZM.Parser.Value
-    ZM.Parser.Bracket
     ZM.Pretty
     ZM.Pretty.Base
     ZM.To.Decoder
@@ -69,17 +71,17 @@ library
     ZM.Type.Tuples
     ZM.Type.Unit
     ZM.Type.Words
-    -- ZM.Parser.Constr
     ZM.Types
     ZM.Util
 
+  -- ZM.Parser.Constr
   -- ZM.Dynamic
   -- ZM.Pretty.Value
   -- ZM.Pretty.Value
 
   -- ZM.Coerce
-  if impl(ghcjs -any)
-    build-depends: ghcjs-base ==0.2.*
+  if impl(ghcjs)
+    build-depends: ghcjs-base >=0.2 && <0.3
 
   else
     build-depends:
@@ -87,24 +89,26 @@ library
       , memory
 
   build-depends:
-      base                >=4.8
-    , bytestring          >=0.10.6.0
+      base                         >=4.8
+    , bytestring                   >=0.10.6.0
     , containers
     , data-fix
-    , deepseq             >=1.4
+    , deepseq                      >=1.4
+    , deriving-compat
     , directory
-    , either              >4.3.2    && <6
+    , either                       >=4.3.2.0  && <6
     , extra
-    , flat                >=0.6      && <0.7
-    , megaparsec          >=9        && <10
-    , model               >=0.5      && <0.6
+    , flat                         >=0.6      && <0.7
+    , megaparsec                   >=9        && <10
+    , model                        >=0.5      && <0.6
     , parser-combinators
-    , pretty              >=1.1.2
+    , pretty                       >=1.1.2
+    , prettyprinter
+    , prettyprinter-ansi-terminal
     , scientific
     , text
     , these-skinny
-    , transformers        >=0.4.2.0
-    , deriving-compat
+    , transformers                 >=0.4.2.0
 
   js-sources:       jsbits/sha3.js
   default-language: Haskell2010

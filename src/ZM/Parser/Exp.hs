@@ -1,83 +1,118 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module ZM.Parser.Exp where
+
+import Data.Bifunctor
 import Data.Text (Text)
-import Text.Megaparsec
-import ZM.Parser.Bracket
-import ZM.Parser.Lexer
-import ZM.Parser.Literal (Literal (..), literal)
-import ZM.Parser.Types
-import ZM.Parser.Util
-import ZM.Pretty
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Maybe (fromMaybe)
+import Prettyprinter
+import Text.Megaparsec
+import ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
+import ZM.Parser.Lexer
+import ZM.Parser.Literal (Literal (..), literal)
+import ZM.Parser.Op
+import ZM.Parser.Types
+import ZM.Parser.Util
 
+{- $setup
+>>> pr = parseMaybe (doc expr)
+>>> p = fmap pretty . pr
+>>> up = fmap unAnn . pr
+>>> sup = fmap pretty . up
+-}
 
 {-
->>> pr = parseMaybe (doc expr)
->>> p = fmap prettyShow . pr
->>> up = fmap unAnn . pr
->>> sup = fmap prettyShow . up
-
 >>> sup "{T->T\nF->{x->x}}"
-Just "{((-> T) T) ((-> F) {((-> x) x)})}"
+Just {
+  -> T T
+  -> F {
+           -> x x
+  }
+}
 
 >>> sup " [\n    1\n     -22\n] \n"
-Just "[1 -22]"
+Just [
+  1
+  -22
+]
 
 >>> up "-3.6E+11"
 Just (F (Lit (LFloat (-3.6e11))))
 
 >>> p "{1 + 2}"
-Just "{((+@3 1@1)@3 2@5)@3}@0"
+Just {
+  + 1@1 2@5@1
+}@0
 
 >>> p " [one two] "
-Just "[(one@2 two@6)@2]@1"
+Just [
+  one@2 two@6@2
+]@1
 
 >>> p "[one two] = [1 2]"
-Just "((=@10 [(one@1 two@5)@1]@0)@10 [(1@13 2@15)@13]@12)@10"
+Just = [
+    one@1 two@5@1
+]@0 [
+      1@13 2@15@13
+]@12@0
 
 >>> sup "{ true -> false}"
-Just "{((-> true) false)}"
+Just {
+  -> true false
+}
 
 >>> sup $ "{1\n2}"
-Just "{1 2}"
+Just {
+  1
+  2
+}
 
 >>> sup "(1 :: Nil) -> 1"
-Just "((-> ((:: 1) Nil)) 1)"
+Just -> (:: 1 Nil) 1
 
 >>> sup "Cons 1 Nil -> 1"
-Just "((-> ((Cons 1) Nil)) 1)"
+Just -> Cons 1 Nil 1
 
 >>> p "{true -> false \n false->true}"
-Just "{((->@6 true@1)@6 false@9)@6 ((->@22 false@17)@22 true@24)@22}@0"
+Just {
+  -> true@1 false@9@1
+  -> false@17 true@24@17
+}@0
 
 >>> p "{true -> false,false->true}"
-Just "{((->@6 true@1)@6 ((,@14 false@9)@14 ((->@20 false@15)@20 true@22)@20)@14)@6}@0"
+Just {
+  -> true@1 , false@9 -> false@15 true@22@15@9@1
+}@0
 
 >>> up "{true -> false \n false->true}" == up "{true -> false,false->true}"
 False
 
->>> parseMaybe expr "double 10"
-Just (Ann 0 (App (Ann 0 (Op "double")) (Ann 7 (Lit (LInteger 10)))))
+>>> p "double 10"
+Just double@0 10@7@0
 
->>> parseMaybe expr "+"
+>>> p "+"
 Nothing
 
->>> parseMaybe expr "3 * 1"
-Just (Ann 2 (App (Ann 2 (App (Ann 2 (Op "*")) (Ann 0 (Lit (LInteger 3))))) (Ann 4 (Lit (LInteger 1)))))
+>>> p "3 * 1"
+Just * 3@0 1@4@0
 
->>> parseMaybe expr "f 10"
-Just (Ann 0 (App (Ann 0 (Op "f")) (Ann 2 (Lit (LInteger 10)))))
+>>> p "f 10"
+Just f@0 10@2@0
 
->>> parseMaybe expr "[13 ('a') \"abc\" ]"
-Just (Ann 0 (Arr (Bracket {open = '[', close = ']', op = Nothing, values = [Ann 1 (App (Ann 1 (App (Ann 1 (Lit (LInteger 13))) (Ann 5 (Lit (LChar 'a'))))) (Ann 10 (Lit (LString "abc"))))]})))
+>>> p "[13 ('a') \"abc\" ]"
+Just [
+  13@1 (?a@5)@4@1 "abc"@10@1
+]@0
 
 Monadic/prefix operators bind stronger than dyadic ones
 
@@ -93,52 +128,103 @@ f 3 + 2
 
 how to implement haskell's $ ?
 
->>> prettyShow <$> parseMaybe expr "a -> b -> c"
-Just "((->@2 a@0)@2 ((->@7 b@5)@7 c@10)@7)@2"
+>>> up "a -> b -> c"
+Just (F (InfixApp (F (Prefix "a")) "->" (F (InfixApp (F (Prefix "b")) "->" (F (Prefix "c"))))))
 
 1 + (2 * (4 + 5))
->>> prettyShow . unAnn <$> parseMaybe expr "1 + 2 * 4 + 5"
-Just "((+ 1) ((* 2) ((+ 4) 5)))"
+>>> up "1 + 2 * 4 + 5"
+Just (F (InfixApp (F (Lit (LInteger 1))) "+" (F (InfixApp (F (Lit (LInteger 2))) "*" (F (InfixApp (F (Lit (LInteger 4))) "+" (F (Lit (LInteger 5)))))))))
 
->>> parseMaybe expr "1 + 2 + 4"
-Just (Ann 2 (App (Ann 2 (App (Ann 2 (Op "+")) (Ann 0 (Lit (LInteger 1))))) (Ann 6 (App (Ann 6 (App (Ann 6 (Op "+")) (Ann 4 (Lit (LInteger 2))))) (Ann 8 (Lit (LInteger 4)))))))
+>>> p "1 + 2 + 4"
+Just + 1@0 + 2@4 4@8@4@0
 
->>> parseMaybe expr "1 * 2"
-Just (Ann 2 (App (Ann 2 (App (Ann 2 (Op "*")) (Ann 0 (Lit (LInteger 1))))) (Ann 4 (Lit (LInteger 2)))))
+>>> p "1 * 2"
+Just * 1@0 2@4@0
 
->>> parseMaybe expr "f 1 (r 2 3)"
-Just (Ann 0 (App (Ann 0 (App (Ann 0 (Op "f")) (Ann 2 (Lit (LInteger 1))))) (Ann 5 (App (Ann 5 (App (Ann 5 (Op "r")) (Ann 7 (Lit (LInteger 2))))) (Ann 9 (Lit (LInteger 3)))))))
+>>> p "f 1 (r 2 3)"
+Just f@0 1@2@0 (r@5 2@7@5 3@9@5)@4@0
 
->>> parseMaybe expr "f"
-Just (Ann 0 (Op "f"))
+>>> p "f"
+Just f@0
 
->>> parseMaybe expr "1"
-Just (Ann 0 (Lit (LInteger 1)))
+>>> p "1"
+Just 1@0
 
->>> prettyShow . unAnn <$> parseMaybe expr "[1 [11 22] 33  ]"
-Just "[((1 [(11 22)]) 33)]"
+>>> sup "[1 [11 22] 33  ]"
+Just [
+  1 [
+        11 22
+  ] 33
+]
 
->>>  parseMaybe expr "[1\n2]"
-Just (Ann 0 (Arr (Bracket {open = '[', close = ']', op = Nothing, values = [Ann 1 (Lit (LInteger 1)),Ann 3 (Lit (LInteger 2))]})))
+>>>  p "[1\n2]"
+Just [
+  1@1
+  2@3
+]@0
 
->>> prettyShow . unAnn <$> parseMaybe expr "1"
-Just "1"
+>>> up "1"
+Just (F (Lit (LInteger 1)))
 
->>> prettyShow . unAnn <$> parseMaybe expr "f 1"
-Just "(f 1)"
+>>> up "f 1"
+Just (F (App (F (Prefix "f")) (F (Lit (LInteger 1)))))
 
->>> prettyShow . unAnn <$> parseMaybe expr "Cons 1 Nil"
-Just "((Cons 1) Nil)"
+>>> up "Cons 1 Nil"
+Just (F (App (F (App (F (Con "Cons")) (F (Lit (LInteger 1))))) (F (Con "Nil"))))
 
->>> prettyShow . unAnn <$> parseMaybe expr "1 2"
-Just "(1 2)"
+>>> up "1 2"
+Just (F (App (F (Lit (LInteger 1))) (F (Lit (LInteger 2)))))
 
->>> parseMaybe expr "Nil"
-Just (Ann 0 (Con "Nil"))
+>>> p "Nil"
+Just Nil@0
 
->>> prettyShow . unAnn <$> parseMaybe expr "+ 1"
+>>> p "[+ 1 +]"
+Just [+
+   1@3
++]@0
+
+>>> sup "{| x * 11 |}"
+Just {|
+   * x 11
+\|}
+
+>>> up "+ 1"
 Nothing
+
+>>> up "1 + 2 + 3"
+Just (F (InfixApp (F (Lit (LInteger 1))) "+" (F (InfixApp (F (Lit (LInteger 2))) "+" (F (Lit (LInteger 3)))))))
 -}
+
+{-
+>>> tt "rec"
+-}
+tt mdlName = loadMdl $ concat ["../qq/qq-src/", mdlName, ".qq"]
+
+loadMdl :: FilePath -> IO ()
+loadMdl fileName = do
+  src <- T.readFile fileName
+  case testPretty src of
+    Left "no parse" -> parseTest mdl src
+    Left m -> putStr m
+    Right src2 -> T.writeFile fileName src2
+
+testPretty :: Text -> Either String Text
+testPretty src =
+  case parseMdl src of
+    Left e -> Left e
+    Right syntax ->
+      let src2 = show . pretty . unAnn $ syntax
+          syntax1 = unAnn syntax
+       in case parseMdlF $ T.pack src2 of
+            Left e -> Left e
+            Right syntax2
+              | syntax1 == syntax2 -> Right $ T.pack src2
+              | otherwise -> Left (unlines ["bad pretty: ", src2, "semantic was", show syntax1, T.unpack src, "now is", show syntax2, src2])
+
+parseMdl :: T.Text -> Either String Exp
+parseMdl = first errorBundlePretty . runParser mdl ""
+
+parseMdlF = fmap unAnn . parseMdl
 
 type Exp = Annotate Offset ExpR
 
@@ -147,7 +233,7 @@ located p = Ann <$> getOffset <*> p
 
 -- located p = do
 --   beg <- getOffset
---   v <- p 
+--   v <- p
 --   end <- getOffset
 --   return $ Ann (Range (fromIntegral beg) (fromIntegral end)) v
 
@@ -156,24 +242,41 @@ located p = Ann <$> getOffset <*> p
 
 >>> p "numbers"
 -}
-parseModule fileName = do
-    src <- T.readFile $ concat ["../qq/qq-src/",fileName,".qq"]
-    T.putStrLn src
-    putStrLn (maybe "Nothing" (prettyShow . unAnn) (parseMaybe mdl src))
+-- parseModule fileName = do
+--   src <- T.readFile $ concat ["../qq/qq-src/", fileName, ".qq"]
+--   T.putStrLn src
+--   putStrLn (maybe "Nothing" (pretty . unAnn) (parseMaybe mdl src))
 
 mdl :: Parser Exp
 mdl = doc expr
 
+{-
+>>> sup "{|x=1 \n{34 \n{%% 11 %%}\n 9}\n y=2|}"
+Just {|
+  x = 1
+  {
+    34
+    {%%
+      11
+    %%}
+    9
+  }
+  y = 2
+\|}
+
+-}
 expr :: Parser Exp
 expr = do
   l <- expr1
   pInfixR expr1 l <|> return l
 
 pInfixR :: Parser Exp -> Exp -> Parser Exp
-pInfixR pTerm x = do
-  f <- inf
+pInfixR pTerm x@(Ann xAnn _) = try $ do
+  -- f <- inf
+  f <- infixOp
   y <- pTerm >>= \r -> pInfixR pTerm r <|> return r
-  return $ app (app f x) y
+  -- return $ app (app f x) y
+  return $ Ann xAnn $ InfixApp x f y
 
 expr1 :: Parser Exp
 expr1 = appN simple
@@ -187,21 +290,25 @@ app l@(Ann l1 _) r = Ann l1 (App l r)
 simple :: Parser Exp
 simple =
   choice
-    [ parenthesis expr
+    [ par
     , arr
     , pre
     , con
     , lit
     ]
 
+par :: Parser Exp
+-- par = located $ Par <$> parenthesis expr
+par = parenthesis expr
+
 pre :: Parser Exp
-pre = located $ Op <$> prefixOp
+pre = located $ Prefix <$> prefixOp
 
 arr :: Parser Exp
 arr = located $ Arr <$> bracket expr
 
-inf :: Parser Exp
-inf = located $ Op <$> infixOp
+-- inf :: Parser Exp
+-- inf = located $ Infix <$> infixOp
 
 con :: Parser Exp
 con = located $ Con <$> constr
@@ -209,57 +316,83 @@ con = located $ Con <$> constr
 lit :: Parser Exp
 lit = located $ Lit <$> literal
 
+-- TODO: single InfixApp
 -- type Expr = Fix ExpR
 data ExpR r
-  = --     Cons
-    --     -- | Name of the constructor (e.g. "True")
-    --     String
-    --     -- | Constructor parameters, possibly named
-    --     --  e.g. ConstrF "True" []
-    --     (Either [r] [(String, r)])
+  = App r r
+  | InfixApp r Text r
+  | -- Universal App: App+Infix App + Section
 
-    -- | -- | A pattern that might bind a matched value to a name
-    --   BinderF
-    -- | -- \|A variable or a lit pattern (e.g. a string or a number)
-    App r r
-  | Con Text -- Constructor (e.g. "True")   
-  | Op Text -- Infix Text
-  | Arr (Bracket r)
+    -- | App Text (These r r)
+    Con Text -- Constructor (e.g. "True")
+  | Prefix Text
+  | -- | Infix Text
+    Field Text
+  | -- | Par r
+    Arr (Bracket r)
   | Lit Literal
   deriving (Show, Eq, Functor)
 
-instance (Pretty r) => Pretty (ExpR r) where
-  pPrint (App f a) = chr '(' <> hsep [pPrint f, pPrint a] <> chr ')'
-  pPrint (Con name) = txt name
-  pPrint (Op name) = txt name
-  pPrint (Arr brk) = pPrint brk
-  pPrint (Lit l) = pPrint l
+instance (Pretty a, PrettyArg (f (Annotate a f))) => PrettyArg (Annotate a f) where
+  prettyArg t (Ann a f) = prettyArg t f <> pretty '@' <> pretty a
 
--- located :: Parser LocatedToken
--- located p = do
---     start <- fmap Offset Megaparsec.getOffset
---     token <- parseToken
---     return LocatedToken{..}
+instance (PrettyArg (f (F f))) => PrettyArg (F f) where
+  prettyArg t (F f) = prettyArg t f
 
--- parseLocatedTokens :: Parser [LocatedToken]
--- parseLocatedTokens = do
---     ws
---     manyTill parseLocatedToken Megaparsec.eof
+instance (PrettyArg r) => Pretty (ExpR r) where
+  pretty = prettyArg NoArg
 
--- class AnnotatePos val out where
---     annotatePos :: Int -> val -> out
+class PrettyArg a where prettyArg :: Arg -> a -> Doc ann
 
--- instance AnnotatePos val val where annotatePos _ v = v
+data Arg = NoArg | PreArg | InfArg deriving (Show, Eq)
 
--- instance AnnotatePos val (Label Int val) where annotatePos = Label
+{-
+>>> sup "foo bar  + big bop"
+Just foo bar + big bop
 
--- located :: (a -> ExpR r) -> Parser (ExpR r) -> Parser (Annotate Int ExpR)
+>>> tt "rec"
+-}
+instance (PrettyArg r) => PrettyArg (ExpR r) where
+  prettyArg arg =
+    let
+      no = prettyArg NoArg
+      pre = prettyArg PreArg
+      inf = prettyArg InfArg
+      onInf InfArg d = par d
+      onInf _ d = d
+      onPre PreArg d = par d
+      onPre _ d = d
+      par d = "(" <> d <> ")"
+     in
+      \case
+        InfixApp l op r -> onInf arg $ hsep [inf l, pretty op, inf r]
+        App f a -> onPre arg $ hsep [no f, pre a]
+        Con name -> pretty name
+        Arr brk -> prettyBracket no brk
+        Prefix name -> pretty name
+        Field name -> pretty name
+        Lit l -> pretty l
 
--- located :: Parser (ExpR r) -> Parser Exp
+-- onArg PreArg d = "(" <> d <> ")"
+-- onArf InfArg d = d
 
-instance (Pretty l, Pretty (f (Annotate l f))) => Pretty (Annotate l f) where
-    pPrint (Ann l f) = pPrint f <> chr '@' <> pPrint l
+-- prettyArg :: Pretty r => ExpR r  -> Doc ann
+-- prettyArg_ e
+--   | isSimple e = pretty e
+--   | otherwise = "(" <> pretty e <> ")"
+
+-- isSimple :: ExpR r -> Bool
+-- isSimple (App _ _) = False
+-- isSimple (InfixApp{}) = False
+-- isSimple _ = True
 
 -- instance (Pretty (f (Annotate () f))) => Pretty (Annotate () f) where
 --     pPrint (Ann () f) = pPrint f
 
+-- instance (Pretty r) => Pretty (ExpR r) where
+--   pPrint (App f a) = chr '(' <> hsep [pPrint f, pPrint a] <> chr ')'
+--   pPrint (Con name) = txt name
+--   pPrint (Prefix name) = txt name
+--   pPrint (Infix name) = txt name
+--   pPrint (Arr brk) = pPrint brk
+--   pPrint (Lit l) = pPrint l

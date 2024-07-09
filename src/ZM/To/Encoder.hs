@@ -35,13 +35,9 @@ import Text.Megaparsec
 import ZM
 import ZM.Parser.ADT
 import ZM.Parser.Lexer (
-  charLiteral,
-  signedFloat,
-  signedInt,
-  stringLiteral,
   symbol,
-  unsigned,
  )
+import ZM.Parser.Literal
 import ZM.Parser.Types (Parser, TypeName, asTypeName)
 import ZM.Parser.Util (cpars, doc, parenthesis)
 import qualified ZM.Type.String as ZM
@@ -236,8 +232,8 @@ typeEncoderMap tm =
           . addSpecial (Proxy :: Proxy Int32) signedInt
           . addSpecial (Proxy :: Proxy Int64) signedInt
           . addSpecial (Proxy :: Proxy Char) charLiteral
-          . addSpecial (Proxy :: Proxy ZM.String) (ZM.String <$> stringLiteral)
-          . addSpecial (Proxy :: Proxy [Char]) stringLiteral
+          . addSpecial (Proxy :: Proxy ZM.String) (ZM.String <$> singleLineText)
+          . addSpecial (Proxy :: Proxy [Char]) singleLineText
           $ M.mapWithKey
             (\t ct -> conEnc denv t (Sum 0) mempty ct)
             (typeTree tm)
