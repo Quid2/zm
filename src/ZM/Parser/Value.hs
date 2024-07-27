@@ -4,13 +4,14 @@ module ZM.Parser.Value (
   value,
   pattern,
   Value,
-  Pattern
+  Pattern,
 )
 where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Megaparsec
-import ZM.Parser.Lexer hiding (constr)
+import ZM.Parser.Lexer ( localId, symbol, wild )
 import ZM.Parser.Literal
 import ZM.Parser.Types
 import ZM.Parser.Util
@@ -127,7 +128,9 @@ special =
 
 -- TODO: Add VArray
 binds :: Parser (Val lit Binder)
-binds = maybe PWild PBind <$> var
+-- binds = maybe PWild PBind <$> wild
+-- ???
+binds = (\w -> if T.null w then PWild else PBind w) <$> wild
 
 nestedValue :: Parser (Val lit binder) -> Parser (Val lit binder)
 nestedValue v =
@@ -137,12 +140,10 @@ fieldsV
   , unnamedFields ::
     Parser (Val lit binder) ->
     Parser (Either [Val lit binder] [(Text, Val lit binder)])
-
 -- fields :: Parser ValueFields
 fieldsV v = namedFields v <|> unnamedFields v
 
 -- | Parse unnamed fields
-
 unnamedFields v = Left <$> many (nestedValue v)
 
 {- | Parse a set of named fields

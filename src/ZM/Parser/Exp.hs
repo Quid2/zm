@@ -14,7 +14,8 @@ module ZM.Parser.Exp where
 import Data.Bifunctor
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
+
+-- import qualified Data.Text.IO as T
 import Prettyprinter
 import Text.Megaparsec
 import ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
@@ -23,6 +24,8 @@ import ZM.Parser.Literal (Literal (..), literal)
 import ZM.Parser.Op
 import ZM.Parser.Types
 import ZM.Parser.Util
+
+-- import ZM.Parser (ADTParts(name))
 
 {- $setup
 >>> pr = parseMaybe (doc expr)
@@ -197,29 +200,18 @@ Just (F (InfixApp (F (Lit (LInteger 1))) "+" (F (InfixApp (F (Lit (LInteger 2)))
 
 {-
 >>> tt "rec"
+
+>>> tt "parser"
 -}
-tt mdlName = loadMdl $ concat ["../qq/qq-src/", mdlName, ".qq"]
+-- tt mdlName = loadMdl $ concat ["../qq/qq-src/", mdlName, ".qq"]
 
-loadMdl :: FilePath -> IO ()
-loadMdl fileName = do
-  src <- T.readFile fileName
-  case testPretty src of
-    Left "no parse" -> parseTest mdl src
-    Left m -> putStr m
-    Right src2 -> T.writeFile fileName src2
-
-testPretty :: Text -> Either String Text
-testPretty src =
-  case parseMdl src of
-    Left e -> Left e
-    Right syntax ->
-      let src2 = show . pretty . unAnn $ syntax
-          syntax1 = unAnn syntax
-       in case parseMdlF $ T.pack src2 of
-            Left e -> Left e
-            Right syntax2
-              | syntax1 == syntax2 -> Right $ T.pack src2
-              | otherwise -> Left (unlines ["bad pretty: ", src2, "semantic was", show syntax1, T.unpack src, "now is", show syntax2, src2])
+-- loadMdl :: FilePath -> IO ()
+-- loadMdl fileName = do
+--   src <- T.readFile fileName
+--   case testPretty src of
+--     Left "no parse" -> parseTest mdl src
+--     Left m -> putStr m
+--     Right src2 -> T.writeFile fileName src2
 
 parseMdl :: T.Text -> Either String Exp
 parseMdl = first errorBundlePretty . runParser mdl ""
@@ -295,11 +287,15 @@ simple =
     , pre
     , con
     , lit
+    , wld
     ]
 
 par :: Parser Exp
 -- par = located $ Par <$> parenthesis expr
 par = parenthesis expr
+
+wld :: Parser Exp
+wld = located $ Wild <$> wild
 
 pre :: Parser Exp
 pre = located $ Prefix <$> prefixOp
@@ -320,15 +316,18 @@ lit = located $ Lit <$> literal
 -- type Expr = Fix ExpR
 data ExpR r
   = App r r
-  | InfixApp r Text r
-  | -- Universal App: App+Infix App + Section
+  | -- Universal App: App+Infix App + Section (What about functions with a single arg?)
 
     -- | App Text (These r r)
-    Con Text -- Constructor (e.g. "True")
-  | Prefix Text
-  | -- | Infix Text
-    Field Text
-  | -- | Par r
+    -- ?Or App r (These r r)
+    Prefix Text
+  | InfixApp r Text r
+  | Wild Text -- Wildcard (without initial _)
+  | Con Text -- Constructor (e.g. "True")
+  | -- \| Par r
+
+    -- | Infix Text
+    -- Field Text
     Arr (Bracket r)
   | Lit Literal
   deriving (Show, Eq, Functor)
@@ -350,7 +349,21 @@ data Arg = NoArg | PreArg | InfArg deriving (Show, Eq)
 >>> sup "foo bar  + big bop"
 Just foo bar + big bop
 
+>>> pr "x = y"
+Just (Ann 0 (InfixApp (Ann 0 (Prefix "x")) "=" (Ann 4 (Prefix "y"))))
+
+>>> sup "[[]]"
+Just [
+   [
+   ]
+]
+
+>>> sup "Z -> y -> y"
+Just Z -> (y -> y)
+
 >>> tt "rec"
+
+>>> tt "add"
 -}
 instance (PrettyArg r) => PrettyArg (ExpR r) where
   prettyArg arg =
@@ -370,29 +383,25 @@ instance (PrettyArg r) => PrettyArg (ExpR r) where
         Con name -> pretty name
         Arr brk -> prettyBracket no brk
         Prefix name -> pretty name
-        Field name -> pretty name
+        Wild name -> "_" <> pretty name
+        -- Field name -> pretty name
         Lit l -> pretty l
 
--- onArg PreArg d = "(" <> d <> ")"
--- onArf InfArg d = d
+{-
+pat =>  lpat qconop pat (infix constructor)
+        | lpat
 
--- prettyArg :: Pretty r => ExpR r  -> Doc ann
--- prettyArg_ e
---   | isSimple e = pretty e
---   | otherwise = "(" <> pretty e <> ")"
+lpat => apat | - (integer | float) (negative literal) | gcon apat1 ... apatk (arity gcon = k, k >= 1)
 
--- isSimple :: ExpR r -> Bool
--- isSimple (App _ _) = False
--- isSimple (InfixApp{}) = False
--- isSimple _ = True
+apat => var [ @ apat] (as pattern)
+      | gcon (arity gcon = 0)
+      | qcon { fpat1 ... fpatk } (labeled pattern, k >= 0)
+      | literal
+      | _ (wildcard)
+      | ( pat ) (parenthesized pattern)
+      | ( pat1 ... patk ) (tuple pattern, k >= 2)
+      | [ pat1 ... patk ] (list pattern, k >= 1)
+      | ˜ apat (irrefutable pattern)
 
--- instance (Pretty (f (Annotate () f))) => Pretty (Annotate () f) where
---     pPrint (Ann () f) = pPrint f
-
--- instance (Pretty r) => Pretty (ExpR r) where
---   pPrint (App f a) = chr '(' <> hsep [pPrint f, pPrint a] <> chr ')'
---   pPrint (Con name) = txt name
---   pPrint (Prefix name) = txt name
---   pPrint (Infix name) = txt name
---   pPrint (Arr brk) = pPrint brk
---   pPrint (Lit l) = pPrint l
+fpat => qvar = pat
+-}

@@ -13,7 +13,7 @@ module ZM.Parser.Lexer (
     eof,
     lexeme,
     -- $lexemes
-    var,
+    wild,
     identifier,
     sym,
     constr,
@@ -26,6 +26,7 @@ module ZM.Parser.Lexer (
 -- import Data.Word
 
 import Data.Char as C
+import Data.Maybe
 import Data.Text (Text, pack)
 import qualified Data.Text as T
 import Text.Megaparsec hiding (Label)
@@ -107,7 +108,6 @@ lineEnd =
 --       setOffset o
 --       fail msg
 
-
 localId :: Parser Text
 localId = lexeme name
 
@@ -181,21 +181,28 @@ symChar =
         <?> "sym"
 {-# INLINE symChar #-}
 
-{- |
->>> parseMaybe var "是不是"
+{-
+>>> let p = parseMaybe wild
+
+>>> p "_"
+Just ""
+
+>>> p "__"
+Just "_"
+
+>>> p "___"
+Just "__"
+
+>>> p "_a"
+Just "a"
+
+>>> p "_是不是"
 Nothing
-
->>> parseMaybe var "_"
-Just Nothing
-
->>> parseMaybe var "_a"
-Just (Just "a")
-
->>> parseMaybe var "_是不是"
-Just (Just "\26159\19981\26159")
 -}
-var :: Parser (Maybe Text)
-var = lexeme (char '_' *> optional name)
+wild :: Parser Text
+wild = lexeme $ T.tail <$> wld
+  where
+    wld = T.cons <$> char '_' <*> (fromMaybe T.empty <$> optional (name <|> wld))
 
 {- |
 Parse a specific string
