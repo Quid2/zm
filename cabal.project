@@ -1,0 +1,17 @@
+packages: .
+
+source-repository-package
+    type: git
+    location: https://github.com/Quid2/model
+    tag: c7de393
+
+-- ignore-project: False
+
+-- tests: True
+
+-- Modified doctest, used to generate static tests (doc-static)
+-- not working properly, use stack instead
+-- source-repository-package
+--     type: git
+--    location: https://github.com/tittoassini/doctest.git
+--    tag: 3954e94449901764e28cfed1c35490af970e9b01
