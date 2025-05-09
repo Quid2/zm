@@ -1,29 +1,29 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE DeriveTraversable         #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE InstanceSigs              #-}
+{-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE UndecidableInstances      #-}
 
 module ZM.Parser.Exp where
 
-import Data.Bifunctor
-import Data.Text (Text)
-import qualified Data.Text as T
+import           Data.Bifunctor
+import           Data.Text         (Text)
+import qualified Data.Text         as T
 
 -- import qualified Data.Text.IO as T
-import Prettyprinter
-import Text.Megaparsec
-import ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
-import ZM.Parser.Lexer
-import ZM.Parser.Literal (Literal (..), literal)
-import ZM.Parser.Op
-import ZM.Parser.Types
-import ZM.Parser.Util
+import           Prettyprinter
+import           Text.Megaparsec
+import           ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
+import           ZM.Parser.Lexer
+import           ZM.Parser.Literal (Literal (..), literal)
+import           ZM.Parser.Op
+import           ZM.Parser.Types
+import           ZM.Parser.Util
 
 -- import ZM.Parser (ADTParts(name))
 
@@ -216,7 +216,8 @@ Just (F (InfixApp (F (Lit (LInteger 1))) "+" (F (InfixApp (F (Lit (LInteger 2)))
 parseMdl :: T.Text -> Either String Exp
 parseMdl = first errorBundlePretty . runParser mdl ""
 
-parseMdlF = fmap unAnn . parseMdl
+parseMdlF :: Text -> Either String (F ExpR)
+parseMdlF = fmap annToF . parseMdl
 
 type Exp = Annotate Offset ExpR
 
@@ -372,9 +373,9 @@ instance (PrettyArg r) => PrettyArg (ExpR r) where
       pre = prettyArg PreArg
       inf = prettyArg InfArg
       onInf InfArg d = par d
-      onInf _ d = d
+      onInf _ d      = d
       onPre PreArg d = par d
-      onPre _ d = d
+      onPre _ d      = d
       par d = "(" <> d <> ")"
      in
       \case

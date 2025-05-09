@@ -9,15 +9,15 @@
 
 {- Parse ZM ADT declarations and values -}
 module ZM.Parser.ADT (
-  adts,
-  adt,
-  parType,
-  absReference,
-  maybeNamedAbsRef,
-  namedOrAbsRef,
-  constructor,
-  ADTParts (..),
-  -- , absId
+    adts,
+    adt,
+    parType,
+    absReference,
+    maybeNamedAbsRef,
+    namedOrAbsRef,
+    constructor,
+    ADTParts (..),
+    -- , absId
 )
 where
 
@@ -27,14 +27,14 @@ import Text.Megaparsec
 import Text.PrettyPrint hiding ((<>))
 import qualified Text.PrettyPrint as P
 import ZM (
-  AbsRef (..),
-  Convertible,
-  Fields,
-  Identifier,
-  Pretty,
-  Type (..),
-  convert,
-  prettyShow,
+    AbsRef (..),
+    Convertible,
+    Fields,
+    Identifier,
+    Pretty,
+    Type (..),
+    convert,
+    prettyShow,
  )
 import ZM.Parser.Lexer (localId, shake, symbol)
 import ZM.Parser.Types
@@ -96,10 +96,10 @@ Left "unexpected '.' expecting '=', '_', '\8801', alphanumeric character, end of
 -}
 adt :: Parser ADTParts
 adt =
-  (\name vars mcons -> ADTParts name vars (fromMaybe [] mcons))
-    <$> at namedMaybeAbsRef -- absIdAt
-    <*> many idAt
-    <*> optional ((symbol "=" <|> symbol "≡") *> sepBy constructor (symbol "|"))
+    (\name vars mcons -> ADTParts name vars (fromMaybe [] mcons))
+        <$> at namedMaybeAbsRef -- absIdAt
+        <*> many idAt
+        <*> optional ((symbol "=" <|> symbol "≡") *> sepBy constructor (symbol "|"))
 
 {- | Parse a constructor declaration (with either named or unnamed fields).
 
@@ -120,14 +120,14 @@ Just "V@(0:0) A@(0:2) B@(0:4) (C@(0:7) D@(0:9))"
 -}
 constructor :: Parser (AtId, Fields AtId AtAbsName)
 constructor = (,) <$> idAt <*> flds
- where
-  -- flds = eitherP unnamedFlds namedFlds
+  where
+    -- flds = eitherP unnamedFlds namedFlds
 
-  flds = (Right <$> namedFlds) <|> (Left <$> unnamedFlds)
-  namedFlds = cpars (sepBy namedConstrFld (symbol ","))
-  namedConstrFld =
-    (,) <$> (idAt <* (symbol "::" <|> symbol ":")) <*> parType absIdAt
-  unnamedFlds = many (simpleType absIdAt) -- many typeAt
+    flds = (Right <$> namedFlds) <|> (Left <$> unnamedFlds)
+    namedFlds = cpars (sepBy namedConstrFld (symbol ","))
+    namedConstrFld =
+        (,) <$> (idAt <* (symbol "::" <|> symbol ":")) <*> parType absIdAt
+    unnamedFlds = many (simpleType absIdAt) -- many typeAt
 
 -- atyp = pos (typ name)
 -- typeAt = typ absIdAt
@@ -186,7 +186,7 @@ types cons = some (simpleType cons)
 -- typN :: Parser a -> Parser (TypeN a)
 -- typN cons = pars (typN cons) <|> (TypeN <$> cons <*> many (typN cons))
 
-{- | Parse a simple type name, possibly qualified with an absolute code.
+{- | Parse a simple type name, as a name and/or an absolute (K hash) code.
 
 >>> prettyShow <$> parseMaybe namedOrAbsRef "nil"
 Just "nil"
@@ -194,6 +194,9 @@ Just "nil"
 The . is required to distinguish a hash from a plain type name (remove this ambiguity?)
 
 This is a hash:
+
+>>> parseMaybe namedOrAbsRef "Bool.K306f1981b41c"
+Nothing
 
 >>> parseMaybe namedOrAbsRef ".K306f1981b41c"
 Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
@@ -210,11 +213,11 @@ Just (That (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
 --   asTypeName <$> (Just <$> localIdentifier) <*> optional dref
 namedOrAbsRef :: Parser (TypeName Identifier)
 namedOrAbsRef =
-  asTypeName Nothing
-    . Just
-    <$> (optional (symbol ".") *> absReference)
-      <|> (asTypeName . Just <$> localIdentifier)
-    <*> optional dref
+    asTypeName Nothing
+        . Just
+        <$> (optional (symbol ".") *> absReference)
+            <|> (asTypeName . Just <$> localIdentifier)
+        <*> optional dref
 
 namedMaybeAbsRef :: Parser (TypeName Identifier)
 namedMaybeAbsRef = (asTypeName . Just <$> localIdentifier) <*> optional dref
@@ -236,11 +239,11 @@ Nothing
 -}
 maybeNamedAbsRef :: Parser (TypeName Identifier)
 maybeNamedAbsRef =
-  asTypeName Nothing
-    . Just
-    <$> (optional (symbol ".") *> absReference)
-      <|> (asTypeName . Just <$> localIdentifier)
-    <*> (Just <$> dref)
+    asTypeName Nothing
+        . Just
+        <$> (optional (symbol ".") *> absReference)
+            <|> (asTypeName . Just <$> localIdentifier)
+        <*> (Just <$> dref)
 
 dref :: Parser AbsRef
 dref = symbol "." *> absReference
@@ -257,16 +260,16 @@ absReference = AbsRef <$> shake
 
 -- | A parsed ADT
 data ADTParts = ADTParts
-  { name :: AtAbsName
-  , vars :: [AtId]
-  , constrs :: [(AtId, Fields AtId AtAbsName)]
-  }
-  deriving (Show)
+    { name :: AtAbsName
+    , vars :: [AtId]
+    , constrs :: [(AtId, Fields AtId AtAbsName)]
+    }
+    deriving (Show)
 
 instance Pretty ADTParts where
-  pPrint :: ADTParts -> Doc
-  pPrint p =
-    pPrint (name p)
-      <+> hsep (map pPrint $ vars p)
-      <+> char '='
-      <+> hsep (punctuate (text " |") (map pPrint (constrs p)))
+    pPrint :: ADTParts -> Doc
+    pPrint p =
+        pPrint (name p)
+            <+> hsep (map pPrint $ vars p)
+            <+> char '='
+            <+> hsep (punctuate (text " |") (map pPrint (constrs p)))

@@ -13,9 +13,9 @@
 
 {- Convert textual ZM values to their canonical binary representation -}
 module ZM.To.Encoder (
-  encoderFor,
-  typeEncoder,
-  -- , parseErrorPretty
+    encoderFor,
+    typeEncoder,
+    -- , parseErrorPretty
 )
 where
 
@@ -35,16 +35,12 @@ import Text.Megaparsec
 import ZM
 import ZM.Parser.ADT
 import ZM.Parser.Lexer (
-  symbol,
+    symbol,
  )
 import ZM.Parser.Literal
 import ZM.Parser.Types (Parser, TypeName, asTypeName)
 import ZM.Parser.Util (cpars, doc, parenthesis)
 import qualified ZM.Type.String as ZM
-
--- import           Data.Scientific
--- import           Text.Megaparsec.Char
--- import qualified Text.Megaparsec.Char.Lexer    as L
 
 {- | A direct converter from textual to binary format for ZM values
  type ParserEncoder = String -> Either (ParseError Char Void) ByteString
@@ -62,7 +58,7 @@ type OBJ = (Sum NumBits, Encoding)
 >>> import Data.Bifunctor()
 >>> import Flat.Bits()
 >>> import Flat.Run()
->>> import           ZM.Parser.Util                 (syntaxError)
+>>> import ZM.Parser.Util (syntaxError)
 >>> newtype Msg1 = Msg1 { b0 :: Bool } deriving (Generic, Model, Flat, Show)
 >>> data Msg3 = Msg3 { b1 :: Bool, b2 :: Bool, b3 :: Bool} deriving (Generic, Model, Flat, Show)
 >>> data V = V { v0 :: Char , v1 :: String , v4 :: Float, v5 :: Double} deriving (Generic, Model, Flat, Show)
@@ -72,30 +68,75 @@ type OBJ = (Sum NumBits, Encoding)
 >>> let enc = \p s ->  bimap  (prettyShow . syntaxError) prettyShow . encoderFor p $ s
 -}
 
-{- |
+-- u = M.keys $ typeEncoderMap $ absTypeModel (Proxy :: Proxy V)
+-- e = encodeWith encBool "(True ) "
+-- l = shEnc (V 'k' "bb" 4.4 9.9E11)
+-- z = encoderFor (Proxy :: Proxy Bool) "True"
+-- m = prettyShow $ absTypeModel (Proxy :: Proxy Float)
+-- data Msg1 = Msg1 {b0::Bool} deriving (Generic,Model,Flat,Show)
+-- instance Pretty Msg1 where pPrint = text . shob
+-- instance Pretty Msg3 where pPrint = text . show
+-- instance Pretty V where pPrint = text . show
+
+-- ff = flat (4.4 :: Double)
+-- n = shEnc $ Msg3 True False True
+-- shEnc
+--   :: forall a
+--    . (Show a, Model a)
+--   => a
+--   -> Either (ParseError Char Void) ByteString
+-- shEnc v = encoderFor (Proxy :: Proxy a) (" " ++ show v ++ " ")
+
+{-
 Return a "String to Flat" encoder for values of the indicated type.
 
 >>> enc (Proxy :: Proxy (Maybe Bool)) "Just True"
 Right "[193]"
 
+>>> enc (Proxy :: Proxy (Maybe (Bool,Bool))) "Just (Tuple2 True False)"
+Right "[193]"
+
+>>> enc (Proxy :: Proxy [Bool]) "Cons True (Cons False Nil)"
+Right "[225]"
+
+TODO: support list special syntax
+
+>>> enc (Proxy :: Proxy [Bool]) "[True,False]"
+Left "\"unexpected \\\"[Tru\\\" expecting \\\"Cons\\\", \\\"Nil\\\", or '('\"@(0:0)"
+
 >>> enc (Proxy :: Proxy (Maybe Bool)) "(Just (True))"
 Right "[193]"
 
->>> enc (Proxy :: Proxy Bool) "True:Bool.K306f1981b41c "
+>>> enc (Proxy :: Proxy Char) "'a'"
+Right "[97, 1]"
+
+>>> enc (Proxy :: Proxy Float) "-123"
+Right "[194, 246, 0, 0, 1]"
+
+>>> enc (Proxy :: Proxy Int8) "+123"
+Right "[246, 1]"
+
+>>> enc (Proxy :: Proxy Bool) "True : K306f1981b42c "
+Left "\"Type Mismatch: declared type is .K306f1981b42c expected type is K306f1981b41c\"@(0:21)"
+
+>>> enc (Proxy :: Proxy Bool) "True : K306f1981b41c "
 Right "[129]"
 
->>> enc (Proxy :: Proxy Bool) " True : Bool.K306f1981b41c "
-Right "[129]"
+>>> enc (Proxy :: Proxy Bool) "True:Bool"
+Left "\"unexpected 'B' expecting '(', '.', 'K', or lowercase letter\"@(0:5)"
+
+>>> enc (Proxy :: Proxy Bool) "True:Bool.K306f1981b41c "
+Left "\"unexpected 'B' expecting '(', '.', 'K', or lowercase letter\"@(0:5)"
 
 Some types use a special syntax (Float, Double, Char, String, Integer):
 
 >>> enc (Proxy :: Proxy Float) "3.1416:Int.Kb53bec846608"
-Right "[64, 73, 15, 249, 1]"
+Left "\"unexpected 'I' expecting '(', '.', 'K', or lowercase letter\"@(0:7)"
 
 -- BAD: we do not check the type name
 
 >>> enc (Proxy :: Proxy Float) "3.1416:Float.Kb53bec846608"
-Right "[64, 73, 15, 249, 1]"
+Left "\"unexpected 'F' expecting '(', '.', 'K', or lowercase letter\"@(0:7)"
 
 -- >>> enc (Proxy :: Proxy Double) "3.1416:Int.Kb53bec846608"
 -- Right "[64, 73, 15, 249, 1]"
@@ -107,10 +148,10 @@ Right "[118, 1]"
 Right "[176, 216, 161, 93, 26, 48, 40, 85, 141]"
 
 >>> enc (Proxy :: Proxy (Maybe Bool)) "Just True:Int"
-Right "[193]"
+Left "\"unexpected 'I' expecting '(', '.', 'K', or lowercase letter\"@(0:10)"
 
 >>> enc (Proxy :: Proxy (Maybe Bool)) "Just True:Maybe (Bool.K306f1981b41c)"
-Left "\"Type Mismatch: declared type is Maybe Bool.K306f1981b41c expected type is K306f1981b41c\"@(0:36)"
+Left "\"unexpected 'M' expecting '(', '.', 'K', or lowercase letter\"@(0:10)"
 
 -- >>> enc (Proxy :: Proxy (Maybe Bool)) "Just (True:Bool.K306f1981b41c)"
 Right "[193]"
@@ -138,6 +179,7 @@ True
 True
 
 prop> \(x::Char) -> encodeOK x
+Add QuickCheck to your cabal dependencies to run this test.
 
 \$undisplayed
 >>> encodeOK '金'
@@ -148,7 +190,9 @@ True
 >>> encodeOK "!金金?"
 True
 
--- prop> \(x::Float) -> encodeOK x
+{\-
+prop> \(x::Float) -> encodeOK x
+Add QuickCheck to your cabal dependencies to run this test.
 
 -- prop> \(x::Double) -> encodeOK x
 
@@ -178,9 +222,7 @@ encodeOK :: forall a. (Flat a, Model a, Show a) => a -> Bool
 encodeOK v = encodeOK2 v (T.pack $ show v) -- (prettyShow v)
 
 encodeOK2 :: forall a. (Flat a, Model a) => a -> Text -> Bool
-encodeOK2 v s =
-  either (const False) (== flat v) $
-    encoderFor (Proxy :: Proxy a) (T.concat [" ", s, " "])
+encodeOK2 v s = either (const False) (== flat v) $ encoderFor (Proxy :: Proxy a) (T.concat [" ", s, " "])
 
 -- | Return a Flat encoder for values of the ZM type corresponding to the provided Haskell type
 encoderFor :: (Model a) => Proxy a -> ParserEncoder
@@ -189,104 +231,79 @@ encoderFor = typeEncoder . absTypeModel
 -- | Return a Flat encoder for values of the provided ZM type
 typeEncoder :: AbsTypeModel -> ParserEncoder
 typeEncoder tm =
-  encodeWith $ doc (typeEncoder_ (typeEncoderMap tm) (typeName tm))
+    encodeWith $ doc (typeEncoder_ (typeEncoderMap tm) (typeName tm))
 
 encodeWith :: Parser OBJ -> ParserEncoder
 encodeWith pe s = flat <$> parse pe "" s
 
 -- 'Fake' instance used to simplify the creation of the final binary representation
 instance Flat OBJ where
-  decode = undefined
-  encode (_, enc) = enc
-  size (Sum s, _) n = n + s
+    decode = undefined
+    encode (_, enc) = enc
+    size (Sum s, _) n = n + s
 
--- u = M.keys $ typeEncoderMap $ absTypeModel (Proxy :: Proxy V)
--- e = encodeWith encBool "(True ) "
--- l = shEnc (V 'k' "bb" 4.4 9.9E11)
--- z = encoderFor (Proxy :: Proxy Bool) "True"
--- m = prettyShow $ absTypeModel (Proxy :: Proxy Float)
--- data Msg1 = Msg1 {b0::Bool} deriving (Generic,Model,Flat,Show)
--- instance Pretty Msg1 where pPrint = text . shob
--- instance Pretty Msg3 where pPrint = text . show
--- instance Pretty V where pPrint = text . show
-
--- ff = flat (4.4 :: Double)
--- n = shEnc $ Msg3 True False True
--- shEnc
---   :: forall a
---    . (Show a, Model a)
---   => a
---   -> Either (ParseError Char Void) ByteString
--- shEnc v = encoderFor (Proxy :: Proxy a) (" " ++ show v ++ " ")
 typeEncoderMap :: AbsTypeModel -> TypeEncoderMap
 typeEncoderMap tm =
-  let denv =
-        addSpecial (Proxy :: Proxy Float) signedFloat
-          . addSpecial (Proxy :: Proxy Double) signedFloat
-          . addSpecial (Proxy :: Proxy Word8) unsigned
-          . addSpecial (Proxy :: Proxy Word16) unsigned
-          . addSpecial (Proxy :: Proxy Word32) unsigned
-          . addSpecial (Proxy :: Proxy Word64) unsigned
-          . addSpecial (Proxy :: Proxy Int8) signedInt
-          . addSpecial (Proxy :: Proxy Int16) signedInt
-          . addSpecial (Proxy :: Proxy Int32) signedInt
-          . addSpecial (Proxy :: Proxy Int64) signedInt
-          . addSpecial (Proxy :: Proxy Char) charLiteral
-          . addSpecial (Proxy :: Proxy ZM.String) (ZM.String <$> singleLineText)
-          . addSpecial (Proxy :: Proxy [Char]) singleLineText
-          $ M.mapWithKey
-            (\t ct -> conEnc denv t (Sum 0) mempty ct)
-            (typeTree tm)
-   in denv
+    let denv =
+            addSpecial (Proxy :: Proxy Float) signedFloat
+                . addSpecial (Proxy :: Proxy Double) signedFloat
+                . addSpecial (Proxy :: Proxy Word8) unsigned
+                . addSpecial (Proxy :: Proxy Word16) unsigned
+                . addSpecial (Proxy :: Proxy Word32) unsigned
+                . addSpecial (Proxy :: Proxy Word64) unsigned
+                . addSpecial (Proxy :: Proxy Int8) signedInt
+                . addSpecial (Proxy :: Proxy Int16) signedInt
+                . addSpecial (Proxy :: Proxy Int32) signedInt
+                . addSpecial (Proxy :: Proxy Int64) signedInt
+                . addSpecial (Proxy :: Proxy Char) charLiteral
+                . addSpecial (Proxy :: Proxy ZM.String) (ZM.String <$> singleLineText)
+                . addSpecial (Proxy :: Proxy [Char]) singleLineText
+                $ M.mapWithKey
+                    (\t ct -> conEnc denv t (Sum 0) mempty ct)
+                    (typeTree tm)
+     in denv
 
 -- | Add a custom parser for a ZM type
 addSpecial ::
-  (Model a, Flat a) =>
-  Proxy a ->
-  Parser a ->
-  TypeEncoderMap ->
-  TypeEncoderMap
+    (Model a, Flat a) =>
+    Proxy a ->
+    Parser a ->
+    TypeEncoderMap ->
+    TypeEncoderMap
 addSpecial proxy parser env =
-  let tm = absTypeModel proxy in M.insert (typeName tm) (encParser parser) env
+    let tm = absTypeModel proxy in M.insert (typeName tm) (encParser parser) env
 
-{- | Add a custom parser for a type
- addCustom ::
-      Model a => Proxy a -> Parser OBJ -> TypeEncoderMap -> TypeEncoderMap
- addCustom proxy parser env =
-   let tm = absTypeModel proxy
-    in M.insert (typeName tm) parser env
--}
 conEnc ::
-  (Convertible a Text) =>
-  TypeEncoderMap ->
-  t ->
-  Sum NumBits ->
-  Encoding ->
-  ConTree a AbsRef ->
-  Parser OBJ
+    (Convertible a Text) =>
+    TypeEncoderMap ->
+    t ->
+    Sum NumBits ->
+    Encoding ->
+    ConTree a AbsRef ->
+    Parser OBJ
 conEnc env t numBits enc ct =
-  parenthesis (conEnc env t numBits enc ct) <|> conEncoder env t numBits enc ct
+    parenthesis (conEnc env t numBits enc ct) <|> conEncoder env t numBits enc ct
 
 conEncoder ::
-  (Convertible a Text) =>
-  TypeEncoderMap ->
-  t ->
-  Sum NumBits ->
-  Encoding ->
-  ConTree a AbsRef ->
-  Parser OBJ
+    (Convertible a Text) =>
+    TypeEncoderMap ->
+    t ->
+    Sum NumBits ->
+    Encoding ->
+    ConTree a AbsRef ->
+    Parser OBJ
 conEncoder env t numBits enc (ConTree l r) =
-  let numBits' = (+ 1) <$> numBits
-   in conEncoder env t numBits' (enc <> eFalse) l
-        <|> conEncoder env t numBits' (enc <> eTrue) r
+    let numBits' = (+ 1) <$> numBits
+     in conEncoder env t numBits' (enc <> eFalse) l
+            <|> conEncoder env t numBits' (enc <> eTrue) r
 conEncoder env _ numBits enc (Con cn (Left ps)) =
-  constrEnc (convert cn) numBits enc <> flds env ps
+    constrEnc (convert cn) numBits enc <> flds env ps
 conEncoder env _ numBits enc (Con cn (Right ps)) =
-  constrEnc (convert cn) numBits enc <> mnamedFlds env ps
- where
-  mnamedFlds env ps =
-    cpars (namedFlds (map (bimap convert (typeEncoder_ env)) ps))
-      <|> flds env (map snd ps)
+    constrEnc (convert cn) numBits enc <> mnamedFlds env ps
+  where
+    mnamedFlds env ps =
+        cpars (namedFlds (map (bimap convert (typeEncoder_ env)) ps))
+            <|> flds env (map snd ps)
 
 flds :: TypeEncoderMap -> [AbsType] -> Parser OBJ
 flds env ps = mconcat (map (typeEncoder_ env) ps)
@@ -300,24 +317,24 @@ constrEnc name numBits enc = (numBits, enc) <$ symbol name
 -}
 typeEncoder_ :: TypeEncoderMap -> AbsType -> Parser OBJ
 typeEncoder_ env typ = do
-  let typeParser :: Parser (OBJ, Type (TypeName Identifier)) =
-        (undefined,) <$> (symbol ":" *> parType namedOrAbsRef)
-      valueParser = (,undefined) <$> solve typ env
-  ((r, _), mtp) <- (,) <$> valueParser <*> optional typeParser
-  case mtp of
-    Nothing -> return r
-    -- BUG: no name check
-    Just (_, dtyp) ->
-      if dtyp == (asTypeName Nothing . Just <$> typ)
-        then return r
-        else
-          fail $
-            unwords
-              [ "Type Mismatch: declared type is"
-              , prettyShow dtyp
-              , "expected type is"
-              , prettyShow typ
-              ]
+    let typeParser :: Parser (OBJ, Type (TypeName Identifier)) =
+            (undefined,) <$> (symbol ":" *> parType namedOrAbsRef)
+        valueParser = (,undefined) <$> solve typ env
+    ((r, _), mtp) <- (,) <$> valueParser <*> optional typeParser
+    case mtp of
+        Nothing -> return r
+        -- BUG: no name check
+        Just (_, dtyp) ->
+            if dtyp == (asTypeName Nothing . Just <$> typ)
+                then return r
+                else
+                    fail $
+                        unwords
+                            [ "Type Mismatch: declared type is"
+                            , prettyShow dtyp
+                            , "expected type is"
+                            , prettyShow typ
+                            ]
 
 {-
 NOT DEFINED ELSEWHERE? see ZM.Parser.Value for declarative form
@@ -334,16 +351,16 @@ sent=Bool,content="some message"
 -}
 namedFlds :: [(Text, Parser OBJ)] -> Parser OBJ
 namedFlds =
-  (mconcat <$>)
-    . intercalateEffect (optional (symbol ","))
-    . traverse
-      (toPermutation . namedFld)
+    (mconcat <$>)
+        . intercalateEffect (optional (symbol ","))
+        . traverse
+            (toPermutation . namedFld)
 
 namedFld :: (Text, Parser OBJ) -> Parser OBJ
 namedFld (name, parser) = do
-  _ <- symbol name
-  _ <- symbol "="
-  parser
+    _ <- symbol name
+    _ <- symbol "="
+    parser
 
 signedFloatEnc :: Parser OBJ
 signedFloatEnc = encParser (signedFloat :: Parser Float)
@@ -351,8 +368,8 @@ signedFloatEnc = encParser (signedFloat :: Parser Float)
 -- | Transform a parser in an encoding parser
 encParser :: (Flat a) => Parser a -> Parser OBJ
 encParser p = (\s -> (Sum $ getSize s, encode s)) <$> par p
- where
-  par p = parenthesis (par p) <|> p
+  where
+    par p = parenthesis (par p) <|> p
 
 -- dtBool = simpleConstr "False" <|> simpleConstr "True"
 -- simpleConstr :: String -> Parser Value

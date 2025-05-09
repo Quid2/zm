@@ -1,13 +1,12 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveFunctor         #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module ZM.Parser.Types (
     Parser,
@@ -29,27 +28,27 @@ module ZM.Parser.Types (
     Range (..),
     RangeLine (..),
     Fix (..),
-    F (..),
-    Annotate (..),
-    unAnn,
+    module Data.Annotate,
     Void,
     Void1,
     module Data.Either.Validation,
 ) where
 
-import Data.Either.Validation
-import Data.Fix
-import Data.Functor.Classes
-import Data.Text (Text)
-import Data.These.Extra
-import Data.Void
-import Data.Word
-import qualified Prettyprinter as P
-import Text.Megaparsec hiding (Label, label)
-import Text.PrettyPrint hiding ((<>))
-import qualified Text.PrettyPrint as TP
-import Text.Show.Deriving
-import ZM
+import           Data.Annotate
+import           Data.Bifunctor
+import           Data.Either.Validation
+import           Data.Fix
+import           Data.Functor.Classes
+import           Data.Text              (Text)
+import           Data.These.Extra
+import           Data.Void
+import           Data.Word
+import qualified Prettyprinter          as P
+import           Text.Megaparsec        hiding (Label, label)
+import qualified Text.PrettyPrint       as TP
+import           Text.PrettyPrint       hiding ((<>))
+import           Text.Show.Deriving
+import           ZM
 
 type Parser = Parsec Void Text
 
@@ -222,49 +221,6 @@ In an equation for `it_a6FID':
 --                 <> hsep (map pPrint (valFields v))
 --                 <> end
 
-{-
-Recursive Annotation
-
->>> Ann "Bool" $ ConstrF "True" (Left []) :: Annotate String (ValF Literal Void)
-Ann "Bool" (ConstrF "True" (Left []))
-
->>> Ann "Bool" $ LitF (LChar 't') :: Annotate String (ValF Literal Void)
-Ann "Bool" (LitF (LChar 't'))
-
->>> Ann "Bool" $ LitF (LArray [Ann "Char" $ LitF (LChar 't')]) :: Annotate String (ValF Literal Void)
-Ann "Bool" (LitF (LArray [Ann "Char" (LitF (LChar 't'))]))
-
->>> Ann (Range 1 3 4) $ BinderF Wild :: Annotate Range (ValF Void1 Binder)
-Ann (Range {line = 1, start = 3, end = 4}) (BinderF Wild)
-
->>> Ann "Bool" (LitF (LChar 't')) == (Ann "Bool" $ LitF (LChar 't') :: Annotate String (ValF Literal Void))
-True
--}
-data Annotate label f = Ann label (f (Annotate label f))
-
-deriving instance (Eq label, Eq (f (Annotate label f))) => Eq (Annotate label f)
-deriving instance (Ord label, Ord (f (Annotate label f))) => Ord (Annotate label f)
-deriving instance (Show label, Show (f (Annotate label f))) => Show (Annotate label f)
-
-unAnn :: (Functor f) => Annotate label f -> F f
-unAnn (Ann _ r) = F (fmap unAnn r)
-
--- Our own Fix, to derive Show automatically.
-newtype F f = F (f (F f))
-deriving instance (Eq (f (F f))) => Eq (F f)
-deriving instance (Ord (f (F f))) => Ord (F f)
-deriving instance (Show (f (F f))) => Show (F f)
-
--- Pretty instance for F, hiding the presence of F
--- instance (Pretty (f (F f))) => Pretty (F f) where pPrint (F r) = pPrint r
-
-instance (P.Pretty l, P.Pretty (f (Annotate l f))) => P.Pretty (Annotate l f) where
-    pretty (Ann l f) = P.pretty f <> P.pretty '@' <> P.pretty l
-
-instance (P.Pretty (f (F f))) => P.Pretty (F f) where pretty (F f) = P.pretty f
-
--- instance (Show (f (F f))) =>  Show (F f) where
---     show (F r) = show r
 
 {-
 >>> ConstrF "True" (Left []) :: Val Literal Void

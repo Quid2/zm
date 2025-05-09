@@ -34,7 +34,7 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Debug
 import ZM hiding ()
-import ZM.Parser.Types (Annotate (Ann), Label (..), Parser)
+import ZM.Parser.Types (Annotate, Ann(..), Label (..), Parser)
 
 -- lexeme :: (AnnotatePos a b) => Parser a -> Parser b
 -- lexeme p = do

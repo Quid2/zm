@@ -1,6 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE RecordWildCards           #-}
 
 {-
 A parser for a concise and extensible document format that can embed programming constructs (data types declarations, function, etc) as well as text, diagrams, etc.
@@ -8,6 +8,8 @@ A parser for a concise and extensible document format that can embed programming
 A document is a sequence of sections, each introduced by a keyword that specify what parser is used to interpret it.
 
 A section name should be either a sequence of characters or as sequence of symbols:
+
+While a module is a set of definitions, a document is a set of function calls that progressively build a value (the final doc output).
 
 ```
 char 'a'
@@ -24,6 +26,17 @@ adt Bool = False
 {html
   <b>bold</b>
 }
+
+html "
+<b>bold</b>
+"
+
+header 2 Second header
+
+doc "html" "
+"
+
+# A title
 
 module X where
   id a = a
@@ -61,9 +74,44 @@ Variant: name can be preceded by some optional space, needed if the name is symb
 
 Variant: any of the three parentheses is supported () [] {}
 
+Variant: the { follows the name as in: name { or ""
+
+In this case the parameter to the command is a string that can be either the current line text or the explicit multi line string
+"
+"
+
+So we have:
+
+section ...string parameter..
+
+or:
+
+section "
+string parameter
+"
+
+This allow to also pass other parameters like numbers and such?
+
 In both cases, the text that composes the section is passed to the parser exactly as written, including the section name, but excluding the brackets and the optional space.
 
 Space between sections is not significant.
+
+# The Meta level
+
+Use fun t to define new functions
+
+fun # = header 1
+fun ## = header 2
+
+# Inline functions
+
+Alternative: XML/HTML - WebComponents https://developer.mozilla.org/en-US/docs/Web/API/Web_components
+
+<a class="" href="http://google.com">google</a>
+
+<b>..</b>
+
+<code></code>
 
 Alternative:
 For documents/notes, etc, we just use the usual data syntax.
@@ -107,18 +155,18 @@ https://via.hypothes.is/https://talk.fission.codes/t/tools-for-thought-atjson-as
 -}
 module ZM.Parser.Doc where
 
-import Control.Monad (void)
-import Data.Char
-import Data.Either.Extra (mapLeft)
-import Data.Foldable (fold)
-import Data.List
-import qualified Data.Map as M
-import Data.Text (Text)
-import qualified Data.Text as T
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import ZM.Parser.Lexer
-import ZM.Parser.Types (Parser)
+import           Control.Monad        (void)
+import           Data.Char
+import           Data.Either.Extra    (mapLeft)
+import           Data.Foldable        (fold)
+import           Data.List
+import qualified Data.Map             as M
+import           Data.Text            (Text)
+import qualified Data.Text            as T
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import           ZM.Parser.Lexer
+import           ZM.Parser.Types      (Parser)
 
 -- import ZM.Parser.Util (parseDoc)
 
