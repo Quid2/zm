@@ -11,7 +11,7 @@ maintainer:         tittoassini@gmail.com
 copyright:          Copyright: (c) 2016-2023 Pasqualino `Titto` Assini
 cabal-version:      >=1.10
 build-type:         Simple
-tested-with:        GHC ==8.10.7 || ==9.2.5 || ==9.4.3
+tested-with:        GHC ==8.10.7 || ==9.2.5 || ==9.4.8
 extra-source-files: README.md
 
 -- stack.yaml
@@ -21,6 +21,7 @@ source-repository head
 
 library
   exposed-modules:
+    Data.Annotate
     Data.Digest.Keccak
     Data.List.Extra
     Data.These.Extra
@@ -89,7 +90,8 @@ library
       , memory
 
   build-depends:
-      base                         >=4.8
+      aeson
+    , base                         >=4.8
     , bytestring                   >=0.10.6.0
     , containers
     , data-fix
@@ -105,11 +107,14 @@ library
     , pretty                       >=1.1.2
     , prettyprinter
     , prettyprinter-ansi-terminal
+    , QuickCheck
+    , quickcheck-instances
     , scientific
     , text
     , these-skinny
     , transformers                 >=0.4.2.0
 
+  -- TODO: REMOVE QuickCheck
   js-sources:       jsbits/sha3.js
   default-language: Haskell2010
   hs-source-dirs:   src
