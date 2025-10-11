@@ -35,6 +35,7 @@ import ZM.Type.Float64
 import ZM.Type.List
 import qualified ZM.Type.Map as Z
 import ZM.Type.Prims ()
+import qualified ZM.Type.Text as Z
 import ZM.Type.Tuples
 import ZM.Type.Unit
 import qualified Prelude as H
@@ -93,12 +94,15 @@ instance Model L.ByteString where envType _ = envType (Proxy :: Proxy Bytes)
 instance Model SBS.ShortByteString where envType _ = envType (Proxy :: Proxy Bytes)
 
 -- Texts
+instance Model Text where envType _ = envType (Proxy :: Proxy Z.UTF8Text)
 
-deriving instance Model UTF8Text
+instance Model UTF8Text where envType _ = envType (Proxy :: Proxy Z.UTF8Text)
 
-deriving instance Model UTF16Text
+instance Model UTF16Text where envType _ = envType (Proxy :: Proxy Z.UTF16Text)
 
-instance Model Text where envType _ = envType (Proxy :: Proxy UTF8Text)
+-- deriving instance Model UTF8Text
+
+-- deriving instance Model UTF16Text
 
 --  NOTE: When the kind of the type for which we define the model does not match that of the type we are mapping to we also need to define an AsType instance
 -- instance Model Text where envType _ = envType (Proxy :: Proxy (Z.BLOB Z.UTF8Encoding))
