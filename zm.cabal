@@ -83,6 +83,7 @@ library
     ZM.Type.Repo
     ZM.Type.Repo0
     ZM.Type.String
+    ZM.Type.Text
     ZM.Type.Tuples
     ZM.Type.Unit
     ZM.Type.Words
