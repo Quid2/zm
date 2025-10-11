@@ -1,45 +1,58 @@
-name:               zm
-version:            0.3.11
-synopsis:           Language independent, reproducible, absolute types
-description:        See the <http://github.com/Quid2/zm online tutorial>.
-homepage:           http://github.com/Quid2/zm
-category:           Data,Reflection
-license:            BSD3
-license-file:       LICENSE
-author:             Pasqualino `Titto` Assini
-maintainer:         tittoassini@gmail.com
-copyright:          Copyright: (c) 2016-2023 Pasqualino `Titto` Assini
-cabal-version:      >=1.10
-build-type:         Simple
-tested-with:        GHC ==8.10.7 || ==9.2.5 || ==9.4.8
+name: zm
+version: 0.3.11
+synopsis: Language independent, reproducible, absolute types
+description: See the <http://github.com/Quid2/zm online tutorial>.
+homepage: http://github.com/Quid2/zm
+category: Data,Reflection
+license: BSD3
+license-file: LICENSE
+author: Pasqualino `Titto` Assini
+maintainer: tittoassini@gmail.com
+copyright: Copyright: (c) 2016-2023 Pasqualino `Titto` Assini
+cabal-version: >=1.10
+build-type: Simple
+tested-with: ghc ==8.10.7 || ==9.2.5 || ==9.4.8
 extra-source-files: README.md
 
 -- stack.yaml
 source-repository head
-  type:     git
+  type: git
   location: https://github.com/Quid2/zm
 
 library
   exposed-modules:
+    -- ConstructorTree
     Data.Annotate
     Data.Digest.Keccak
     Data.List.Extra
     Data.These.Extra
+    Earley
     ZM
     ZM.Abs
     ZM.AsValue
     ZM.BLOB
     ZM.BLOB.BLOBList
+    ZM.Carte
+    ZM.Lexer
+    ZM.Location
     ZM.Model
     ZM.Parser
     ZM.Parser.ADT
+    ZM.Parser.Bind
+    ZM.Parser.BindF
     ZM.Parser.Bracket
+    ZM.Parser.ConstrF
     ZM.Parser.Doc
     ZM.Parser.Env
     ZM.Parser.Exp
+    ZM.Parser.HasParser
     ZM.Parser.Lexer
     ZM.Parser.Literal
+    ZM.Parser.LiteralF
     ZM.Parser.Op
+    ZM.Parser.OpF
+    ZM.Parser.ParseF
+    ZM.Parser.Pattern
     ZM.Parser.Pretty
     ZM.Parser.Types
     ZM.Parser.Util
@@ -49,14 +62,15 @@ library
     ZM.Pretty.Base
     ZM.To.Decoder
     ZM.To.Encoder
+    ZM.To.Matcher
     ZM.Transform
     ZM.Type.Array
+    ZM.Type.BLOB
     ZM.Type.Bit
     ZM.Type.Bits11
     ZM.Type.Bits23
     ZM.Type.Bits52
     ZM.Type.Bits8
-    ZM.Type.BLOB
     ZM.Type.Char
     ZM.Type.Float32
     ZM.Type.Float64
@@ -79,76 +93,78 @@ library
   -- ZM.Dynamic
   -- ZM.Pretty.Value
   -- ZM.Pretty.Value
-
   -- ZM.Coerce
-  if impl(ghcjs)
+  if impl(ghcjs >=0)
     build-depends: ghcjs-base >=0.2 && <0.3
-
   else
     build-depends:
-        cryptonite  >=0.22 && <1
-      , memory
+      cryptonite >=0.22 && <1,
+      memory
 
   build-depends:
-      aeson
-    , base                         >=4.8
-    , bytestring                   >=0.10.6.0
-    , containers
-    , data-fix
-    , deepseq                      >=1.4
-    , deriving-compat
-    , directory
-    , either                       >=4.3.2.0  && <6
-    , extra
-    , flat                         >=0.6      && <0.7
-    , megaparsec                   >=9        && <10
-    , model                        >=0.5      && <0.6
-    , parser-combinators
-    , pretty                       >=1.1.2
-    , prettyprinter
-    , prettyprinter-ansi-terminal
-    , QuickCheck
-    , quickcheck-instances
-    , scientific
-    , text
-    , these-skinny
-    , transformers                 >=0.4.2.0
+    Earley,
+    QuickCheck,
+    aeson,
+    base >=4.8,
+    bytestring >=0.10.6.0,
+    compdata,
+    containers,
+    data-fix,
+    deepseq >=1.4,
+    deriving-compat,
+    directory,
+    either >=4.3.2.0 && <6,
+    extra,
+    flat >=0.6 && <0.7,
+    megaparsec >=9 && <10,
+    model >=0.5 && <0.6,
+    parser-combinators,
+    pretty >=1.1.2,
+    prettyprinter,
+    prettyprinter-ansi-terminal,
+    quickcheck-instances,
+    safe-exceptions,
+    scientific,
+    text,
+    these-skinny,
+    transformers >=0.4.2.0,
+    unordered-containers
 
   -- TODO: REMOVE QuickCheck
-  js-sources:       jsbits/sha3.js
+  js-sources: jsbits/sha3.js
   default-language: Haskell2010
-  hs-source-dirs:   src
-
+  hs-source-dirs: src
   -- ghc-options: -O2 -funbox-strict-fields -Wall -fno-warn-orphans -fno-warn-name-shadowing
   -- if impl(ghc >8)
   ghc-options:
-    -Wall -funbox-strict-fields -fno-warn-orphans
-    -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wall
+    -funbox-strict-fields
+    -fno-warn-orphans
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
     -Wredundant-constraints
 
 -- -Werror
-
 -- -fno-warn-name-shadowing
-
 test-suite spec
-  type:             exitcode-stdio-1.0
-  main-is:          Spec.hs
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
   build-depends:
-      base
-    , bytestring
-    , containers
-    , flat
-    , model
-    , pretty
-    , tasty
-    , tasty-hunit
-    , tasty-quickcheck
-    , text
-    , timeit            >=1
-    , zm
+    base,
+    bytestring,
+    containers,
+    flat,
+    model,
+    pretty,
+    tasty,
+    tasty-hunit,
+    tasty-quickcheck,
+    text,
+    timeit >=1,
+    zm
 
   default-language: Haskell2010
-  hs-source-dirs:   test
+  hs-source-dirs: test
   other-modules:
     Info
     Test.Data
@@ -158,9 +174,9 @@ test-suite spec
     Test.Data2.Flat
     Test.Data3
     Test.Data3.Flat
-    Test.ZM.ADT.AbsRef.K4bbd38587b9e
     Test.ZM.ADT.ADT.K3e8257255cbf
     Test.ZM.ADT.ADTRef.K07b1b045ac3c
+    Test.ZM.ADT.AbsRef.K4bbd38587b9e
     Test.ZM.ADT.Array.K2e8b4519aeaa
     Test.ZM.ADT.BLOB.Kf139d4751fda
     Test.ZM.ADT.Bool.K306f1981b41c
@@ -190,7 +206,10 @@ test-suite spec
     Test.ZM.ADT.Word8.Kb1f46a49c8f8
     ZM.Prim
 
-  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
 
 -- test-suite doc
 --   default-language: Haskell2010
@@ -206,4 +225,3 @@ test-suite spec
 --     , QuickCheck            >=2.14.2
 --     , quickcheck-instances  >0.3.27
 --     , text
-
