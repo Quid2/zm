@@ -5,6 +5,11 @@ source-repository-package
     location: https://github.com/Quid2/model
     tag: c7de393
 
+source-repository-package
+    type: git
+    location: https://github.com/Quid2/flat
+    tag: 8c37add
+
 -- ignore-project: False
 
 -- tests: True
