@@ -56,8 +56,12 @@ instance KeyOf QualName (AbsRef,AbsADT) where
 
 {- | Derive an absolute type for a type, or throw an error if derivation is impossible
 
+Non recursive type:
+
 >>> absType (Proxy :: Proxy Bool)
 TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28))
+
+Self recursive type:
 
 >>> absType (Proxy :: Proxy ([Bool]))
 TypeApp (TypeCon (AbsRef (SHAKE128_48 184 205 19 24 113 152))) (TypeCon (AbsRef (SHAKE128_48 48 111 25 129 180 28)))
@@ -253,7 +257,7 @@ mutualErrors getRef env =
 -- This test is also performed as part of the relative to absolute conversion (`relToAbsEnv`)
 refErrors :: (Foldable t, Eq t1) => M.Map t1 (t (ADTRef t1)) -> [ZMError t1]
 refErrors env =
-  let refs = nub . catMaybes . concatMap (map extRef . toList) . M.elems $ env
+  let refs = nub . concatMap (mapMaybe extRef . toList) . M.elems $ env
       definedInEnv = M.keys env
   in  map UnknownType $ refs \\ definedInEnv
 
