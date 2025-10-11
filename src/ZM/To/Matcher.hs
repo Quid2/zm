@@ -180,7 +180,7 @@ Skip 7
 tst :: forall a. (Flat a, Model a) => a -> (Decoded (), BTree)
 tst a = let tm = absTypeModel (Proxy :: Proxy a); t = typeName tm; dm = typeMatcherMap tm in (unflatWith (dWild dm t) (flat a), typeMatcher tm)
 
--- | Decode/Skip a vale of the indicated abs type
+-- | Decode/Skip a value of the indicated abs type
 dWild :: M.Map AbsType BTree -> AbsType -> Get ()
 dWild tm = matchType
   where
