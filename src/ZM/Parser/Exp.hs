@@ -1,38 +1,36 @@
-{-# LANGUAGE AllowAmbiguousTypes       #-}
-{-# LANGUAGE DeriveTraversable         #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE InstanceSigs              #-}
-{-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE UndecidableInstances      #-}
 
 module ZM.Parser.Exp where
 
-import           Data.Bifunctor
-import           Data.Text         (Text)
-import qualified Data.Text         as T
-
+import Data.Bifunctor
+import Data.Text (Text)
+import qualified Data.Text as T
 -- import qualified Data.Text.IO as T
-import           Prettyprinter
-import           Text.Megaparsec
-import           ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
-import           ZM.Parser.Lexer
-import           ZM.Parser.Literal (Literal (..), literal)
-import           ZM.Parser.Op
-import           ZM.Parser.Types
-import           ZM.Parser.Util
+import Prettyprinter
+import Text.Megaparsec
+import ZM.Parser.Bracket (Bracket, bracket, prettyBracket)
+import ZM.Parser.Lexer
+import ZM.Parser.Literal (Literal (..), literal)
+import ZM.Parser.Op
+import ZM.Parser.Types
+import ZM.Parser.Util
 
 -- import ZM.Parser (ADTParts(name))
 
-{- $setup
->>> pr = parseMaybe (doc expr)
->>> p = fmap pretty . pr
->>> up = fmap unAnn . pr
->>> sup = fmap pretty . up
--}
+-- $setup
+-- >>> pr = parseMaybe (doc expr)
+-- >>> p = fmap pretty . pr
+-- >>> up = fmap unAnn . pr
+-- >>> sup = fmap pretty . up
 
 {-
 >>> sup "{T->T\nF->{x->x}}"
@@ -283,12 +281,12 @@ app l@(Ann l1 _) r = Ann l1 (App l r)
 simple :: Parser Exp
 simple =
   choice
-    [ par
-    , arr
-    , pre
-    , con
-    , lit
-    , wld
+    [ par,
+      arr,
+      pre,
+      con,
+      lit,
+      wld
     ]
 
 par :: Parser Exp
@@ -313,7 +311,7 @@ con = located $ Con <$> constr
 lit :: Parser Exp
 lit = located $ Lit <$> literal
 
--- TODO: single InfixApp
+-- TODO: single InfixApp if .then .else run.a.b
 -- type Expr = Fix ExpR
 data ExpR r
   = App r r
@@ -368,25 +366,23 @@ Just Z -> (y -> y)
 -}
 instance (PrettyArg r) => PrettyArg (ExpR r) where
   prettyArg arg =
-    let
-      no = prettyArg NoArg
-      pre = prettyArg PreArg
-      inf = prettyArg InfArg
-      onInf InfArg d = par d
-      onInf _ d      = d
-      onPre PreArg d = par d
-      onPre _ d      = d
-      par d = "(" <> d <> ")"
-     in
-      \case
-        InfixApp l op r -> onInf arg $ hsep [inf l, pretty op, inf r]
-        App f a -> onPre arg $ hsep [no f, pre a]
-        Con name -> pretty name
-        Arr brk -> prettyBracket no brk
-        Prefix name -> pretty name
-        Wild name -> "_" <> pretty name
-        -- Field name -> pretty name
-        Lit l -> pretty l
+    let no = prettyArg NoArg
+        pre = prettyArg PreArg
+        inf = prettyArg InfArg
+        onInf InfArg d = par d
+        onInf _ d = d
+        onPre PreArg d = par d
+        onPre _ d = d
+        par d = "(" <> d <> ")"
+     in \case
+          InfixApp l op r -> onInf arg $ hsep [inf l, pretty op, inf r]
+          App f a -> onPre arg $ hsep [no f, pre a]
+          Con name -> pretty name
+          Arr brk -> prettyBracket no brk
+          Prefix name -> pretty name
+          Wild name -> "_" <> pretty name
+          -- Field name -> pretty name
+          Lit l -> pretty l
 
 {-
 pat =>  lpat qconop pat (infix constructor)

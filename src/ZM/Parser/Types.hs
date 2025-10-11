@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveFunctor         #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module ZM.Parser.Types (
-    Parser,
+module ZM.Parser.Types
+  ( Parser,
     asTypeName,
     hasName,
     hasRef,
@@ -32,36 +32,36 @@ module ZM.Parser.Types (
     Void,
     Void1,
     module Data.Either.Validation,
-) where
+  )
+where
 
-import           Data.Annotate
-import           Data.Bifunctor
-import           Data.Either.Validation
-import           Data.Fix
-import           Data.Functor.Classes
-import           Data.Text              (Text)
-import           Data.These.Extra
-import           Data.Void
-import           Data.Word
-import qualified Prettyprinter          as P
-import           Text.Megaparsec        hiding (Label, label)
-import qualified Text.PrettyPrint       as TP
-import           Text.PrettyPrint       hiding ((<>))
-import           Text.Show.Deriving
-import           ZM
+import Data.Annotate
+import Data.Bifunctor
+import Data.Either.Validation
+import Data.Fix
+import Data.Functor.Classes
+import Data.Text (Text)
+import Data.These.Extra
+import Data.Void
+import Data.Word
+import qualified Prettyprinter as P
+import Text.Megaparsec hiding (Label, label)
+import Text.PrettyPrint hiding ((<>))
+import qualified Text.PrettyPrint as TP
+import Text.Show.Deriving
+import ZM
 
 type Parser = Parsec Void Text
 
 type Offset = Int
 
-{- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c"
-
->>> asTypeName (Just "Bool") Nothing
-This "Bool"
-
->>> pPrint $ asTypeName (Just "Bool") Nothing
-"Bool"
--}
+-- | A data type name can be either local, or absolute, or both: "Bool" | ".K306f1981b41c" | "Bool.K306f1981b41c"
+--
+-- >>> asTypeName (Just "Bool") Nothing
+-- This "Bool"
+--
+-- >>> pPrint $ asTypeName (Just "Bool") Nothing
+-- "Bool"
 
 -- n = asTypeName "Bool" (asbType :: Proxy Bool)
 
@@ -83,7 +83,7 @@ absTypeName :: TypeName s -> AbsRef
 absTypeName = fromThat
 
 instance (Pretty n) => Pretty (TypeName n) where
-    pPrint = both pPrint (\r -> char '.' P.<> pPrint r)
+  pPrint = both pPrint (\r -> char '.' P.<> pPrint r)
 
 {-
 >>> pPrint $ Range 3 7 11
@@ -92,32 +92,32 @@ instance (Pretty n) => Pretty (TypeName n) where
 data RangeLine = RangeLine {line, startPos, endPos :: Word32} deriving (Show, Eq, Ord, Generic, Flat, Model)
 
 instance Pretty RangeLine where
-    pPrint (RangeLine{..}) =
-        text $
-            concat
-                [ "("
-                , show line
-                , ":"
-                , show startPos
-                , if endPos == startPos
-                    then ""
-                    else "-" ++ show endPos
-                , ")"
-                ]
+  pPrint (RangeLine {..}) =
+    text $
+      concat
+        [ "(",
+          show line,
+          ":",
+          show startPos,
+          if endPos == startPos
+            then ""
+            else "-" ++ show endPos,
+          ")"
+        ]
 
 data Range = Range {start, end :: Word32} deriving (Show, Eq, Ord, Generic, Flat, Model)
 
 instance Pretty Range where
-    pPrint (Range{..}) =
-        text $
-            concat
-                [ "("
-                , show start
-                , if end == start
-                    then ""
-                    else "-" ++ show end
-                , ")"
-                ]
+  pPrint (Range {..}) =
+    text $
+      concat
+        [ "(",
+          show start,
+          if end == start
+            then ""
+            else "-" ++ show end,
+          ")"
+        ]
 
 type At v = Label RangeLine v
 
@@ -138,52 +138,51 @@ Label is transparent with respect to equality and ordering (why?):
 True
 -}
 data Label l a = Label {label :: l, object :: a}
-    deriving (Show, Functor)
+  deriving (Show, Functor)
 
 instance (Pretty l, Pretty a) => Pretty (Label l a) where
-    pPrint (Label l a) = pPrint a <> text "@" <> pPrint l
+  pPrint (Label l a) = pPrint a <> text "@" <> pPrint l
 
 instance (Eq p) => Eq (Label l p) where
-    (Label _ a) == (Label _ b) = a == b
+  (Label _ a) == (Label _ b) = a == b
 
 instance (Ord a) => Ord (Label l a) where
-    (Label _ a) <= (Label _ b) = a <= b
+  (Label _ a) <= (Label _ b) = a <= b
 
 instance (Convertible a b) => Convertible (Label l a) (Label l b) where
-    safeConvert (Label l a) = Label l <$> safeConvert a
+  safeConvert (Label l a) = Label l <$> safeConvert a
 
 instance (Convertible a b) => Convertible (Label l a) b where
-    safeConvert (Label _ a) = safeConvert a
+  safeConvert (Label _ a) = safeConvert a
 
 -- MOVE TO model
 -- instance Convertible a a where safeConvert = Right
 
-{- | A generic value (used for dynamic decoding)
- data Value =
-   Value { valType :: AbsType -- ^Type
-         , valName :: String -- ^Constructor name (duplicate info if we have abstype)
-         , valBits :: [Bool] -- ^Bit encoding/constructor id
-           -- TODO: add field names (same info present in abstype)
-         , valFields :: [Value] -- ^Values to which the constructor is applied, if any
-         }
-   deriving (Eq, Ord, Show, NFData, Generic, Flat)
- data Void
- Value could also be expressed as
- type Value = Val (AbsType, [Bool]) Literal Void
-  v0 :: [Value0]
- v0 = [lit (.., [False,True]) (PInt 3)
- |A Pattern matches a subset of values of a ZM Type
- p1 :: [Pattern]
- p1 = [lit "1:1" (PInt 3), Binder "1:2" PWild]
- type Pattern = Val () Literal Binder
- type Value = Val () Literal ()
- data Val annotation lit binder =
-     Constr
-       annotation
-       String -- ^Name of the constructor (e.g. "True")
-       (Either [Val annotation lit binder] [(String, Val annotation lit binder)]) -- ^Constructor parameters, possibly named
-     --        } -- ^A standard constructor, e.g. PCon "True" []
--}
+-- | A generic value (used for dynamic decoding)
+-- data Value =
+--   Value { valType :: AbsType -- ^Type
+--         , valName :: String -- ^Constructor name (duplicate info if we have abstype)
+--         , valBits :: [Bool] -- ^Bit encoding/constructor id
+--           -- TODO: add field names (same info present in abstype)
+--         , valFields :: [Value] -- ^Values to which the constructor is applied, if any
+--         }
+--   deriving (Eq, Ord, Show, NFData, Generic, Flat)
+-- data Void
+-- Value could also be expressed as
+-- type Value = Val (AbsType, [Bool]) Literal Void
+--  v0 :: [Value0]
+-- v0 = [lit (.., [False,True]) (PInt 3)
+-- |A Pattern matches a subset of values of a ZM Type
+-- p1 :: [Pattern]
+-- p1 = [lit "1:1" (PInt 3), Binder "1:2" PWild]
+-- type Pattern = Val () Literal Binder
+-- type Value = Val () Literal ()
+-- data Val annotation lit binder =
+--     Constr
+--       annotation
+--       String -- ^Name of the constructor (e.g. "True")
+--       (Either [Val annotation lit binder] [(String, Val annotation lit binder)]) -- ^Constructor parameters, possibly named
+--     --        } -- ^A standard constructor, e.g. PCon "True" []
 
 --     -- Constr { cAnnotation :: annotation
 --     --        , cName :: String -- ^Name of the constructor (e.g. "True")
@@ -220,7 +219,6 @@ In an equation for `it_a6FID':
 --                 <> char ' '
 --                 <> hsep (map pPrint (valFields v))
 --                 <> end
-
 
 {-
 >>> ConstrF "True" (Left []) :: Val Literal Void
@@ -260,7 +258,7 @@ No instance for (Show1 (ValF Literal Void))
 In a stmt of an interactive GHCi command: evalPrint it_akHm1
 -}
 
-data Void1 a
+data Void1 a deriving (Functor)
 
 instance Show (Void1 a) where show _ = ""
 

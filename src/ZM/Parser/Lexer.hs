@@ -6,8 +6,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module ZM.Parser.Lexer (
-    ws,
+module ZM.Parser.Lexer
+  ( ws,
     wsn,
     lineEnd,
     eof,
@@ -20,8 +20,10 @@ module ZM.Parser.Lexer (
     localId,
     symbol,
     shake,
+    isInfixChar,
     -- unsigned,
-) where
+  )
+where
 
 -- import Data.Word
 
@@ -34,16 +36,15 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Text.Megaparsec.Debug
 import ZM hiding ()
-import ZM.Parser.Types (Annotate, Ann(..), Label (..), Parser)
+import ZM.Parser.Types (Ann (..), Annotate, Label (..), Parser)
 
 -- lexeme :: (AnnotatePos a b) => Parser a -> Parser b
 -- lexeme p = do
 --     pos <- getOffset
 --     annotatePos pos <$> lexeme_ p
 
-{- | Add trailing space removal to a parser
-lexeme :: Parser a -> Parser a
--}
+-- | Add trailing space removal to a parser
+-- lexeme :: Parser a -> Parser a
 lexeme = L.lexeme ws
 
 ws :: Parser ()
@@ -51,9 +52,8 @@ ws = L.space hspace1 empty empty
 
 wsn = L.space space1 empty empty
 
-{- | Space consumer
- |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
--}
+-- | Space consumer
+-- |Removes spaces and haskell style line and block comments "--.." "{\- ..-\}"
 
 -- sc = L.space space1 lineComment blockComment
 --   where
@@ -64,17 +64,16 @@ wsn = L.space space1 empty empty
 -- end parser = (<* eof)
 -- doc = between sc (sc >> eof)
 
-{- $lexemes
-Lexemes remove any trailing space, including comments:
-
->>> parseMaybe float "3.3  -- a nice float"
-Just 3.3
-
-but do not remove initial space:
-
->>> parseMaybe float "  3.3"
-Nothing
--}
+-- $lexemes
+-- Lexemes remove any trailing space, including comments:
+--
+-- >>> parseMaybe float "3.3  -- a nice float"
+-- Just 3.3
+--
+-- but do not remove initial space:
+--
+-- >>> parseMaybe float "  3.3"
+-- Nothing
 
 {- Parse and normalise linux/windows/mac line endings
 >>> parseMaybe lineEnd "\n"
@@ -88,10 +87,10 @@ Just '\n'
 -}
 lineEnd :: Parser Char
 lineEnd =
-    choice
-        [ char '\r' >> optional (char '\n') >> return '\n'
-        , char '\n'
-        ]
+  choice
+    [ char '\r' >> optional (char '\n') >> return '\n',
+      char '\n'
+    ]
 
 -- TODO:add check on
 -- withPredicate
@@ -108,6 +107,10 @@ lineEnd =
 --       setOffset o
 --       fail msg
 
+{-
+>>> parseMaybe localId "N"
+Nothing
+-}
 localId :: Parser Text
 localId = lexeme name
 
@@ -143,6 +146,7 @@ Allow _ ?
 True
 
 >>> parseMaybe constr "N"
+Just "N"
 
 >>> parseMaybe constr "Nil"
 Just "Nil"
@@ -154,32 +158,49 @@ constr :: Parser Text
 constr = lexeme $ T.cons <$> upperChar <*> takeWhileP (Just "alpha numeric") isAlphaNum
 
 {-
->>> parseMaybe infixOp "+"
-Just "+"
+WARN: overlaps with Wild
+
+>>> parseMaybe sym "_"
+Nothing
 
 >>> parseMaybe sym "-−"
-Just "-\8722"
+Nothing
 
 >>> parseMaybe sym "->"
-Just "->"
+Nothing
 
 >>> parseMaybe sym "+−+=×÷<√∊≠><&!`~!@#$%^&*+=:;'?,.-_/!*/+"
-Just "+\8722+=\215\247<\8730\8714\8800><&!`~!@#$%^&*+=:;'?,.-_/!*/+"
+Nothing
+
+>>> parseMaybe sym "−"
+Just "\8722"
+
+>>> parseMaybe sym "()"
+Nothing
+
+>>> parseMaybe sym "[]"
+Nothing
+
+>>> parseMaybe sym "{}"
+Nothing
 -}
+
 sym :: Parser Text
 sym = pack <$> some symChar
 
 -- TODO: spell out allowed categories
 symChar :: (MonadParsec e s m, Token s ~ Char) => m (Token s)
 symChar =
-    satisfy
-        ( \c ->
-            C.isSymbol c
-                || elem (C.generalCategory c) [C.MathSymbol, C.OtherPunctuation, C.CurrencySymbol]
-                || elem c ['-', '_']
-        )
-        <?> "sym"
+  satisfy isInfixChar
+    <?> "sym"
 {-# INLINE symChar #-}
+
+isInfixChar :: Char -> Bool
+isInfixChar c =
+  C.isSymbol c
+    || elem (C.generalCategory c) [C.MathSymbol, C.OtherPunctuation, C.CurrencySymbol]
+
+-- \|| elem c ['-', '_']
 
 {-
 >>> let p = parseMaybe wild
@@ -204,53 +225,51 @@ wild = lexeme $ T.tail <$> wld
   where
     wld = T.cons <$> char '_' <*> (fromMaybe T.empty <$> optional (name <|> wld))
 
-{- |
-Parse a specific string
-
->>> parseMaybe (symbol "=") ""
-Nothing
-
->>> parseMaybe (symbol "=") "*"
-Nothing
-
->>> parseMaybe (symbol "=") "= -- an equal sign"
-Just "="
-
->>> parseMaybe (symbol "if then") "if then"
-Just "if then"
-
->>> parseMaybe (symbol "Gold金en") "Gold金en"
-Just "Gold\37329en"
--}
+-- |
+-- Parse a specific string
+--
+-- >>> parseMaybe (symbol "=") ""
+-- Nothing
+--
+-- >>> parseMaybe (symbol "=") "*"
+-- Nothing
+--
+-- >>> parseMaybe (symbol "=") "= -- an equal sign"
+-- Just "="
+--
+-- >>> parseMaybe (symbol "if then") "if then"
+-- Just "if then"
+--
+-- >>> parseMaybe (symbol "Gold金en") "Gold金en"
+-- Just "Gold\37329en"
 symbol :: Text -> Parser Text
 symbol = L.symbol ws
 
-{- |
-Parse absolute reference's compact string format
-
->>> parseMaybe shake "Ke45682c11f7b"
-Just (SHAKE128_48 228 86 130 193 31 123)
-
->>> parseMaybe shake "KE45682C11F7B "
-Just (SHAKE128_48 228 86 130 193 31 123)
--}
+-- |
+-- Parse absolute reference's compact string format
+--
+-- >>> parseMaybe shake "Ke45682c11f7b"
+-- Just (SHAKE128_48 228 86 130 193 31 123)
+--
+-- >>> parseMaybe shake "KE45682C11F7B "
+-- Just (SHAKE128_48 228 86 130 193 31 123)
 shake :: Parser (SHAKE128_48 a)
 shake = lexeme k
   where
     k =
-        ( \k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 ->
-            unPrettyRef [k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12]
-        )
-            <$> char 'K'
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
-            <*> hexDigitChar
+      ( \k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 ->
+          unPrettyRef [k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12]
+      )
+        <$> char 'K'
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
+        <*> hexDigitChar
